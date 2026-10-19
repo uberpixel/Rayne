@@ -22,8 +22,7 @@
 #endif
 
 #if RN_PLATFORM_IOS
-	#include "OISInputManager.h"
-	#include "OISMultiTouch.h"
+	#include "RNInputIOS.h"
 #endif
 
 namespace RN
@@ -67,49 +66,6 @@ namespace RN
 #if !RN_PLATFORM_IOS && !RN_PLATFORM_VISIONOS
 	extern void BuildPlatformDeviceTree();
 	extern void TearDownPlatformDeviceTree();
-#endif
-
-#if RN_PLATFORM_IOS
-	class OISInputHandler : public OIS::MultiTouchListener
-	{
-	public:
-		OISInputHandler(InputManager *inputManager) { _inputManager = inputManager; }
-
-		bool touchMoved(const OIS::MultiTouchEvent &arg) override
-		{
-			_inputManager->_lock.Lock();
-			_inputManager->_mouseMovement = Vector3(arg.state.X.rel, arg.state.Y.rel, arg.state.Z.rel);
-			_inputManager->_lock.Unlock();
-			return true;
-		}
-
-		bool touchPressed(const OIS::MultiTouchEvent &arg) override
-		{
-			_inputManager->_lock.Lock();
-			_inputManager->_currentTouchCount += 1;
-			_inputManager->_lock.Unlock();
-			return true;
-		}
-
-		bool touchReleased(const OIS::MultiTouchEvent &arg) override
-		{
-			_inputManager->_lock.Lock();
-			_inputManager->_currentTouchCount -= 1;
-			_inputManager->_lock.Unlock();
-			return true;
-		}
-
-		bool touchCancelled(const OIS::MultiTouchEvent &arg) override
-		{
-			_inputManager->_lock.Lock();
-			_inputManager->_currentTouchCount -= 1;
-			_inputManager->_lock.Unlock();
-			return true;
-		}
-
-	private:
-		InputManager *_inputManager;
-	};
 #endif
 
 	static InputManager *__sharedInstance = nullptr;
@@ -197,16 +153,7 @@ namespace RN
 #if RN_PLATFORM_IOS
 		_currentTouchCount = 0;
 
-		OIS::ParamList pl;
-		_inputManager = OIS::InputManager::createInputSystem(pl);
-
-		//Lets enable all addons that were compiled in:
-		_inputManager->enableAddOnFactory(OIS::InputManager::AddOn_All);
-
-		OIS::MultiTouch *multitouch = (OIS::MultiTouch *)_inputManager->createInputObject(OIS::OISMultiTouch, true);
-
-		_oisInputHandler = new OISInputHandler(this);
-		multitouch->setEventCallback(_oisInputHandler);
+		_iosInput = new InputIOS(this);
 #endif
 
 		PS4Controller::RegisterDriver();
@@ -226,7 +173,8 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_IOS
-		delete _oisInputHandler;
+		// Finish UIKit callbacks before destroying the manager.
+		delete _iosInput;
 #endif
 
 		_devices->Release();
@@ -348,6 +296,27 @@ namespace RN
 #endif
 	}
 
+	std::vector<InputManager::TouchEvent> InputManager::GetTouchEvents(uint64 &generation)
+	{
+		LockGuard<Lockable> lock(_lock);
+		generation = _touchGeneration;
+		return _touchEvents;
+	}
+
+	uint64 InputManager::GetTouchGeneration()
+	{
+		LockGuard<Lockable> lock(_lock);
+		return _touchGeneration;
+	}
+
+	void InputManager::ResetTouches()
+	{
+		LockGuard<Lockable> lock(_lock);
+		_pendingTouches.clear();
+		_touchEvents.clear();
+		++_touchGeneration;
+	}
+
 	void InputManager::Update(float delta)
 	{
 		RN::Array *devices;
@@ -355,6 +324,8 @@ namespace RN
 		{
 			LockGuard<Lockable> lock(_lock);
 			devices = _devices->Copy()->Autorelease();
+			_touchEvents = std::move(_pendingTouches);
+			_pendingTouches.clear();
 		}
 
 		_previousMouseDelta = _mouseDelta;
@@ -983,23 +954,15 @@ namespace RN
 #if RN_PLATFORM_IOS
 		if(name->IsEqual(RNCSTR("W")))
 		{
-			//Simulate W button for forward movement if more than one finger touches the screen
-			/*size_t touchCount = 0;
-			_lock.Lock();
-			touchCount = _currentTouchCount;
-			_lock.Unlock();*/
-
+			// Two fingers simulate W.
+			LockGuard<Lockable> lock(_lock);
 			return (_currentTouchCount == 2);
 		}
 
 		if(name->IsEqual(RNCSTR("E")))
 		{
-			//Simulate W button for forward movement if more than one finger touches the screen
-			/*size_t touchCount = 0;
-			_lock.Lock();
-			touchCount = _currentTouchCount;
-			_lock.Unlock();*/
-
+			// Three fingers simulate E.
+			LockGuard<Lockable> lock(_lock);
 			return (_currentTouchCount == 3);
 		}
 #endif

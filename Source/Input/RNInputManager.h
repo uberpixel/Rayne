@@ -23,21 +23,16 @@ struct _XDisplay;
 typedef struct _XDisplay Display;
 #endif
 
-namespace OIS
-{
-	class InputManager;
-}
-
 namespace RN
 {
-	class OISInputHandler;
+	class InputIOS;
 	class InputManager
 	{
 	public:
 		friend class Kernel;
 		friend class InputDevice;
 		friend class HIDDevice;
-		friend class OISInputHandler;
+		friend class InputIOS;
 
 		RN_OPTIONS(Event, uint32,
 				   DidStart = (1 << 0),
@@ -56,6 +51,24 @@ namespace RN
 			Object *value;
 			Event event;
 		};
+
+		// Raw touches from iOS. Coordinates use logical points from the top left.
+		// Opaque identifiers last from Began through Ended/Cancelled.
+		enum class TouchPhase { Began, Moved, Ended, Cancelled };
+		struct TouchEvent
+		{
+			TouchPhase phase;
+			uintptr_t identifier;
+			Vector2 position;
+			Vector2 viewSize;
+		};
+		// Each frame keeps native event order and complete touch batches.
+		// Taps between frames are kept. Repeated reads return the same snapshot.
+		RNAPI std::vector<TouchEvent> GetTouchEvents(uint64 &generation);
+		RNAPI uint64 GetTouchGeneration();
+		// Clear queued and published events and advance generation.
+		// Reset and lifecycle changes invalidate held contacts and older snapshots.
+		RNAPI void ResetTouches();
 
 		using Callback = std::function<void(const Action &action)>;
 
@@ -116,8 +129,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_IOS
-		OIS::InputManager *_inputManager;
-		OISInputHandler *_oisInputHandler;
+		InputIOS *_iosInput;
 		Vector3 _mouseMovement;
 		size_t _currentTouchCount;
 #endif
@@ -145,7 +157,11 @@ namespace RN
 		void PerformEvent(Event event, InputDevice *device, InputControl *control, Object *value);
 		void Update(float delta);
 
-		Lockable _lock;
+		mutable Lockable _lock;
+		std::vector<TouchEvent> _touchEvents;
+		uint64 _touchGeneration = 1;
+		std::vector<TouchEvent> _pendingTouches;
+		bool _touchActive = true;
 		Array *_devices;
 		std::vector<Target> _targets;
 		Dictionary *_bindings;

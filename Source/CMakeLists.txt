@@ -363,8 +363,8 @@ if(APPLE)
     endif()
 
     if(IOS)
-        list(APPEND VENDOR_INCLUDES ${OIS_SOURCE_DIR}/includes)
-        list(APPEND PRIVATE_LIBRARIES OIS)
+        find_library(UIKIT_LIBRARY UIKit REQUIRED)
+        list(APPEND PRIVATE_LIBRARIES ${UIKIT_LIBRARY})
     endif()
 endif()
 
