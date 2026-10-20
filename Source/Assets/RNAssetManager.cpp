@@ -344,8 +344,9 @@ namespace RN
 		{
 			file = File::WithName(name, File::Mode::Read);
 		}
-		catch(Exception &)
+		catch(Exception &exception)
 		{
+			RNWarning("Failed opening asset " << name << ": " << exception.GetReason());
 			file = nullptr;
 		}
 
@@ -491,8 +492,9 @@ namespace RN
 		{
 			file = File::WithName(name, File::Mode::Read);
 		}
-		catch(Exception &)
+		catch(Exception &exception)
 		{
+			RNWarning("Failed opening asset " << name << ": " << exception.GetReason());
 			file = nullptr;
 		}
 

@@ -284,8 +284,9 @@ namespace RN
 		int fd = open(name->GetUTF8String(), oflag, 0664); //read and write permission for same user and group, but no access for anyone else
 		if(fd == -1)
 		{
+			int openError = errno;
 			errno = error;
-			throw FileNotFoundException(RNSTR("Couldn't find file " << name));
+			throw FileNotFoundException(RNSTR("Couldn't open file " << name << " (errno " << openError << ")"));
 		}
 
 		return fd;
@@ -317,7 +318,7 @@ namespace RN
 		String *path = coordinator->ResolveFullPath(name, hint);
 		if(!path)
 		{
-			throw FileNotFoundException(RNSTR("Couldn't find file " << name));
+			throw FileNotFoundException(RNSTR("Couldn't resolve file path " << name));
 		}
 
 #if RN_PLATFORM_ANDROID
