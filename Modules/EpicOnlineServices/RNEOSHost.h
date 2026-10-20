@@ -41,7 +41,8 @@ namespace RN
 		enum ProtocolPayloadType : uint8
 		{
 			ProtocolPayloadTypeData,
-			ProtocolPayloadTypeMultipart
+			ProtocolPayloadTypeMultipart,
+			ProtocolPayloadTypeCompressed = 0x80
 		};
 
 		#pragma pack(push, 1)
@@ -54,14 +55,14 @@ namespace RN
 
 		struct ProtocolPayloadHeader
 		{
-			ProtocolPayloadType payloadType;
+			ProtocolPayloadType payloadType; // Data type with optional compression flag.
 			uint32 packetID;
 			uint16 dataLength; // Allows batching multiple application packets in one envelope.
 		};
 
 		struct ProtocolPayloadHeaderMultipart
 		{
-			ProtocolPayloadType payloadType; //Has to be ProtocolPayloadTypeMultipart
+			ProtocolPayloadType payloadType; // Multipart type with optional compression flag.
 			uint32 packetID; //The packet ID is the same for all parts!
 			uint16 dataPart; //The current part of the data, starts with 0
 			uint16 totalDataParts; //The number of parts to wait for before being able to use it
@@ -89,6 +90,7 @@ namespace RN
 		struct Packet
 		{
 			bool isReliable = false;
+			bool isCompressed = false;
 			Data *data = nullptr;
 			uint32 multipartPacketID = 0;
 			uint16 multipartNextPart = 0;
@@ -115,6 +117,7 @@ namespace RN
 			uint32 packetID;
 			uint16 totalParts;
 			uint16 currentPart;
+			bool isCompressed;
 			Data *data;
 		};
 
@@ -159,9 +162,16 @@ namespace RN
 			bool lostData = false;
 		};
 
+		struct DecodedPacket
+		{
+			Data *data;
+			bool isCompressed;
+		};
+
 		struct DecodeResult
 		{
-			std::vector<Data *> packets;
+			std::vector<DecodedPacket> packets;
+			bool isReliable = false;
 			bool connectRequest = false;
 			bool connectResponse = false;
 			bool multipartProgress = false;
@@ -181,7 +191,11 @@ namespace RN
 		EOSAPI ~EOSHost() override;
 
 		enum class SendResult { Queued, InvalidPacket, PeerUnavailable, QueueFull };
-		EOSAPI SendResult TrySendPacket(Data *data, EOSClientID receiverID, uint32 channel = 0, bool reliable = false);
+		// Budget and result count encoded payload bytes, excluding transport headers; refusal returns zero bytes.
+		EOSAPI SendResult TrySendPacket(Data *data, EOSClientID receiverID, uint32 channel = 0, bool reliable = false,
+			size_t maximumQueuedBytes = MaximumReassembledPacketSize, size_t *queuedBytes = nullptr);
+		// Queue one prepared payload for the specified active peers; returns the accepted recipient count.
+		EOSAPI size_t TryBroadcastPacket(Data *data, const std::vector<EOSClientID> &receivers, uint32 channel = 0, bool reliable = false);
 		EOSAPI void LobbyMemberJoined(EOS_ProductUserId productUserID);
 		EOSAPI void LobbyMemberLeft(EOS_ProductUserId productUserID);
 
@@ -227,6 +241,7 @@ namespace RN
 		EOSAPI EOSClientID GetUserIDForInternalID(EOS_ProductUserId internalID);
 		EOSAPI EOSClientID GetClientIDForProductUserID(EOS_ProductUserId productUserID) const;
 		EOSAPI DecodeResult DecodePackets(Peer &peer, const uint8 *rawData, size_t bytesWritten, uint32 channel);
+		EOSAPI void InflateDecodedPackets(DecodeResult &result);
 
 		EOSAPI virtual void HandleLobbyMemberJoined(EOSClientID clientID) {}
 		EOSAPI virtual void HandleLobbyMemberLeft(EOSClientID clientID) {}
@@ -259,7 +274,12 @@ namespace RN
 		std::map<EOSClientID, EOS_ProductUserId> _idMap;
 
 	private:
-		SendResult QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive);
+		SendResult QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive,
+			size_t maximumQueuedBytes = MaximumReassembledPacketSize, size_t *queuedBytes = nullptr);
+		SendResult QueuePreparedPacket(Data *prepared, bool isCompressed, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive,
+			size_t maximumQueuedBytes = MaximumReassembledPacketSize, size_t *queuedBytes = nullptr);
+		static Data *PreparePacket(Data *data, bool &isCompressed);
+		static Data *InflatePacket(Data *data, size_t &remainingBytes);
 		size_t GetRemainingReliableWindow(const Peer &peer, uint32 channel, bool allowBackgroundSpare = false) const;
 		bool SendScheduledPacket(Peer &peer, uint32 channel, const void *bytes, size_t length, bool reliable, bool allowBackgroundSpare);
 		static void OnConnectionInterruptedCallback(const EOS_P2P_OnPeerConnectionInterruptedInfo *Data);

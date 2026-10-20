@@ -53,6 +53,7 @@ rayne_set_module_output_directory(RayneEOS)
 
 target_include_directories(RayneEOS SYSTEM PRIVATE ${EOSSDK_INCLUDE_DIR})
 target_compile_definitions(RayneEOS PRIVATE "${DEFINES}")
+target_link_libraries(RayneEOS PRIVATE ZLIB::ZLIB)
 
 if(ANDROID OR IOS OR VISIONOS)
         target_link_libraries(RayneEOS PRIVATE EOSSDK)

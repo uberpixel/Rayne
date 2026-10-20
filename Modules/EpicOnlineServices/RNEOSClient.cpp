@@ -171,6 +171,8 @@ namespace RN
 			return isCurrent;
 		};
 
+		if(!result.lostReliableData && isSenderCurrent()) InflateDecodedPackets(result);
+
 		if(result.multipartProgress && isSenderCurrent()) HandleReliableMultipartProgress(0, channel);
 		if(result.lostReliableData && isSenderCurrent()) HandleReliablePacketLoss(0, channel);
 		if(!result.lostReliableData && didConnect && isSenderCurrent())
@@ -178,8 +180,9 @@ namespace RN
 			RNDebug("Connected!");
 			HandleDidConnect(0);
 		}
-		for(Data *packet : result.packets)
+		for(const DecodedPacket &decoded : result.packets)
 		{
+			Data *packet = decoded.data;
 			if(!result.lostReliableData && isSenderCurrent()) ReceivedPacket(packet, 0, channel);
 			packet->Release();
 		}

@@ -109,10 +109,13 @@ namespace RN
 			return isCurrent;
 		};
 
+		if(!result.lostReliableData && isSenderCurrent()) InflateDecodedPackets(result);
+
 		if(result.multipartProgress && isSenderCurrent()) HandleReliableMultipartProgress(senderID, channel);
 		if(result.lostReliableData && isSenderCurrent()) HandleReliablePacketLoss(senderID, channel);
-		for(Data *packet : result.packets)
+		for(const DecodedPacket &decoded : result.packets)
 		{
+			Data *packet = decoded.data;
 			if(!result.lostReliableData && isSenderCurrent()) ReceivedPacket(packet, senderID, channel);
 			packet->Release();
 		}

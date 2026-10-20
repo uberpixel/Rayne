@@ -556,6 +556,8 @@ namespace RN
 			Unlock();
 			return isCurrent;
 		};
+		if(senderWasAdmitted && isSenderCurrent()) InflateDecodedPackets(result);
+
 		if(result.multipartProgress && senderID != CLIENT_ID_NONE) HandleReliableMultipartProgress(senderID, channel);
 		if(result.lostReliableData && senderID != CLIENT_ID_NONE && isSenderCurrent()) HandleReliablePacketLoss(senderID, channel);
 		if(didCompleteHostMigration && isSenderCurrent()) HandleHostMigration();
@@ -572,8 +574,9 @@ namespace RN
 				if(clientID != CLIENT_ID_NONE) HandleDidConnect(clientID);
 			}
 		}
-		for(Data *packet : result.packets)
+		for(const DecodedPacket &decoded : result.packets)
 		{
+			Data *packet = decoded.data;
 			if(senderWasAdmitted && isSenderCurrent())
 			{
 				ReceivedPacket(packet, senderID, channel);

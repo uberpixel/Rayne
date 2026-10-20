@@ -9,6 +9,7 @@
 #include "RNEOSHost.h"
 
 #include <RayneConfig.h>
+#include <zlib.h>
 
 #include "RNEOSWorld.h"
 
@@ -180,12 +181,138 @@ namespace RN
 		SendRawPacket(receiverID, 255, &packetHeader, sizeof(packetHeader), false);
 	}
 
-	EOSHost::SendResult EOSHost::QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive)
+	Data *EOSHost::PreparePacket(Data *data, bool &isCompressed)
 	{
-		if(!data || channel > 255 || IsReservedChannel(channel)) return SendResult::InvalidPacket;
-		size_t packetLength = data->GetLength();
-		if(packetLength > MaximumReassembledPacketSize) return SendResult::InvalidPacket;
-		RN_ASSERT(!reliable || packetLength <= MaximumReassembledPacketSize, "Reliable EOS packet exceeds the maximum reassembled size");
+		// Payload high bit: four-byte little-endian original length followed by one zlib stream.
+		// Try level 1 from 256 bytes, keeping it only when the full payload saves 16 bytes.
+		isCompressed = false;
+		const size_t length = data->GetLength();
+		if(length < 256 || length > MaximumReassembledPacketSize) return data->Retain();
+
+		struct Compressor
+		{
+			z_stream stream = {};
+			bool initialized;
+
+			Compressor() :
+				initialized(deflateInit(&stream, Z_BEST_SPEED) == Z_OK)
+			{}
+
+			~Compressor()
+			{
+				if(initialized) deflateEnd(&stream);
+			}
+		};
+		thread_local Compressor compressor;
+		if(!compressor.initialized || deflateReset(&compressor.stream) != Z_OK) return data->Retain();
+
+		uLongf compressedLength = compressBound(static_cast<uLong>(length));
+		Data *buffer = new Data(compressedLength + 4);
+		uint8 *bytes = static_cast<uint8 *>(buffer->GetBytes());
+		for(size_t index = 0; index < 4; index++)
+		{
+			bytes[index] = static_cast<uint8>(length >> (index * 8));
+		}
+
+		z_stream &stream = compressor.stream;
+		stream.next_in = static_cast<Bytef *>(data->GetBytes());
+		stream.avail_in = static_cast<uInt>(length);
+		stream.next_out = bytes + 4;
+		stream.avail_out = static_cast<uInt>(compressedLength);
+		int status = deflate(&stream, Z_FINISH);
+		compressedLength = stream.total_out;
+		Data *prepared = data;
+		if(status == Z_STREAM_END && compressedLength + 4 + 16 <= length)
+		{
+			prepared = new Data(bytes, compressedLength + 4);
+			isCompressed = true;
+		}
+		else prepared->Retain();
+		buffer->Release();
+		return prepared;
+	}
+
+	Data *EOSHost::InflatePacket(Data *data, size_t &remainingBytes)
+	{
+		if(data->GetLength() < 4) return nullptr;
+		const uint8 *bytes = static_cast<const uint8 *>(data->GetBytes());
+		size_t length = 0;
+		for(size_t index = 0; index < 4; index++)
+		{
+			length |= static_cast<size_t>(bytes[index]) << (index * 8);
+		}
+
+		// Charge the declared expansion even if the compressed payload is invalid.
+		bool fits = length <= remainingBytes;
+		remainingBytes -= std::min(remainingBytes, length);
+		if(!fits || data->GetLength() < 5 || data->GetLength() > MaximumReassembledPacketSize ||
+			length < 256 || length > MaximumReassembledPacketSize || data->GetLength() + 16 > length)
+		{
+			return nullptr;
+		}
+
+		z_stream stream = {};
+		stream.next_in = const_cast<Bytef *>(bytes + 4);
+		stream.avail_in = static_cast<uInt>(data->GetLength() - 4);
+		if(inflateInit(&stream) != Z_OK) return nullptr;
+		Data *inflated = new Data(length);
+		stream.next_out = static_cast<Bytef *>(inflated->GetBytes());
+		stream.avail_out = static_cast<uInt>(length);
+		int status = inflate(&stream, Z_FINISH);
+		bool valid = status == Z_STREAM_END && stream.total_out == length && stream.avail_in == 0;
+		inflateEnd(&stream);
+		if(valid) return inflated;
+		inflated->Release();
+		return nullptr;
+	}
+
+	void EOSHost::InflateDecodedPackets(DecodeResult &result)
+	{
+		size_t remainingBytes = MaximumReassembledPacketSize;
+		for(auto packet = result.packets.begin(); packet != result.packets.end();)
+		{
+			if(!packet->isCompressed && packet->data->GetLength() <= remainingBytes)
+			{
+				remainingBytes -= packet->data->GetLength();
+				++packet;
+				continue;
+			}
+			if(!packet->isCompressed) remainingBytes = 0;
+
+			Data *inflated = packet->isCompressed ? InflatePacket(packet->data, remainingBytes) : nullptr;
+			packet->data->Release();
+			if(!inflated)
+			{
+				result.lostReliableData |= result.isReliable;
+				packet = result.packets.erase(packet);
+				continue;
+			}
+			packet->data = inflated;
+			packet->isCompressed = false;
+			++packet;
+		}
+	}
+
+	EOSHost::SendResult EOSHost::QueuePacket(Data *data, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive,
+		size_t maximumQueuedBytes, size_t *queuedBytes)
+	{
+		if(!data || IsReservedChannel(channel)) return SendResult::InvalidPacket;
+		if(data->GetLength() > MaximumReassembledPacketSize) return SendResult::InvalidPacket;
+
+		bool isCompressed;
+		Data *prepared = PreparePacket(data, isCompressed);
+		SendResult result = QueuePreparedPacket(prepared, isCompressed, receiverID, channel, reliable, requireActive,
+			maximumQueuedBytes, queuedBytes);
+		prepared->Release();
+		return result;
+	}
+
+	EOSHost::SendResult EOSHost::QueuePreparedPacket(Data *prepared, bool isCompressed, EOS_ProductUserId receiverID, uint32 channel, bool reliable, bool requireActive,
+		size_t maximumQueuedBytes, size_t *queuedBytes)
+	{
+		const size_t packetLength = prepared->GetLength();
+		if(!reliable && packetLength + sizeof(ProtocolPayloadHeader) + sizeof(ProtocolPacketEnvelope) > MaximumPacketSize) return SendResult::InvalidPacket;
+		if(packetLength > maximumQueuedBytes) return SendResult::QueueFull;
 
 		Lock();
 		auto peer = _peers.find(receiverID);
@@ -200,11 +327,6 @@ namespace RN
 			Unlock();
 			return SendResult::PeerUnavailable; //Don't allow sending more data to users that are about to be disconnected.
 		}
-		if(!reliable && packetLength + sizeof(ProtocolPayloadHeader) + sizeof(ProtocolPacketEnvelope) > MaximumPacketSize)
-		{
-			Unlock();
-			return SendResult::InvalidPacket;
-		}
 		// Leave half the mesh queue available for reliable traffic.
 		size_t queueLimit = _limitAggregateSending ? EOSMeshScheduledBytesPerPeer / (reliable ? 1 : 2) : EOSMaxScheduledBytesPerPeer;
 		if(channel == _backgroundChannel)
@@ -218,7 +340,9 @@ namespace RN
 			}
 			queueLimit /= 2;
 		}
-		bool exceedsQueueLimit = packetLength > queueLimit || peer->second._scheduledPacketBytes > queueLimit - packetLength;
+		size_t queuedPacketCount = 0;
+		for(const auto &entry : peer->second._scheduledPackets) queuedPacketCount += entry.second.size();
+		bool exceedsQueueLimit = queuedPacketCount >= 8192 || packetLength > queueLimit || peer->second._scheduledPacketBytes > queueLimit - packetLength;
 		if(exceedsQueueLimit)
 		{
 			Unlock();
@@ -227,12 +351,14 @@ namespace RN
 
 		Packet queued;
 		queued.isReliable = reliable;
-		queued.data = data->Retain();
+		queued.data = prepared->Retain();
+		queued.isCompressed = isCompressed;
 		queued.queuedAt = Clock::now();
 		peer->second._scheduledPackets[channel].push_back(queued);
 		peer->second._scheduledPacketBytes += packetLength;
 
 		Unlock();
+		if(queuedBytes) *queuedBytes = packetLength;
 		return SendResult::Queued;
 	}
 
@@ -248,13 +374,15 @@ namespace RN
 		}
 	}
 
-	EOSHost::SendResult EOSHost::TrySendPacket(Data *data, EOSClientID receiverID, uint32 channel, bool reliable)
+	EOSHost::SendResult EOSHost::TrySendPacket(Data *data, EOSClientID receiverID, uint32 channel, bool reliable,
+		size_t maximumQueuedBytes, size_t *queuedBytes)
 	{
+		if(queuedBytes) *queuedBytes = 0;
 		Lock();
 		auto receiver = _idMap.find(receiverID);
 		EOS_ProductUserId internalID = receiver != _idMap.end() ? receiver->second : nullptr;
 		Unlock();
-		return internalID ? QueuePacket(data, internalID, channel, reliable, true) : SendResult::PeerUnavailable;
+		return internalID ? QueuePacket(data, internalID, channel, reliable, true, maximumQueuedBytes, queuedBytes) : SendResult::PeerUnavailable;
 	}
 
 	void EOSHost::LobbyMemberJoined(EOS_ProductUserId productUserID)
@@ -278,7 +406,7 @@ namespace RN
 
 	void EOSHost::SendPacket(Data *data, EOSClientID receiverID, uint32 channel, bool reliable)
 	{
-		if(!data || channel > 255 || IsReservedChannel(channel)) return;
+		if(!data || IsReservedChannel(channel)) return;
 		Lock();
 		auto receiver = _idMap.find(receiverID);
 		if(receiver == _idMap.end())
@@ -294,19 +422,48 @@ namespace RN
 
 	void EOSHost::BroadcastPacket(Data *data, uint32 channel, bool reliable, EOSClientID excludeClientID)
 	{
-		if(!data || channel > 255 || IsReservedChannel(channel)) return;
-		std::vector<EOS_ProductUserId> receivers;
+		if(!data || IsReservedChannel(channel) || data->GetLength() > MaximumReassembledPacketSize) return;
+		std::vector<std::pair<EOS_ProductUserId, EOSClientID>> receivers;
 		Lock();
 		for(const auto &peer : _peers)
 		{
 			if(excludeClientID != CLIENT_ID_NONE && peer.second.clientID == excludeClientID) continue;
-			receivers.push_back(peer.first);
+			receivers.emplace_back(peer.first, peer.second.clientID);
 		}
 		Unlock();
-		for(EOS_ProductUserId receiver : receivers)
+		if(receivers.empty()) return;
+		bool isCompressed;
+		Data *prepared = PreparePacket(data, isCompressed);
+		for(const auto &receiver : receivers)
 		{
-			SendPacket(data, receiver, channel, reliable);
+			SendResult result = QueuePreparedPacket(prepared, isCompressed, receiver.first, channel, reliable, false);
+			if(result == SendResult::QueueFull && reliable && receiver.second != CLIENT_ID_NONE)
+			{
+				HandleReliablePacketLoss(receiver.second, channel);
+			}
 		}
+		prepared->Release();
+	}
+
+	size_t EOSHost::TryBroadcastPacket(Data *data, const std::vector<EOSClientID> &receivers, uint32 channel, bool reliable)
+	{
+		if(!data || IsReservedChannel(channel) || data->GetLength() > MaximumReassembledPacketSize || receivers.empty()) return 0;
+		bool isCompressed;
+		Data *prepared = PreparePacket(data, isCompressed);
+		size_t accepted = 0;
+		for(EOSClientID receiver : receivers)
+		{
+			Lock();
+			auto found = _idMap.find(receiver);
+			EOS_ProductUserId internalID = found != _idMap.end() ? found->second : nullptr;
+			Unlock();
+			if(internalID && QueuePreparedPacket(prepared, isCompressed, internalID, channel, reliable, true) == SendResult::Queued)
+			{
+				accepted++;
+			}
+		}
+		prepared->Release();
+		return accepted;
 	}
 
 	void EOSHost::ReceivedPacketInternal(uint8 *rawData, uint32 bytesWritten, EOS_ProductUserId senderUserID, uint8 channel)
@@ -381,7 +538,7 @@ namespace RN
 		memcpy(&packetHeader, rawData, sizeof(packetHeader));
 		constexpr size_t payloadSize = MaximumPacketSize - sizeof(ProtocolPayloadHeaderMultipart) - sizeof(ProtocolPacketEnvelope);
 		constexpr size_t maximumPartCount = (MaximumReassembledPacketSize + payloadSize - 1) / payloadSize;
-		if(packetHeader.payloadType != ProtocolPayloadTypeMultipart || packetHeader.totalDataParts == 0 ||
+		if((packetHeader.payloadType & ~ProtocolPayloadTypeCompressed) != ProtocolPayloadTypeMultipart || packetHeader.totalDataParts == 0 ||
 			packetHeader.totalDataParts > maximumPartCount || packetHeader.dataPart >= packetHeader.totalDataParts)
 		{
 			return result;
@@ -389,7 +546,8 @@ namespace RN
 
 		auto assembly = peer._multipartAssemblies.find(channel);
 		if(assembly != peer._multipartAssemblies.end() && (assembly->second.currentPart + 1 != packetHeader.dataPart ||
-			assembly->second.totalParts != packetHeader.totalDataParts || assembly->second.packetID != packetHeader.packetID))
+			assembly->second.totalParts != packetHeader.totalDataParts || assembly->second.packetID != packetHeader.packetID ||
+			assembly->second.isCompressed != bool(packetHeader.payloadType & ProtocolPayloadTypeCompressed)))
 		{
 			ClearMultipartPacket(peer, channel);
 			assembly = peer._multipartAssemblies.end();
@@ -403,7 +561,9 @@ namespace RN
 				result.lostData = true;
 				return result;
 			}
-			assembly = peer._multipartAssemblies.insert(std::pair(channel, MultipartAssembly {packetHeader.packetID, packetHeader.totalDataParts, 0, new Data()})).first;
+			assembly = peer._multipartAssemblies.insert(std::pair(channel, MultipartAssembly {
+				packetHeader.packetID, packetHeader.totalDataParts, 0,
+				bool(packetHeader.payloadType & ProtocolPayloadTypeCompressed), new Data()})).first;
 		}
 		else
 		{
@@ -450,6 +610,7 @@ namespace RN
 		memcpy(&envelope, rawData, sizeof(envelope));
 		if(peer._requiresBoundStream && (!peer._remoteStream || envelope.streamID != peer._remoteStream)) return result;
 		const bool reliable = type == ProtocolPacketTypeReliableEnvelope;
+		result.isReliable = reliable;
 		if(reliable)
 		{
 			if(envelope.streamID == 0 || envelope.sentBytes < bytesWritten) return result;
@@ -472,14 +633,14 @@ namespace RN
 		}
 		rawData += sizeof(envelope);
 		bytesWritten -= sizeof(envelope);
-		ProtocolPayloadType payloadType = static_cast<ProtocolPayloadType>(rawData[0]);
+		ProtocolPayloadType payloadType = static_cast<ProtocolPayloadType>(rawData[0] & ~ProtocolPayloadTypeCompressed);
 		if(payloadType == ProtocolPayloadTypeMultipart)
 		{
 			if(!reliable) return result;
 			MultipartReceiveResult multipart = ReceiveMultipartPacket(peer, rawData, bytesWritten, channel);
 			result.multipartProgress = multipart.progressed;
 			result.lostReliableData = result.lostReliableData || multipart.lostData;
-			if(multipart.data) result.packets.push_back(multipart.data);
+			if(multipart.data) result.packets.push_back({multipart.data, bool(rawData[0] & ProtocolPayloadTypeCompressed)});
 			return result;
 		}
 		if(peer._multipartAssemblies.count(channel) != 0)
@@ -496,11 +657,11 @@ namespace RN
 			ProtocolPayloadHeader header;
 			memcpy(&header, rawData + dataIndex, sizeof(header));
 			dataIndex += sizeof(header);
-			if(header.payloadType != ProtocolPayloadTypeData || header.dataLength > bytesWritten - dataIndex) break;
+			if((header.payloadType & ~ProtocolPayloadTypeCompressed) != ProtocolPayloadTypeData || header.dataLength > bytesWritten - dataIndex) break;
 			const uint8 *payload = rawData + dataIndex;
 			dataIndex += header.dataLength;
 			if(!reliable && !IsUnreliablePacketInOrder(peer, header.packetID, static_cast<uint8>(channel))) continue;
-			result.packets.push_back(new Data(payload, header.dataLength));
+			result.packets.push_back({new Data(payload, header.dataLength), bool(header.payloadType & ProtocolPayloadTypeCompressed)});
 		}
 		return result;
 	}
@@ -555,7 +716,7 @@ namespace RN
 
 			Data *encodedPacket = new Data();
 			ProtocolPayloadHeaderMultipart header;
-			header.payloadType = ProtocolPayloadTypeMultipart;
+			header.payloadType = static_cast<ProtocolPayloadType>(ProtocolPayloadTypeMultipart | (packet.isCompressed ? ProtocolPayloadTypeCompressed : 0));
 			header.packetID = packet.multipartPacketID;
 			header.dataPart = packet.multipartNextPart;
 			header.totalDataParts = static_cast<uint16>(totalPartCount);
@@ -595,7 +756,7 @@ namespace RN
 			}
 
 			ProtocolPayloadHeader header;
-			header.payloadType = ProtocolPayloadTypeData;
+			header.payloadType = static_cast<ProtocolPayloadType>(ProtocolPayloadTypeData | (packet.isCompressed ? ProtocolPayloadTypeCompressed : 0));
 			header.packetID = peer._channels[channel].nextPacketID++;
 			header.dataLength = static_cast<uint16>(packet.data->GetLength());
 			encodedPacket->Append(&header, sizeof(header));
