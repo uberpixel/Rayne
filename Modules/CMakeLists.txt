@@ -24,6 +24,7 @@ option(RN_BUILD_RECAST_MODULE "Build the Recast navmesh module" OFF)
 option(RN_BUILD_UI_MODULE "Build the UI module" ON)
 option(RN_BUILD_FLEXUI_MODULE "Build the FlexUI module" ON)
 option(RN_BUILD_EPICONLINESERVICES_MODULE "Build the Epic Online Services module" OFF)
+option(RN_BUILD_CAPTURE_MODULE "Build the Capture module" OFF)
 option(RN_BUILD_BHAPTICS_MODULE "Build the bHaptics module" OFF)
 
 if(RAYNE_UNIVERSE_SCALE)
@@ -137,4 +138,8 @@ endif()
 
 if(${RN_BUILD_BHAPTICS_MODULE})
     add_subdirectory("bHaptics")
+endif()
+
+if(RN_BUILD_CAPTURE_MODULE)
+    add_subdirectory("Capture")
 endif()
