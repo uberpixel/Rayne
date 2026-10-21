@@ -626,9 +626,10 @@ namespace RN
 		joinOptions.bPresenceEnabled = false;
 
 		EOS_Lobby_LocalRTCOptions localRTCOptions = {0};
+		localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
+		joinOptions.LocalRTCOptions = &localRTCOptions;
 		if(_isVoiceEnabled)
 		{
-			localRTCOptions.ApiVersion = EOS_LOBBY_LOCALRTCOPTIONS_API_LATEST;
 			localRTCOptions.bLocalAudioDeviceInputStartsMuted = _isLocalPlayerMuted;
 			localRTCOptions.bUseManualAudioInput = _useManualAudioInput;
 			localRTCOptions.bUseManualAudioOutput = false;
@@ -638,7 +639,13 @@ namespace RN
 				localRTCOptions.bUseManualAudioOutput = true;
 			}
 			RNInfo("EOS voice join lobby RTC enabled startsMuted=" << localRTCOptions.bLocalAudioDeviceInputStartsMuted << " manualInput=" << localRTCOptions.bUseManualAudioInput << " manualOutput=" << localRTCOptions.bUseManualAudioOutput << " hasAudioReceivedCallback=" << static_cast<bool>(_audioReceivedCallback) << " hasAudioBeforeSendCallback=" << static_cast<bool>(_audioBeforeSendCallback));
-			joinOptions.LocalRTCOptions = &localRTCOptions;
+		}
+		else
+		{
+			// Existing lobbies may have RTC enabled. Suppress automatic SDK audio.
+			localRTCOptions.bLocalAudioDeviceInputStartsMuted = true;
+			localRTCOptions.bUseManualAudioInput = true;
+			localRTCOptions.bUseManualAudioOutput = true;
 		}
 
 		EOS_Lobby_JoinLobby(_lobbyInterfaceHandle, &joinOptions, connectedLobbyInfo, LobbyOnJoinCallback);
