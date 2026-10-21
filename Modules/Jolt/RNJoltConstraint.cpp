@@ -877,6 +877,13 @@ namespace RN
 
 		JPH::Ref<JPH::ConstraintSettings> constraintSettings = six->GetConstraintSettings();
 		JPH::SixDOFConstraintSettings *settings = static_cast<JPH::SixDOFConstraintSettings *>(constraintSettings.GetPtr());
+		auto normalizeFrame = [](JPH::Vec3 &axisX, JPH::Vec3 &axisY) {
+			axisX = axisX.Normalized();
+			JPH::Vec3 axisZ = axisX.Cross(axisY).Normalized();
+			axisY = axisZ.Cross(axisX).Normalized();
+		};
+		normalizeFrame(settings->mAxisX1, settings->mAxisY1);
+		normalizeFrame(settings->mAxisX2, settings->mAxisY2);
 		for(int i = 0; i < 3; i++)
 		{
 			settings->mLimitsSpringSettings[i] = limitsSpringSettings[i];
