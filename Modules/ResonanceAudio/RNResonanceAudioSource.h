@@ -92,6 +92,8 @@ namespace RN
 		bool _isRegisteredInWorld;
 		std::atomic<uint64> _playbackRevision {1};
 		std::atomic<uint64> _selfdestructRequest {0};
+		std::atomic<uint32> _ringUnderruns {0};
+		float _ringDiagnosticsElapsed = 0.0f;
 
 		std::atomic<uint8> _channel;
 		ResonanceAudioSampler *_sampler;

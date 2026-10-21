@@ -34,6 +34,14 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 
+		if(std::isfinite(delta) && delta > 0.0f) _ringDiagnosticsElapsed += delta;
+		if(_ringDiagnosticsElapsed >= 5.0f)
+		{
+			const uint32 underruns = _ringUnderruns.exchange(0, std::memory_order_relaxed);
+			if(underruns) RNInfo("Resonance audio ring source=" << static_cast<const void *>(this) << " underruns=" << underruns << " over " << _ringDiagnosticsElapsed << " s");
+			_ringDiagnosticsElapsed = 0.0f;
+		}
+
 		const uint64 request = _selfdestructRequest.exchange(0, std::memory_order_acq_rel);
 		if(request && request == _playbackRevision.load(std::memory_order_acquire) &&
 		   _isSelfdestructing.load(std::memory_order_relaxed) && HasEnded() && !IsPlaying())
@@ -344,6 +352,7 @@ namespace RN
 			const uint32 bufferedSize = asset->GetBufferedSize();
 			if(bufferedSize < ringBytes)
 			{
+				_ringUnderruns.fetch_add(1, std::memory_order_relaxed);
 				*outputBuffer = nullptr;
 				return false;
 			}
