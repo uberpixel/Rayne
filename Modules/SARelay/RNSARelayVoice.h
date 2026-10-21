@@ -10,9 +10,18 @@ namespace RN
 {
 	class SARelayVoice : public SARelayClient
 	{
+		struct Diagnostics
+		{
+			size_t capturedBlocks = 0;
+			double maxCaptureBlock = 0.0, droppedCapture = 0.0;
+			double staleQueued = 0.0, staleInput = 0.0, inputOverflow = 0.0, maxUpdateGap = 0.0;
+			size_t sent = 0, dtx = 0, sendFailures = 0;
+			size_t received = 0, late = 0, concealed = 0, playbackStalls = 0, codecErrors = 0;
+		};
+
 	public:
 		static constexpr uint32 SampleRate = 48000;
-		static constexpr size_t FrameSamples = 960;
+		static constexpr size_t FrameSamples = 1920;
 
 		using CaptureCallback = std::function<void(uint32, uint32, uint32, const float *)>;
 
@@ -34,7 +43,7 @@ namespace RN
 			bool SetEnabled(bool enabled);
 			void Reset();
 			void Enqueue(uint32 sampleRate, uint32 channels, uint32 frames, const float *samples);
-			bool Drain(std::vector<Chunk> &chunks);
+			bool Drain(std::vector<Chunk> &chunks, Diagnostics &diagnostics);
 
 			Lockable _lock;
 			bool _enabled = false;
@@ -42,6 +51,7 @@ namespace RN
 			uint32 _sampleRate = 0, _channels = 0;
 			bool _formatChanged = false;
 			std::vector<Chunk> _chunks;
+			Diagnostics _diagnostics;
 		};
 
 		// Share capture state across relay creation or replacement.
@@ -66,7 +76,7 @@ namespace RN
 		// Clear unsent capture and keep the send gate. Playback stays active.
 		SARELAYAPI void ResetCapture();
 
-		// Borrowed 48 kHz mono int16 PCM: exactly 960 frames per callback.
+		// Borrowed 48 kHz mono int16 PCM: exactly FrameSamples frames per callback.
 		void SetPlaybackCallback(std::function<void(const Member &, const int16 *, size_t)> callback) { _playbackCallback = std::move(callback); }
 
 	protected:
@@ -76,15 +86,16 @@ namespace RN
 
 	private:
 		static constexpr size_t CatchupPackets = 3;
-		static constexpr size_t CaptureFrames = FrameSamples * CatchupPackets;
+		static constexpr size_t CaptureFrames = SampleRate / 5;
+		static constexpr size_t InputFrames = CaptureFrames + FrameSamples;
 		static constexpr size_t JitterPackets = 6;
 		static constexpr size_t StartupPackets = 2;
 		static constexpr size_t MaxMissingPackets = 2;
 		static constexpr size_t MaxPacketBytes = 400;
 		static constexpr size_t PacketHeaderBytes = 5;
-		static constexpr uint8 PacketVersion = 1;
+		static constexpr uint8 PacketVersion = 2;
 		static constexpr double FrameDuration = static_cast<double>(FrameSamples) / SampleRate;
-		static constexpr double CaptureDuration = FrameDuration * CatchupPackets;
+		static constexpr double CatchupDuration = FrameDuration * CatchupPackets;
 		static constexpr double StaleCaptureDuration = 0.2;
 
 		struct Packet
@@ -114,11 +125,14 @@ namespace RN
 		void ProcessPCM(const float *samples, size_t frames, uint32 sampleRate, uint32 channels, double capturedAt);
 		void PlaySpeaker(Speaker &speaker);
 		void DrainCapture();
+		void LogDiagnostics();
 
 		std::shared_ptr<CaptureState> _capture;
 		OpusEncoder *_encoder;
 		std::map<uint64, Speaker> _speakers;
-		float _input[CaptureFrames];
+		float _input[InputFrames];
+		Diagnostics _diagnostics;
+		double _diagnosticsStarted = -1.0, _previousUpdate = -1.0;
 		size_t _inputCount = 0;
 		uint32 _inputRate = 0, _inputChannels = 0, _sequence = 0;
 		float _previousSample = 0.0f;

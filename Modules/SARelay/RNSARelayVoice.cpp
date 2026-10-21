@@ -14,6 +14,7 @@ namespace RN
 		_chunks.clear();
 		_frames = 0;
 		_formatChanged = false;
+		_diagnostics = {};
 		return true;
 	}
 
@@ -23,14 +24,25 @@ namespace RN
 		_chunks.clear();
 		_frames = 0;
 		_formatChanged = false;
+		_diagnostics = {};
 	}
 
 	void SARelayVoice::CaptureState::Enqueue(uint32 sampleRate, uint32 channels, uint32 frames, const float *samples)
 	{
-		if(!samples || sampleRate < 8000 || sampleRate > 192000 || !channels || channels > 8 || !frames || frames > sampleRate / 5) return;
+		if(!samples || sampleRate < 8000 || sampleRate > 192000 || !channels || channels > 8 || !frames) return;
 
 		LockGuard<Lockable> lock(_lock);
 		if(!_enabled) return;
+
+		const size_t maxFrames = size_t(sampleRate) * CaptureFrames / SampleRate;
+		const double duration = static_cast<double>(frames) / sampleRate;
+		_diagnostics.capturedBlocks++;
+		_diagnostics.maxCaptureBlock = std::max(_diagnostics.maxCaptureBlock, duration);
+		if(frames > maxFrames)
+		{
+			_diagnostics.droppedCapture += duration;
+			return;
+		}
 
 		if(_sampleRate != sampleRate || _channels != channels)
 		{
@@ -41,24 +53,27 @@ namespace RN
 			_formatChanged = true;
 		}
 
-		const size_t maxFrames = size_t(sampleRate) * CaptureFrames / SampleRate;
-		const size_t retainedFrames = std::min(size_t(frames), maxFrames);
-		while(_frames + retainedFrames > maxFrames)
+		while(_frames + frames > maxFrames)
 		{
 			auto &oldest = _chunks.front();
-			const size_t discarded = std::min(_frames + retainedFrames - maxFrames, oldest.samples.size() / channels);
+			const size_t discarded = std::min(_frames + frames - maxFrames, oldest.samples.size() / channels);
 			oldest.samples.erase(oldest.samples.begin(), oldest.samples.begin() + discarded * channels);
 			_frames -= discarded;
+			_diagnostics.droppedCapture += static_cast<double>(discarded) / sampleRate;
 			if(oldest.samples.empty()) _chunks.erase(_chunks.begin());
 		}
 
-		_chunks.push_back({sampleRate, channels, CaptureNow(), std::vector<float>(samples + (size_t(frames) - retainedFrames) * channels, samples + size_t(frames) * channels)});
-		_frames += retainedFrames;
+		_chunks.push_back({sampleRate, channels, CaptureNow(), std::vector<float>(samples, samples + size_t(frames) * channels)});
+		_frames += frames;
 	}
 
-	bool SARelayVoice::CaptureState::Drain(std::vector<Chunk> &chunks)
+	bool SARelayVoice::CaptureState::Drain(std::vector<Chunk> &chunks, Diagnostics &diagnostics)
 	{
 		LockGuard<Lockable> lock(_lock);
+		diagnostics.capturedBlocks += _diagnostics.capturedBlocks;
+		diagnostics.maxCaptureBlock = std::max(diagnostics.maxCaptureBlock, _diagnostics.maxCaptureBlock);
+		diagnostics.droppedCapture += _diagnostics.droppedCapture;
+		_diagnostics = {};
 		chunks.swap(_chunks);
 		_frames = 0;
 		const bool formatChanged = _formatChanged;
@@ -83,7 +98,7 @@ namespace RN
 		std::vector<CaptureState::Chunk> chunks;
 
 		// Reset on format changes even if all new chunks are stale.
-		if(_capture->Drain(chunks)) ResetEncoder();
+		if(_capture->Drain(chunks, _diagnostics)) ResetEncoder();
 
 		for(const auto &chunk : chunks)
 			ProcessPCM(chunk.samples.data(), chunk.samples.size() / chunk.channels, chunk.sampleRate, chunk.channels, chunk.capturedAt);
@@ -102,6 +117,7 @@ namespace RN
 			opus_encoder_ctl(_encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
 			opus_encoder_ctl(_encoder, OPUS_SET_DTX(1));
 		}
+		else RNInfo("Relay voice encoder creation failed error=" << error);
 	}
 
 	SARelayVoice::~SARelayVoice()
@@ -125,6 +141,8 @@ namespace RN
 
 		// Auth renewal can keep the UDP session. Keep sequence numbers running.
 		ResetCapture();
+		_diagnostics = {};
+		_diagnosticsStarted = _previousUpdate = -1.0;
 	}
 
 	void SARelayVoice::SetCaptureEnabled(bool enabled)
@@ -175,7 +193,11 @@ namespace RN
 	void SARelayVoice::ExpireInput(double now)
 	{
 		// Drop pending input and interpolation history together.
-		if((_inputCount || _hasPreviousSample) && now - _oldestInputCapturedAt > StaleCaptureDuration) ResetEncoder();
+		if((_inputCount || _hasPreviousSample) && now - _oldestInputCapturedAt > StaleCaptureDuration)
+		{
+			_diagnostics.staleInput += static_cast<double>(_inputCount) / SampleRate;
+			ResetEncoder();
+		}
 	}
 
 	void SARelayVoice::DiscardInput(size_t count)
@@ -191,20 +213,29 @@ namespace RN
 
 	void SARelayVoice::QueueSample(float sample)
 	{
-		// Keep only the newest 60 ms of capture.
-		if(_inputCount == CaptureFrames) DiscardInput(FrameSamples);
+		// Reserve one frame for partial input carried between updates.
+		if(_inputCount == InputFrames)
+		{
+			_diagnostics.inputOverflow += FrameDuration;
+			DiscardInput(FrameSamples);
+		}
 		_input[_inputCount++] = sample;
 	}
 
 	void SARelayVoice::SubmitPCM(const float *samples, size_t frames, uint32 sampleRate, uint32 channels)
 	{
-		if(frames > sampleRate / 5) return;
+		if(frames > UINT32_MAX) return;
 		_capture->Enqueue(sampleRate, channels, static_cast<uint32>(frames), samples);
 	}
 
 	void SARelayVoice::ProcessPCM(const float *samples, size_t frames, uint32 sampleRate, uint32 channels, double capturedAt)
 	{
-		if(!_encoder || CaptureNow() - capturedAt > StaleCaptureDuration) return;
+		if(CaptureNow() - capturedAt > StaleCaptureDuration)
+		{
+			_diagnostics.staleQueued += static_cast<double>(frames) / sampleRate;
+			return;
+		}
+		if(!_encoder) return;
 
 		if(_inputRate != sampleRate || _inputChannels != channels)
 		{
@@ -271,7 +302,11 @@ namespace RN
 
 			int error = OPUS_OK;
 			OpusDecoder *decoder = opus_decoder_create(SampleRate, 1, &error);
-			if(!decoder) return;
+			if(!decoder)
+			{
+				_diagnostics.codecErrors++;
+				return;
+			}
 
 			Speaker speaker;
 			speaker.decoder = decoder;
@@ -290,7 +325,12 @@ namespace RN
 		}
 
 		Speaker &speaker = iterator->second;
-		if(speaker.received && static_cast<int32>(sequence - speaker.sequence) < 0) return;
+		_diagnostics.received++;
+		if(speaker.received && static_cast<int32>(sequence - speaker.sequence) < 0)
+		{
+			_diagnostics.late++;
+			return;
+		}
 		speaker.received = true;
 		if(!speaker.playing || sequence - speaker.sequence >= JitterPackets)
 		{
@@ -315,8 +355,9 @@ namespace RN
 
 		// Resume at the newest packet after a stall.
 		// Avoid bursts of old audio and limit missing audio concealment.
-		if(_time - speaker.nextPlayback > CaptureDuration)
+		if(_time - speaker.nextPlayback > CatchupDuration)
 		{
+			_diagnostics.playbackStalls++;
 			uint32 newest = speaker.sequence;
 			for(const auto &packet : speaker.packets)
 				if(packet.size && static_cast<int32>(packet.sequence - newest) > 0) newest = packet.sequence;
@@ -350,11 +391,28 @@ namespace RN
 
 		int16 output[FrameSamples];
 		const int decoded = opus_decode(speaker.decoder, available ? packet.bytes : nullptr, available ? static_cast<opus_int32>(packet.size) : 0, output, FrameSamples, 0);
+		if(!available) _diagnostics.concealed++;
+		if(decoded != FrameSamples) _diagnostics.codecErrors++;
 		if(available) packet.size = 0;
 		speaker.missing = available ? 0 : speaker.missing + 1;
 		speaker.sequence++;
 		speaker.nextPlayback += FrameDuration;
 		if(decoded == FrameSamples && _playbackCallback) _playbackCallback(speaker.member, output, FrameSamples);
+	}
+
+	void SARelayVoice::LogDiagnostics()
+	{
+		if(_time - _diagnosticsStarted < 5.0) return;
+
+		RNInfo("Relay voice diagnostics " << (_time - _diagnosticsStarted) << " s: capture blocks=" << _diagnostics.capturedBlocks
+			<< " max block ms=" << _diagnostics.maxCaptureBlock * 1000.0 << " capture dropped ms=" << _diagnostics.droppedCapture * 1000.0
+			<< " stale queued ms=" << _diagnostics.staleQueued * 1000.0 << " stale input ms=" << _diagnostics.staleInput * 1000.0
+			<< " input overflow ms=" << _diagnostics.inputOverflow * 1000.0 << " max update gap ms=" << _diagnostics.maxUpdateGap * 1000.0
+			<< " sent=" << _diagnostics.sent << " dtx suppressed=" << _diagnostics.dtx << " send failures=" << _diagnostics.sendFailures
+			<< " received=" << _diagnostics.received << " late=" << _diagnostics.late << " concealed=" << _diagnostics.concealed
+			<< " playback stalls=" << _diagnostics.playbackStalls << " codec errors=" << _diagnostics.codecErrors);
+		_diagnostics = {};
+		_diagnosticsStarted = _time;
 	}
 
 	void SARelayVoice::Update(double monotonicSeconds)
@@ -365,9 +423,13 @@ namespace RN
 		SARelayClient::Update(monotonicSeconds);
 		if(GetState() != State::Connected) return;
 
+		if(_diagnosticsStarted < 0.0) _diagnosticsStarted = _time;
+		if(_previousUpdate >= 0.0) _diagnostics.maxUpdateGap = std::max(_diagnostics.maxUpdateGap, _time - _previousUpdate);
+		_previousUpdate = _time;
+
 		ExpireInput(CaptureNow());
 		DrainCapture();
-		if(_time - _nextSend > CaptureDuration) _nextSend = _time;
+		if(_time - _nextSend > CatchupDuration) _nextSend = _time;
 		for(size_t sent = 0; _encoder && _inputCount >= FrameSamples && _time >= _nextSend && sent < CatchupPackets; sent++)
 		{
 			uint8 packet[MaxPacketBytes + PacketHeaderBytes];
@@ -379,11 +441,19 @@ namespace RN
 			const int size = opus_encode_float(_encoder, _input, FrameSamples, packet + PacketHeaderBytes, MaxPacketBytes);
 			DiscardInput(FrameSamples);
 			_nextSend += FrameDuration;
-			if(size > 2) _client.Broadcast(0, packet, size + PacketHeaderBytes);
+			if(size > 2)
+			{
+				if(_client.Broadcast(0, packet, size + PacketHeaderBytes) == SendResult::Sent) _diagnostics.sent++;
+				else _diagnostics.sendFailures++;
+			}
+			else if(size >= 0) _diagnostics.dtx++;
+			else _diagnostics.codecErrors++;
 		}
 
 		for(auto &entry : _speakers)
 			for(size_t played = 0; entry.second.playing && _time >= entry.second.nextPlayback && played < CatchupPackets; played++)
 				PlaySpeaker(entry.second);
+
+		LogDiagnostics();
 	}
 }
