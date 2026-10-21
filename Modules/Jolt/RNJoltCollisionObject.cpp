@@ -15,15 +15,18 @@ namespace RN
 {
 	RNDefineMeta(JoltCollisionObject, SceneNodeAttachment)
 
-	JoltCollisionObject::JoltCollisionObject() :
+	JoltCollisionObject::JoltCollisionObject(JoltWorld *world) :
 		_collisionFilterGroup(1),
 		_collisionFilterMask(0xffffffff),
 		_contactResponseMassScaleMask(0),
 		_contactResponseInverseMassScale(1.0f),
 		_contactResponseInverseInertiaScale(1.0f),
 		_contactResponseEstimationEnabled(false),
-		_owner(nullptr)
-	{}
+		_owner(nullptr),
+		_world(world ? world : JoltWorld::GetSharedInstance())
+	{
+		RN_ASSERT(_world, "A Jolt world must exist before creating a collision object.");
+	}
 
 	JoltCollisionObject::~JoltCollisionObject()
 	{

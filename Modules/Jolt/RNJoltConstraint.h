@@ -24,6 +24,7 @@ namespace RN
 	class JoltConstraint : public Object, private JoltConstraintOwner
 	{
 	public:
+		JoltWorld *GetJoltWorld() const { return _world; }
 		JTAPI JPH::Constraint *GetJoltConstraint() const { return _constraint; }
 		JTAPI void SetEnabled(bool enabled);
 		JTAPI void SetCollisionsEnabled(bool enabled);
@@ -33,7 +34,8 @@ namespace RN
 		JTAPI void SetSolverIterationCount(uint32 positionIterations, uint32 velocityIterations); //0 resets to the default
 
 	protected:
-		JoltConstraint();
+		JoltConstraint(JoltWorld *world = nullptr);
+		JoltConstraint(JoltDynamicBody *body1, JoltDynamicBody *body2);
 		~JoltConstraint() override;
 
 		void SetConstraint(JPH::Constraint *constraint, const JPH::BodyID &bodyID1, const JPH::BodyID &bodyID2);
@@ -44,6 +46,7 @@ namespace RN
 		bool HasStoredBodyPair() const;
 		void InvalidateJoltConstraint(JPH::Constraint *constraint) override;
 
+		JoltWorld *_world;
 		JPH::Constraint *_constraint;
 		uint32 _bodyPairCollisionBody1;
 		uint32 _bodyPairCollisionBody2;
@@ -160,7 +163,8 @@ namespace RN
 		};
 
 		JTAPI JoltSixDOFConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2);
-		JTAPI JoltSixDOFConstraint(uint32 bodyID1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 bodyID2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling = false);
+		// Raw body IDs are local to world; omit world only for the legacy default world.
+		JTAPI JoltSixDOFConstraint(uint32 bodyID1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 bodyID2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling = false, JoltWorld *world = nullptr);
 		// Opt-in motor-only constraints: 0 makes body 2 an unaffected moving support.
 		// Limits and friction are not supported when mass scaling is enabled.
 		JTAPI void SetMotorBody2MassScale(float scale);
@@ -190,6 +194,7 @@ namespace RN
 		JTAPI void SetMaxFriction(Axis axis, float maxFriction);
 
 	private:
+		void Initialize(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2);
 		JPH::SixDOFConstraint *GetMotorConstraint() const;
 		bool _enableBody2MassScaling = false;
 		void RebuildWithLimits(const Vector3 *translationLimitMin, const Vector3 *translationLimitMax, const Vector3 *rotationLimitMin, const Vector3 *rotationLimitMax);

@@ -24,10 +24,11 @@ namespace RN
 	class JoltRigidBodyController : public JoltCollisionObject, private JoltConstraintOwner
 	{
 	public:
-		JTAPI JoltRigidBodyController(float radius, float height, float groundTolerance = 0.05f, float mass = 80.0f, float stepOffset = 0.0f);
+		JTAPI JoltRigidBodyController(float radius, float height, float groundTolerance = 0.05f, float mass = 80.0f, float stepOffset = 0.0f, JoltWorld *world = nullptr);
 		JTAPI ~JoltRigidBodyController() override;
 
 		JTAPI void UpdatePosition() override;
+		// Body IDs are only meaningful within GetJoltWorld().
 		JTAPI uint32 GetJoltBodyID() const;
 
 		JTAPI void Move(const Vector3 &velocity, float delta);
@@ -40,6 +41,7 @@ namespace RN
 		JTAPI bool CanResize(float height, const Vector3 &movement = Vector3()) const;
 		JTAPI void SetStepOffset(float stepOffset) { _stepOffset = stepOffset; }
 		JTAPI void SetUpDirection(const Vector3 &upDirection);
+		// bodyID is local to this controller's owning world.
 		JTAPI void SetExternalSupportAnchor(uint32 bodyID, const Vector3 &localPosition, float maxForce);
 		JTAPI void ClearExternalSupportAnchor();
 

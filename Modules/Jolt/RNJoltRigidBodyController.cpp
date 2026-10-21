@@ -28,10 +28,11 @@ namespace RN
 	constexpr float ExternalSupportAnchorCorrectionFrequency = 8.0f;
 	constexpr float ExternalSupportAnchorMaxCorrectionSpeed = 20.0f;
 
-	JoltRigidBodyController::JoltRigidBodyController(float radius, float height, float groundTolerance, float mass, float stepOffset) :
+	JoltRigidBodyController::JoltRigidBodyController(float radius, float height, float groundTolerance, float mass, float stepOffset, JoltWorld *owningWorld) :
+		JoltCollisionObject(owningWorld),
 		_radius(radius), _height(height), _groundTolerance(groundTolerance), _mass(mass), _stepOffset(stepOffset), _upDirection(0.0f, 1.0f, 0.0f), _objectBelow(nullptr), _groundVelocity(), _groundAngularVelocity(), _groundNormal(), _isFalling(false), _externalSupportAnchorValid(false), _externalSupportCollisionFilteringEnabled(false), _externalSupportBodyID(InvalidSupportBodyID), _externalSupportLocalPosition(), _externalSupportAnchorMaxForce(0.0f), _externalSupportConstraint(nullptr)
 	{
-		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 
 		_shape = JoltCapsuleShape::WithRadius(radius, height)->Retain();
@@ -133,7 +134,7 @@ namespace RN
 			return;
 		}
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
+		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
 		JPH::BodyID bodyID = _controller->GetBodyID();
 		if(bodyID.IsInvalid())
 		{
@@ -164,7 +165,7 @@ namespace RN
 			}
 		}
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
+		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
 		bodyInterface.AddForce(_controller->GetBodyID(), JoltConversions::ToJoltVector(appliedGravity * _mass), JPH::EActivation::DontActivate);
 	}
 
@@ -180,7 +181,7 @@ namespace RN
 
 		JoltShape *newShape = JoltCapsuleShape::WithRadius(_radius, height);
 		// Accept the overlap allowed by normal physics contacts when checking a resize.
-		float allowedPenetration = std::max(0.01f, JoltWorld::GetSharedInstance()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
+		float allowedPenetration = std::max(0.01f, GetJoltWorld()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
 		bool didSetShape = _controller->SetShape(newShape->GetJoltShape(), checkIfBlocked ? allowedPenetration : 1000000.0f);
 		if(!didSetShape) return false;
 
@@ -197,7 +198,7 @@ namespace RN
 		JoltShape *candidateShape = JoltCapsuleShape::WithRadius(_radius, height);
 		const JPH::Quat rotation = _controller->GetRotation();
 		const JPH::RVec3 position = _controller->GetPosition() + rotation * JPH::Vec3(0.0f, (height - _height) * 0.5f, 0.0f);
-		const float allowedPenetration = std::max(0.01f, JoltWorld::GetSharedInstance()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
+		const float allowedPenetration = std::max(0.01f, GetJoltWorld()->GetJoltInstance()->GetPhysicsSettings().mPenetrationSlop);
 		for(int pose = 0; pose < 2; pose++)
 		{
 			const JPH::RVec3 candidatePosition = position + JoltConversions::ToJoltVector(movement) * static_cast<float>(pose);
@@ -217,7 +218,7 @@ namespace RN
 	{
 		JoltCollisionObject::SetCollisionFilter(group, mask);
 
-		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JoltWorld *world = GetJoltWorld();
 		_controller->SetLayer(world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
 	}
 
@@ -273,13 +274,13 @@ namespace RN
 		}
 
 		JoltPosition supportAnchorPosition = supportPosition + supportRotation.GetRotatedVector(localPosition);
-		JoltPosition controllerAnchorPosition = JoltConversions::ToPosition(JoltConversions::GetAttachmentPosition(this));
+		JoltPosition controllerAnchorPosition = JoltConversions::ToPosition(JoltConversions::GetAttachmentPosition(this, GetJoltWorld()));
 		if(!supportAnchorPosition.IsValid() || !controllerAnchorPosition.IsValid())
 		{
 			return;
 		}
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::Constraint *constraint = CreateJoltExternalSupportAnchorConstraint(bodyInterface, JPH::BodyID(bodyID), _controller->GetBodyID(), JoltConversions::ToJoltPosition(supportAnchorPosition), JoltConversions::ToJoltPosition(controllerAnchorPosition), maxForce);
 		if(!constraint)
@@ -291,7 +292,7 @@ namespace RN
 		constraint->SetNumPositionStepsOverride(10);
 		constraint->SetUserData(reinterpret_cast<uint64>(static_cast<JoltConstraintOwner *>(this)));
 		physics->AddConstraint(constraint);
-		JoltWorld::GetSharedInstance()->SetConnectedBodyCollisionFilteringEnabled(JPH::BodyID(bodyID), _controller->GetBodyID(), true);
+		GetJoltWorld()->SetConnectedBodyCollisionFilteringEnabled(JPH::BodyID(bodyID), _controller->GetBodyID(), true);
 
 		_externalSupportAnchorValid = true;
 		_externalSupportCollisionFilteringEnabled = true;
@@ -306,7 +307,7 @@ namespace RN
 
 	void JoltRigidBodyController::ClearExternalSupportAnchor()
 	{
-		if(JoltWorld *world = JoltWorld::GetSharedInstance())
+		if(JoltWorld *world = GetJoltWorld())
 		{
 			if(_externalSupportCollisionFilteringEnabled)
 			{
@@ -511,7 +512,7 @@ namespace RN
 			return false;
 		}
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
+		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
 
 		JPH::RVec3 joltPosition;
 		JPH::Quat joltRotation;
@@ -534,7 +535,7 @@ namespace RN
 		JPH::BodyID joltBodyID(bodyID);
 		if(joltBodyID.IsInvalid()) return false;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		if(!bodyInterface.IsAdded(joltBodyID)) return false;
 		return true;
@@ -553,7 +554,7 @@ namespace RN
 			return false;
 		}
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyLockRead supportLock(physics->GetBodyLockInterface(), joltBodyID);
 		if(!supportLock.Succeeded() || !supportLock.GetBody().IsInBroadPhase())
 		{
@@ -588,12 +589,12 @@ namespace RN
 		worldRotation.Normalize();
 
 		Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-		JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset);
+		JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 		Quaternion rotation = worldRotation * _rotationOffset;
 		if(!rotation.IsValid()) return;
 		rotation.Normalize();
 
-		_controller->SetPositionAndRotation(position, JoltConversions::ToJoltSceneRotation(rotation), JPH::EActivation::DontActivate);
+		_controller->SetPositionAndRotation(position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 	}
 
 	void JoltRigidBodyController::UpdateGroundState()
@@ -614,7 +615,7 @@ namespace RN
 
 		JPH::Vec3 groundVelocity = _controller->GetGroundVelocity();
 		_groundVelocity = JoltConversions::ToEngineVector(groundVelocity);
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyLockRead groundLock(physics->GetBodyLockInterface(), _controller->GetGroundBodyID());
 		JPH::Vec3 groundAngularVelocity = groundLock.Succeeded()? groundLock.GetBody().GetAngularVelocity() : JPH::Vec3::sZero();
 		_groundAngularVelocity = JoltConversions::ToEngineVector(groundAngularVelocity);
@@ -656,8 +657,8 @@ namespace RN
 		_controller->GetPositionAndRotation(position, rotation);
 		UpdateGroundState();
 
-		Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation) * _rotationOffset.GetConjugated();
+		Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
 		Vector3 positionOffset = rotationResult.GetRotatedVector(_positionOffset);
-		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult);
+		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
 	}
 } // namespace RN

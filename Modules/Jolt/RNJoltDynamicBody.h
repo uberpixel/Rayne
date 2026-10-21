@@ -34,10 +34,10 @@ namespace RN
 			LockAxisAngularZ = (1 << 5)
 		};
 
-		JTAPI JoltDynamicBody(JoltShape *shape, float mass);
+		JTAPI JoltDynamicBody(JoltShape *shape, float mass, JoltWorld *world = nullptr);
 		JTAPI ~JoltDynamicBody() override;
 
-		JTAPI static JoltDynamicBody *WithShape(JoltShape *shape, float mass);
+		JTAPI static JoltDynamicBody *WithShape(JoltShape *shape, float mass, JoltWorld *world = nullptr);
 
 		JTAPI void UpdatePosition() override;
 
@@ -96,6 +96,7 @@ namespace RN
 		/*JTAPI bool SweepTest(std::vector<JoltContactInfo> &contactInfo, const Vector3 &direction, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion(), float inflation = 0.0f) const;
 		JTAPI Quaternion RotationSweepTest(std::vector<JoltContactInfo> &contactInfo, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;*/
 
+		// Body IDs are only meaningful within GetJoltWorld().
 		JTAPI uint32 GetJoltBodyID() const;
 		JTAPI JPH::BodyID *GetJoltActor() const { return _actor; }
 		JTAPI JoltShape *GetShape() const { return _shape; }

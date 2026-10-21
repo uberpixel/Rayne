@@ -22,10 +22,10 @@ namespace RN
 	class JoltStaticBody : public JoltCollisionObject
 	{
 	public:
-		JTAPI JoltStaticBody(JoltShape *shape);
+		JTAPI JoltStaticBody(JoltShape *shape, JoltWorld *world = nullptr);
 		JTAPI ~JoltStaticBody() override;
 
-		JTAPI static JoltStaticBody *WithShape(JoltShape *shape);
+		JTAPI static JoltStaticBody *WithShape(JoltShape *shape, JoltWorld *world = nullptr);
 
 		JTAPI void UpdatePosition() override;
 

@@ -102,27 +102,23 @@ namespace RN
 			return result;
 		}
 
-		static JPH::RVec3 ToJoltScenePosition(const PositionType &position)
+		static JPH::RVec3 ToJoltScenePosition(const PositionType &position, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			JoltWorld *world = JoltWorld::GetSharedInstance();
 			return world ? ToJoltPosition(world->ConvertPositionToPhysicsWorld(position)) : ToJoltPosition(position);
 		}
 
-		static JPH::Quat ToJoltSceneRotation(const Quaternion &rotation)
+		static JPH::Quat ToJoltSceneRotation(const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			JoltWorld *world = JoltWorld::GetSharedInstance();
 			return world ? ToJoltRotation(world->ConvertRotationToPhysicsWorld(rotation)) : ToJoltRotation(rotation);
 		}
 
-		static PositionType ToScenePosition(const JPH::RVec3 &vector)
+		static PositionType ToScenePosition(const JPH::RVec3 &vector, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			JoltWorld *world = JoltWorld::GetSharedInstance();
 			return world ? world->ConvertPositionFromPhysicsWorld(ToPosition(vector)) : ToPosition(vector);
 		}
 
-		static Quaternion ToSceneRotation(const JPH::Quat &rotation)
+		static Quaternion ToSceneRotation(const JPH::Quat &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			JoltWorld *world = JoltWorld::GetSharedInstance();
 			return world ? world->ConvertRotationFromPhysicsWorld(ToEngineRotation(rotation)) : ToEngineRotation(rotation);
 		}
 
@@ -135,34 +131,34 @@ namespace RN
 #endif
 		}
 
-		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment)
+		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			return ToJoltScenePosition(attachment->GetWorldPosition());
+			return ToJoltScenePosition(attachment->GetWorldPosition(), world);
 		}
 
-		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment, const Vector3 &offset)
+		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment, const Vector3 &offset, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			return ToJoltScenePosition(attachment->GetWorldPosition() + offset);
+			return ToJoltScenePosition(attachment->GetWorldPosition() + offset, world);
 		}
 
-		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position)
+		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			attachment->SetWorldPosition(ToScenePosition(position));
+			attachment->SetWorldPosition(ToScenePosition(position, world));
 		}
 
-		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset)
+		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			attachment->SetWorldPosition(ToScenePosition(position) + offset);
+			attachment->SetWorldPosition(ToScenePosition(position, world) + offset);
 		}
 
-		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Quaternion &rotation)
+		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			attachment->SetWorldTransform(ToScenePosition(position), rotation);
+			attachment->SetWorldTransform(ToScenePosition(position, world), rotation);
 		}
 
-		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset, const Quaternion &rotation)
+		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset, const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
 		{
-			attachment->SetWorldTransform(ToScenePosition(position) + offset, rotation);
+			attachment->SetWorldTransform(ToScenePosition(position, world) + offset, rotation);
 		}
 	};
 } // namespace RN

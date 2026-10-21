@@ -32,7 +32,8 @@ namespace RN
 	RNDefineMeta(JoltHingeConstraint, JoltConstraint)
 	RNDefineMeta(JoltSixDOFConstraint, JoltConstraint)
 
-	JoltConstraint::JoltConstraint() :
+	JoltConstraint::JoltConstraint(JoltWorld *world) :
+		_world(world ? world : JoltWorld::GetSharedInstance()),
 		_constraint(nullptr),
 		_bodyPairCollisionBody1(JPH::BodyID::cInvalidBodyID),
 		_bodyPairCollisionBody2(JPH::BodyID::cInvalidBodyID),
@@ -41,6 +42,16 @@ namespace RN
 		_collisionsEnabled(false),
 		_connectedBodyCollisionFilteringEnabled(false)
 	{
+	}
+
+	JoltConstraint::JoltConstraint(JoltDynamicBody *body1, JoltDynamicBody *body2) : JoltConstraint(body1 ? body1->GetJoltWorld() : nullptr)
+	{
+		// Validate ownership before either world-local body ID is read.
+		if(!body1 || !body2 || !body1->GetJoltWorld() || body1->GetJoltWorld() != body2->GetJoltWorld())
+		{
+			_world = nullptr;
+			RN_ASSERT(false, "Constraint bodies must belong to the same Jolt world.");
+		}
 	}
 
 	void JoltConstraint::SetSolverIterationCount(uint32 positionIterations, uint32 velocityIterations)
@@ -57,7 +68,7 @@ namespace RN
 		if(_constraint)
 		{
 			//Remove from physics system which will also release the constraint
-			if(JoltWorld *world = JoltWorld::GetSharedInstance())
+			if(JoltWorld *world = GetJoltWorld())
 			{
 				_constraint->SetEnabled(false);
 				world->GetJoltInstance()->RemoveConstraint(_constraint);
@@ -80,7 +91,7 @@ namespace RN
 
 		if(_constraint)
 		{
-			JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+			JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 			physics->RemoveConstraint(_constraint);
 			_constraint = nullptr;
 		}
@@ -88,7 +99,7 @@ namespace RN
 		if(_constraint)
 		{
 			_constraint->SetUserData(reinterpret_cast<uint64>(static_cast<JoltConstraintOwner *>(this)));
-			JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+			JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 			physics->AddConstraint(_constraint);
 		}
 
@@ -104,7 +115,7 @@ namespace RN
 	{
 		if(!_constraint || _constraint->GetType() != JPH::EConstraintType::TwoBodyConstraint) return;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.ActivateConstraint(static_cast<JPH::TwoBodyConstraint *>(_constraint));
 	}
@@ -134,7 +145,7 @@ namespace RN
 	{
 		if(_bodyPairConnectedBodyCollisionFilteringEnabled)
 		{
-			if(JoltWorld *world = JoltWorld::GetSharedInstance())
+			if(JoltWorld *world = GetJoltWorld())
 			{
 				world->SetConnectedBodyCollisionFilteringEnabled(JPH::BodyID(_bodyPairCollisionBody1), JPH::BodyID(_bodyPairCollisionBody2), false);
 			}
@@ -165,7 +176,7 @@ namespace RN
 		bool shouldUseConnectedBodyCollisionFiltering = shouldDisable && _connectedBodyCollisionFilteringEnabled;
 		if(_bodyPairConnectedBodyCollisionFilteringEnabled == shouldUseConnectedBodyCollisionFiltering) return;
 
-		if(JoltWorld *world = JoltWorld::GetSharedInstance())
+		if(JoltWorld *world = GetJoltWorld())
 		{
 			world->SetConnectedBodyCollisionFilteringEnabled(JPH::BodyID(_bodyPairCollisionBody1), JPH::BodyID(_bodyPairCollisionBody2), shouldUseConnectedBodyCollisionFiltering);
 		}
@@ -176,7 +187,7 @@ namespace RN
 	{
 		if(!HasStoredBodyPair()) return;
 
-		if(JoltWorld *world = JoltWorld::GetSharedInstance())
+		if(JoltWorld *world = GetJoltWorld())
 		{
 			world->SetBodyPairCollisionEnabled(JPH::BodyID(_bodyPairCollisionBody1), JPH::BodyID(_bodyPairCollisionBody2), enabled);
 		}
@@ -199,13 +210,16 @@ namespace RN
 		return JPH::Vec3(v.x, v.y, v.z);
 	}
 
-	JoltPointConstraint::JoltPointConstraint(JoltDynamicBody *body1, const JoltPosition &globalPoint1, JoltDynamicBody *body2, const JoltPosition &globalPoint2)
+	JoltPointConstraint::JoltPointConstraint(JoltDynamicBody *body1, const JoltPosition &globalPoint1, JoltDynamicBody *body2, const JoltPosition &globalPoint2) :
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
 		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		JPH::PointConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
@@ -220,13 +234,16 @@ namespace RN
 		return constraint->Autorelease();
 	}
 
-	JoltFixedConstraint::JoltFixedConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
+	JoltFixedConstraint::JoltFixedConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2) :
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
 		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		JPH::FixedConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
@@ -246,13 +263,16 @@ namespace RN
 		return constraint->Autorelease();
 	}
 
-	JoltDistanceConstraint::JoltDistanceConstraint(JoltDynamicBody *body1, const JoltPosition &globalPoint1, JoltDynamicBody *body2, const JoltPosition &globalPoint2, float minDistance, float maxDistance)
+	JoltDistanceConstraint::JoltDistanceConstraint(JoltDynamicBody *body1, const JoltPosition &globalPoint1, JoltDynamicBody *body2, const JoltPosition &globalPoint2, float minDistance, float maxDistance) :
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
 		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		JPH::DistanceConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
@@ -282,13 +302,16 @@ namespace RN
 		return Vector3(0.0f, 1.0f, 0.0f);
 	}
 
-	JoltSliderConstraint::JoltSliderConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, Axis axis)
+	JoltSliderConstraint::JoltSliderConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, Axis axis) :
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
 		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		auto getSafeRotation = [](const Quaternion &rotation) -> Quaternion {
 			if(!rotation.IsValid()) return Quaternion();
@@ -442,13 +465,16 @@ namespace RN
 		return Vector3(0.0f, 1.0f, 0.0f);
 	}
 
-	JoltHingeConstraint::JoltHingeConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, Axis axis)
+	JoltHingeConstraint::JoltHingeConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, Axis axis) :
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1 = body1 && body1->GetJoltActor() ? *body1->GetJoltActor() : JPH::BodyID();
 		JPH::BodyID bodyID2 = body2 && body2->GetJoltActor() ? *body2->GetJoltActor() : JPH::BodyID();
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		auto getSafeRotation = [](const Quaternion &rotation) -> Quaternion {
 			if(!rotation.IsValid()) return Quaternion();
@@ -611,21 +637,31 @@ namespace RN
 	}
 
 	JoltSixDOFConstraint::JoltSixDOFConstraint(JoltDynamicBody *body1, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, JoltDynamicBody *body2, const JoltPosition &globalPosition2, const Quaternion &worldRotation2) :
-		JoltSixDOFConstraint(body1 ? body1->GetJoltBodyID() : 0xffffffffU, globalPosition1, worldRotation1, body2 ? body2->GetJoltBodyID() : 0xffffffffU, globalPosition2, worldRotation2)
-	{}
-
-	JoltSixDOFConstraint::JoltSixDOFConstraint(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling) :
-		_enableBody2MassScaling(enableBody2MassScaling)
+		JoltConstraint(body1, body2)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		if(!_world) return;
+		Initialize(body1->GetJoltBodyID(), globalPosition1, worldRotation1, body2->GetJoltBodyID(), globalPosition2, worldRotation2);
+	}
+
+	JoltSixDOFConstraint::JoltSixDOFConstraint(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2, bool enableBody2MassScaling, JoltWorld *world) :
+		JoltConstraint(world), _enableBody2MassScaling(enableBody2MassScaling)
+	{
+		Initialize(firstBodyID, globalPosition1, worldRotation1, secondBodyID, globalPosition2, worldRotation2);
+	}
+
+	void JoltSixDOFConstraint::Initialize(uint32 firstBodyID, const JoltPosition &globalPosition1, const Quaternion &worldRotation1, uint32 secondBodyID, const JoltPosition &globalPosition2, const Quaternion &worldRotation2)
+	{
+		if(!_world) return;
+		JPH::PhysicsSystem *physics = _world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		JPH::BodyID bodyID1(firstBodyID);
 		JPH::BodyID bodyID2(secondBodyID);
 		RN_ASSERT(!bodyID1.IsInvalid() && !bodyID2.IsInvalid(), "Invalid bodies for constraint creation");
+		if(bodyID1.IsInvalid() || bodyID2.IsInvalid()) return;
 
 		JoltScaledMotorConstraintSettings scaledSettings;
 		JPH::SixDOFConstraintSettings regularSettings;
-		JPH::SixDOFConstraintSettings &settings = enableBody2MassScaling ? scaledSettings.motorSettings : regularSettings;
+		JPH::SixDOFConstraintSettings &settings = _enableBody2MassScaling ? scaledSettings.motorSettings : regularSettings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
 		auto getSafeRotation = [](const Quaternion &rotation) -> Quaternion {
 			if(!rotation.IsValid()) return Quaternion();
@@ -659,7 +695,7 @@ namespace RN
 		settings.MakeFreeAxis(JPH::SixDOFConstraintSettings::RotationY);
 		settings.MakeFreeAxis(JPH::SixDOFConstraintSettings::RotationZ);
 
-		SetConstraint(bodyInterface.CreateConstraint(enableBody2MassScaling ? static_cast<JPH::TwoBodyConstraintSettings *>(&scaledSettings) : &settings, bodyID1, bodyID2), bodyID1, bodyID2);
+		SetConstraint(bodyInterface.CreateConstraint(_enableBody2MassScaling ? static_cast<JPH::TwoBodyConstraintSettings *>(&scaledSettings) : &settings, bodyID1, bodyID2), bodyID1, bodyID2);
 
 		// Default motor params
 		SetLinearMotorParams(30.0f, 6.0f, 5000.0f);
@@ -903,7 +939,7 @@ namespace RN
 			configureAxis(settings, JPH::SixDOFConstraintSettings::RotationZ, rotationLimitMin->z, rotationLimitMax->z);
 		}
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
+		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
 		SetConstraint(bodyInterface.CreateConstraint(settings, bodyID1, bodyID2), bodyID1, bodyID2);
 
 		six = GetMotorConstraint();

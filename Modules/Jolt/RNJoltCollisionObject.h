@@ -58,8 +58,11 @@ namespace RN
 			End
 		};
 
-		JTAPI JoltCollisionObject();
+		JTAPI JoltCollisionObject(JoltWorld *world = nullptr);
 		JTAPI ~JoltCollisionObject() override;
+
+		// The owning world must outlive this attachment. A null constructor world captures the legacy default.
+		JoltWorld *GetJoltWorld() const { return _world; }
 
 		JTAPI virtual void UpdatePosition() = 0;
 
@@ -95,6 +98,7 @@ namespace RN
 		bool _contactResponseEstimationEnabled;
 
 		SceneNode *_owner;
+		JoltWorld *_world;
 
 	private:
 		std::function<void(JoltCollisionObject *, const JoltContactInfo &, ContactState)> _contactCallback;

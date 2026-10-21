@@ -30,7 +30,7 @@ namespace RN
 		/* Default do nothing */
 		JoltContactInfo info;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = controller->GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		info.collisionObject = reinterpret_cast<JoltCollisionObject *>(bodyInterface.GetUserData(inContact.mBodyB));
 		{

@@ -39,9 +39,11 @@ namespace RN
 		friend class JoltRigidBodyController;
 		friend class JoltStaticBody;
 
+		// Create/destroy worlds and their collision objects on the same thread.
 		// workerCount: -1 selects hardware concurrency minus one (or zero if unknown), 0 uses only the calling thread.
 		// Positive values add that many workers; the calling thread also executes physics jobs.
 		JTAPI JoltWorld(const Vector3 &gravity = Vector3(0.0f, -9.81f, 0.0f), uint32 maxBodies = 65536, uint32 maxBodyPairs = 65536, uint32 maxContactConstraints = 10240, int32 workerCount = -1);
+		// Collision attachments and constraints must be destroyed before their owning world.
 		JTAPI ~JoltWorld();
 
 		JTAPI void SetGravity(const Vector3 &gravity);
@@ -66,6 +68,7 @@ namespace RN
 		JTAPI float GetDefaultDynamicBodyMaxLinearVelocity() const { return _defaultDynamicBodyMaxLinearVelocity; }
 		JTAPI float GetDefaultDynamicBodyMaxAngularVelocity() const { return _defaultDynamicBodyMaxAngularVelocity; }
 
+		// Step worlds serially: native failure hooks select one recorder until all update jobs join.
 		JTAPI void Update(float delta) final;
 		JTAPI void WillUpdate(float delta) final;
 		JTAPI void SetSubsteps(uint8 substeps);
@@ -94,6 +97,7 @@ namespace RN
 
 		JTAPI void EnumerateActiveCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback);
 
+		// Legacy default: the earliest-created live world. Explicit owners never follow changes to it.
 		static JoltWorld *GetSharedInstance() { return _sharedInstance; }
 
 	private:
@@ -106,6 +110,9 @@ namespace RN
 		JTAPI void RemoveConstraintsForBody(const JPH::BodyID &bodyID);
 		JTAPI void ProcessQueuedBodyRemovals();
 
+		static void AcquireRuntime();
+		static void ReleaseRuntime();
+		static std::vector<JoltWorld *> _worlds;
 		static JoltWorld *_sharedInstance;
 
 		JPH::PhysicsSystem *_physicsSystem;

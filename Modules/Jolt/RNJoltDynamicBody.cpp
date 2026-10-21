@@ -18,11 +18,12 @@ namespace RN
 {
 	RNDefineMeta(JoltDynamicBody, JoltCollisionObject)
 
-	JoltDynamicBody::JoltDynamicBody(JoltShape *shape, float mass) :
+	JoltDynamicBody::JoltDynamicBody(JoltShape *shape, float mass, JoltWorld *owningWorld) :
+		JoltCollisionObject(owningWorld),
 		_shape(shape->Retain()),
 		_actor(nullptr), _mass(mass), _appliedShapeCenterOfMass(shape->GetCenterOfMass()), _isKinematic(false), _isGravityEnabled(true), _isInSimulation(false)
 	{
-		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
@@ -48,7 +49,7 @@ namespace RN
 
 	JoltDynamicBody::~JoltDynamicBody()
 	{
-		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
@@ -73,7 +74,7 @@ namespace RN
 		JoltCollisionObject::SetCollisionFilter(group, mask);
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
-		bodyInterface->SetObjectLayer(*_actor, JoltWorld::GetSharedInstance()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
+		bodyInterface->SetObjectLayer(*_actor, GetJoltWorld()->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
 
 		/*Jolt::PxFilterData filterData;
 		filterData.word0 = _collisionFilterGroup;
@@ -83,9 +84,9 @@ namespace RN
 	}
 
 
-	JoltDynamicBody *JoltDynamicBody::WithShape(JoltShape *shape, float mass)
+	JoltDynamicBody *JoltDynamicBody::WithShape(JoltShape *shape, float mass, JoltWorld *world)
 	{
-		JoltDynamicBody *body = new JoltDynamicBody(shape, mass);
+		JoltDynamicBody *body = new JoltDynamicBody(shape, mass, world);
 		return body->Autorelease();
 	}
 
@@ -94,7 +95,7 @@ namespace RN
 		if(!_actor || !_isInSimulation) return nullptr;
 		InvalidateMotionCache();
 
-		JPH::BodyInterface &bodyInterface = JoltWorld::GetSharedInstance()->GetJoltInstance()->GetBodyInterface();
+		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
 		return &bodyInterface;
 	}
 
@@ -103,7 +104,7 @@ namespace RN
 		if(!_actor) return false;
 		if(_motionCacheIsValid) return true;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyLockRead lock(physics->GetBodyLockInterface(), *_actor);
 		if(!lock.Succeeded()) return false;
 
@@ -144,7 +145,7 @@ namespace RN
 		_shape = shape->Retain();
 		_positionOffset = positionOffset;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bool wasInSimulation = bodyInterface.IsAdded(*_actor);
 		bool shouldActivate = wasInSimulation && _isInSimulation;
@@ -171,10 +172,10 @@ namespace RN
 			worldRotation.Normalize();
 			Quaternion bodyRotation = worldRotation * _rotationOffset;
 			bodyRotation.Normalize();
-			JPH::RVec3 bodyPosition = JoltConversions::GetAttachmentPosition(this, -worldRotation.GetRotatedVector(_positionOffset));
+			JPH::RVec3 bodyPosition = JoltConversions::GetAttachmentPosition(this, -worldRotation.GetRotatedVector(_positionOffset), GetJoltWorld());
 			if(wasInSimulation)
 			{
-				bodyInterface.SetPositionAndRotation(*_actor, bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation), JPH::EActivation::DontActivate);
+				bodyInterface.SetPositionAndRotation(*_actor, bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 			}
 			else
 			{
@@ -182,7 +183,7 @@ namespace RN
 				JPH::BodyLockWrite transformLock(lockInterface, *_actor);
 				if(transformLock.Succeeded())
 				{
-					transformLock.GetBody().SetPositionAndRotationInternal(bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation));
+					transformLock.GetBody().SetPositionAndRotationInternal(bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()));
 				}
 			}
 		}
@@ -194,7 +195,7 @@ namespace RN
 	{
 		_mass = mass;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		const JPH::BodyLockInterface &lockInterface = physics->GetBodyLockInterface();
 		JPH::BodyLockWrite lock(lockInterface, *_actor);
 		if(!lock.Succeeded()) return;
@@ -234,7 +235,7 @@ namespace RN
 
 		_mass = mass;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bool wasInSimulation = bodyInterface.IsAdded(*_actor);
 		bool shouldActivate = wasInSimulation && _isInSimulation;
@@ -276,7 +277,7 @@ namespace RN
 
 	void JoltDynamicBody::SetDamping(float linear, float angular)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		const JPH::BodyLockInterface &lockInterface = physics->GetBodyLockInterface();
 		JPH::BodyLockWrite lock(lockInterface, *_actor);
 		if(!lock.Succeeded()) return;
@@ -291,7 +292,7 @@ namespace RN
 	{
 		if(!_actor) return;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.SetMaxLinearVelocity(*_actor, max);
 	}
@@ -300,7 +301,7 @@ namespace RN
 	{
 		if(!_actor) return;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.SetMaxAngularVelocity(*_actor, max);
 	}
@@ -336,7 +337,7 @@ namespace RN
 
 	JoltPosition JoltDynamicBody::GetCenterOfMassPosition() const
 	{
-		return (_actor && RefreshMotionCacheIfNeeded()) ? _motionCacheCenterOfMass : JoltConversions::ToPosition(JoltConversions::GetAttachmentPosition(this));
+		return (_actor && RefreshMotionCacheIfNeeded()) ? _motionCacheCenterOfMass : JoltConversions::ToPosition(JoltConversions::GetAttachmentPosition(this, GetJoltWorld()));
 	}
 
 	float JoltDynamicBody::GetPointImpulseEffectiveMass(const JoltPosition &globalPosition, const Vector3 &direction) const
@@ -368,7 +369,7 @@ namespace RN
 
 	void JoltDynamicBody::SetAllowSleeping(bool allow)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		const JPH::BodyLockInterface &lockInterface = physics->GetBodyLockInterface();
 		{
 			JPH::BodyLockWrite lock(lockInterface, *_actor);
@@ -388,7 +389,7 @@ namespace RN
 	{
 		if(!_isInSimulation) return true;
 
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
 		return !bodyInterface.IsActive(*_actor);
@@ -396,7 +397,7 @@ namespace RN
 
 	void JoltDynamicBody::LockMovement(RN::uint32 lockFlags)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		const JPH::BodyLockInterface &lockInterface = physics->GetBodyLockInterface();
 		JPH::BodyLockWrite lock(lockInterface, *_actor);
 		if(!lock.Succeeded()) return;
@@ -430,7 +431,7 @@ namespace RN
 
 	void JoltDynamicBody::SetSolverIterationCount(uint32 positionIterations, uint32 velocityIterations)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		const JPH::BodyLockInterface &lockInterface = physics->GetBodyLockInterface();
 		JPH::BodyLockWrite lock(lockInterface, *_actor);
 		if(!lock.Succeeded()) return;
@@ -444,7 +445,7 @@ namespace RN
 
 	void JoltDynamicBody::SetEnableCCD(bool enable)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.SetMotionQuality(*_actor, enable ? JPH::EMotionQuality::LinearCast : JPH::EMotionQuality::Discrete);
 	}
@@ -459,14 +460,14 @@ namespace RN
 
 	void JoltDynamicBody::SetFriction(float friction)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.SetFriction(*_actor, friction);
 	}
 
 	void JoltDynamicBody::SetRestitution(float restitution)
 	{
-		JPH::PhysicsSystem *physics = JoltWorld::GetSharedInstance()->GetJoltInstance();
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bodyInterface.SetRestitution(*_actor, restitution);
 	}
@@ -566,7 +567,7 @@ namespace RN
 		if(!_actor) return;
 		InvalidateMotionCache();
 
-		JoltWorld *world = JoltWorld::GetSharedInstance();
+		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bool isInSimulation = bodyInterface.IsAdded(*_actor);
@@ -593,10 +594,10 @@ namespace RN
 			{
 				worldRotation.Normalize();
 				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset);
+				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 				RN::Quaternion rotation = worldRotation * _rotationOffset;
 				rotation.Normalize();
-				bodyInterface.SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation), JPH::EActivation::DontActivate);
+				bodyInterface.SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 			}
 			bodyInterface.AddBody(*_actor, JPH::EActivation::Activate);
 			_isInSimulation = true;
@@ -854,12 +855,12 @@ namespace RN
 				worldRotation.Normalize();
 
 				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset);
+				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 				Quaternion rotation = worldRotation * _rotationOffset;
 				if(rotation.IsValid())
 				{
 					rotation.Normalize();
-					bodyInterface->SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation), JPH::EActivation::DontActivate);
+					bodyInterface->SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 				}
 			}
 		}
@@ -891,8 +892,8 @@ namespace RN
 		JPH::Quat rotation;
 		bodyInterface->GetPositionAndRotation(*_actor, position, rotation);
 
-		RN::Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation) * _rotationOffset.GetConjugated();
+		RN::Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
 		RN::Vector3 positionOffset = rotationResult.GetRotatedVector(_positionOffset);
-		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult);
+		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
 	}
 } // namespace RN

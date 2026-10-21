@@ -20,6 +20,25 @@ namespace RN
 	RNDefineMeta(JoltWorld, SceneAttachment)
 
 	JoltWorld *JoltWorld::_sharedInstance = nullptr;
+	std::vector<JoltWorld *> JoltWorld::_worlds;
+
+	void JoltWorld::AcquireRuntime()
+	{
+		if(!_worlds.empty()) return;
+		JPH::RegisterDefaultAllocator();
+		JPH::Factory::sInstance = new JPH::Factory();
+		JPH::RegisterTypes();
+		JoltCustomPlanetTerrainShape::RegisterJoltShape();
+		JPH::RNWheelCylinderShape::sRegister();
+	}
+
+	void JoltWorld::ReleaseRuntime()
+	{
+		if(!_worlds.empty()) return;
+		JPH::UnregisterTypes();
+		delete JPH::Factory::sInstance;
+		JPH::Factory::sInstance = nullptr;
+	}
 
 	void JoltWorld::InitializeWorkerThread(int threadIndex)
 	{
@@ -34,19 +53,9 @@ namespace RN
 		_defaultDynamicBodyLinearDamping(0.05f), _defaultDynamicBodyAngularDamping(0.05f), _defaultDynamicBodyMaxLinearVelocity(500.0f), _defaultDynamicBodyMaxAngularVelocity(0.25f * k::Pi * 60.0f), _worldPosition(), _worldRotation(), _inverseWorldRotation(), _worldPositionRotation(), _inverseWorldPositionRotation(), _substeps(1), _paused(false), _isSimulating(false), _isLoadingLevel(false)
 	{
 		RN_ASSERT(workerCount >= -1, "Worker count must be -1 (automatic) or non-negative.");
-		RN_ASSERT(!_sharedInstance, "There can only be one Jolt instance at a time!");
-		_sharedInstance = this;
-
-		// Register allocation hook
-		JPH::RegisterDefaultAllocator();
-
-		// Create a factory
-		JPH::Factory::sInstance = new JPH::Factory();
-
-		// Register all Jolt physics types
-		JPH::RegisterTypes();
-		JoltCustomPlanetTerrainShape::RegisterJoltShape();
-		JPH::RNWheelCylinderShape::sRegister();
+		AcquireRuntime();
+		_worlds.push_back(this);
+		if(!_sharedInstance) _sharedInstance = this;
 
 		_internals->tempAllocator = new JPH::TempAllocatorImpl(10 * 1024 * 1024); //Preallocate 10mb for temp allocations during physics update
 
@@ -77,14 +86,9 @@ namespace RN
 		delete _internals->tempAllocator;
 		delete _internals->jobSystem;
 
-		// Unregisters all types with the factory and cleans up the default material
-		JPH::UnregisterTypes();
-
-		// Destroy the factory
-		delete JPH::Factory::sInstance;
-		JPH::Factory::sInstance = nullptr;
-
-		_sharedInstance = nullptr;
+		_worlds.erase(std::find(_worlds.begin(), _worlds.end(), this));
+		if(_sharedInstance == this) _sharedInstance = _worlds.empty() ? nullptr : _worlds.front();
+		ReleaseRuntime();
 	}
 
 	void JoltWorld::SetGravity(const Vector3 &gravity)
