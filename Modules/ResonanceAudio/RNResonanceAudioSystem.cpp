@@ -244,6 +244,12 @@ namespace RN
 		config.capture.format = ma_format_f32; // Set to ma_format_unknown to use the device's native format.
 		config.capture.channels = _channelCount; // Set to 0 to use the device's native channel count.
 		config.sampleRate = _sampleRate; // Set to 0 to use the device's native sample rate.
+
+#if RN_PLATFORM_ANDROID
+		config.aaudio.inputPreset = ma_aaudio_input_preset_voice_communication;
+		config.opensl.recordingPreset = ma_opensl_recording_preset_voice_communication;
+#endif
+
 		config.dataCallback = &AudioCallback; // This function will be called when miniaudio needs more data.
 		config.pUserData = this; // Can be accessed from the device object (device.pUserData).
 
