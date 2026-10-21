@@ -20,6 +20,7 @@ option(RN_BUILD_STEAMAUDIO_MODULE "Build the Steam Audio module" OFF)
 option(RN_BUILD_OCULUSAUDIO_MODULE "Build the Oculus Audio module" OFF)
 option(RN_BUILD_RESONANCEAUDIO_MODULE "Build the Resonance Audio module" OFF)
 option(RN_BUILD_ENET_MODULE "Build the ENet module" OFF)
+option(RN_BUILD_SARELAY_MODULE "Build the SlinAir Relay networking and voice module" OFF)
 option(RN_BUILD_RECAST_MODULE "Build the Recast navmesh module" OFF)
 option(RN_BUILD_UI_MODULE "Build the UI module" ON)
 option(RN_BUILD_FLEXUI_MODULE "Build the FlexUI module" ON)
@@ -106,6 +107,10 @@ endif()
 
 if(${RN_BUILD_ENET_MODULE})
     add_subdirectory("ENet")
+endif()
+
+if(RN_BUILD_SARELAY_MODULE)
+    add_subdirectory("SARelay")
 endif()
 
 if(${RN_BUILD_RECAST_MODULE})
