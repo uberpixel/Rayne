@@ -206,7 +206,7 @@ def main():
             shaderOutputPath = os.path.join(targetDirectory, os.path.dirname(shaderLibrary))
             print(shaderOutputPath)
             callArray = [pythonExecutable, shaderConverter, shaderLibraryPath, preferredShaderType, shaderOutputPath, os.path.dirname(shaderLibrary)]
-            subprocess.call(callArray)
+            subprocess.check_call(callArray)
             globalFileToSkip[shaderLibrary] = True
 
             #exclude shader files that are part of the library from getting copied on their own

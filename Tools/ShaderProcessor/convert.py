@@ -32,27 +32,37 @@ def build_metal_commands(sdk, permutation_out_file, bitcode_out_file, lib_out_fi
     return commands
 
 def execute_command_sequence(commands, cleanup_paths, expected_outputs, metal_dispatch_base_patch_file):
-    for index, command in enumerate(commands):
-        print(command)
-        result = subprocess.run(command)
-        if result.returncode != 0:
-            raise RuntimeError(f"Command failed with exit code {result.returncode}: {command}")
+    try:
+        for index, command in enumerate(commands):
+            print(command)
+            result = subprocess.run(command)
+            if result.returncode != 0:
+                raise RuntimeError(f"Command failed with exit code {result.returncode}: {command}")
 
-        if index == 0 and metal_dispatch_base_patch_file:
-            print('Patch Metal compute dispatch base offsets')
-            patch_metal_compute_dispatch_base(metal_dispatch_base_patch_file)
+            if index == 0 and metal_dispatch_base_patch_file:
+                print('Patch Metal compute dispatch base offsets')
+                patch_metal_compute_dispatch_base(metal_dispatch_base_patch_file)
 
-    for output in expected_outputs:
-        if not os.path.isfile(output):
-            raise RuntimeError(f"Expected output missing after compilation: {output}")
+        for output in expected_outputs:
+            if not os.path.isfile(output) or os.path.getsize(output) == 0:
+                raise RuntimeError(f"Expected output missing or empty after compilation: {output}")
 
-    for path in cleanup_paths:
-        try:
-            os.remove(path)
-        except FileNotFoundError:
-            pass
+        for path in cleanup_paths:
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+    except Exception:
+        for output in expected_outputs:
+            try:
+                os.remove(output)
+            except FileNotFoundError:
+                pass
+            except OSError as error:
+                print(f"Failed to remove output {output}: {error}", file=sys.stderr)
+        raise
 
-def getNeedsUpdate(scriptFile, libraryFile, sourceFile, directory, pattern):
+def getNeedsUpdate(scriptFile, libraryFile, sourceFile, expectedOutputs):
     referenceChangeTime = os.path.getmtime(scriptFile)
     libraryChangeTime = os.path.getmtime(libraryFile)
     if libraryChangeTime > referenceChangeTime:
@@ -60,15 +70,12 @@ def getNeedsUpdate(scriptFile, libraryFile, sourceFile, directory, pattern):
     sourceChangeTime = os.path.getmtime(sourceFile)
     if sourceChangeTime > referenceChangeTime:
         referenceChangeTime = sourceChangeTime
-    pathlist = pathlib.Path(directory).glob(pattern)
-    counter = 0
-    for path in pathlist:
-        counter += 1
-        path_in_str = str(path)
-        fileChangeTime = os.path.getmtime(path_in_str)
-        if referenceChangeTime > fileChangeTime:
+    for output in expectedOutputs:
+        if not os.path.isfile(output) or os.path.getsize(output) == 0:
             return True
-    return counter == 0
+        if referenceChangeTime > os.path.getmtime(output):
+            return True
+    return False
 
 def removePermutations(directory, pattern):
     pathlist = pathlib.Path(directory).glob(pattern)
@@ -335,8 +342,16 @@ def main():
                 permutation["identifier"] = 0
                 permutations.append(permutation)
 
+            expectedOutputs = list()
+            for outFormat in outFormats:
+                extension = outFormat
+                if outFormat in METAL_FORMATS:
+                    extension = 'metallib' if platform.system() == 'Darwin' else 'metal'
+                for permutation in permutations:
+                    expectedOutputs.append(os.path.join(outDirName, outputFileName + '.' + str(permutation["identifier"]) + '.' + extension))
+
             skipShaderCompiling = False
-            if not getNeedsUpdate(sys.argv[0], sys.argv[1], sourceFile, outDirName, outputFileName + ".*.*"):
+            if not getNeedsUpdate(sys.argv[0], sys.argv[1], sourceFile, expectedOutputs):
                 print("Shaders for file " + sourceFile + " are already up to date. Skipping.")
                 skipShaderCompiling = True
 
@@ -413,9 +428,6 @@ def main():
         if hlslFile:
             os.remove(hlslFile)
 
-        with open(os.path.join(outDirName, 'Shaders.json'), 'w') as destinationJsonData:
-            json.dump(destinationJson, destinationJsonData, indent=4, sort_keys=True)
-
     cpu_workers = os.cpu_count() or 1
     if running_under_xcode():
         cpu_workers = min(cpu_workers, 1)
@@ -424,6 +436,11 @@ def main():
         futures = [executor.submit(execute_command_sequence, commands, cleanup_paths, outputs, metalDispatchBasePatchFile) for commands, cleanup_paths, outputs, metalDispatchBasePatchFile in command_jobs]
         for future in concurrent.futures.as_completed(futures):
             future.result()
+
+    destinationJsonPath = os.path.join(outDirName, 'Shaders.json')
+    with open(destinationJsonPath + '.tmp', 'w') as destinationJsonData:
+        json.dump(destinationJson, destinationJsonData, indent=4, sort_keys=True)
+    os.replace(destinationJsonPath + '.tmp', destinationJsonPath)
 
 if __name__ == '__main__':
     main()
