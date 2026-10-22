@@ -23,13 +23,23 @@ namespace RN
 		_contactResponseInverseInertiaScale(1.0f),
 		_contactResponseEstimationEnabled(false),
 		_owner(nullptr),
-		_world(world ? world : JoltWorld::GetSharedInstance())
+		_world(nullptr)
 	{
+		SetJoltWorld(world ? world : JoltWorld::GetSharedInstance());
 		RN_ASSERT(_world, "A Jolt world must exist before creating a collision object.");
 	}
 
 	JoltCollisionObject::~JoltCollisionObject()
 	{
+		SetJoltWorld(nullptr);
+	}
+
+	void JoltCollisionObject::SetJoltWorld(JoltWorld *world)
+	{
+		if(_world == world) return;
+		if(_world) --_world->_liveCollisionObjectCount;
+		_world = world;
+		if(_world) ++_world->_liveCollisionObjectCount;
 	}
 
 

@@ -34,6 +34,7 @@ namespace RN
 	{
 	public:
 		friend class JoltConstraint;
+		friend class JoltCollisionObject;
 		friend class JoltConversions;
 		friend class JoltDynamicBody;
 		friend class JoltKinematicController;
@@ -90,6 +91,9 @@ namespace RN
 
 		JTAPI JPH::PhysicsSystem *GetJoltInstance() const { return _physicsSystem; }
 
+		// Query on the same thread used to create, migrate and destroy these objects.
+		JTAPI bool GetHasLiveObjects() const;
+
 		//These as well as the body creation should all be called on the same thread!
 		JTAPI void PrepareLoadingLevel();
 		JTAPI void FinalizeLoadingLevel();
@@ -118,6 +122,8 @@ namespace RN
 		static std::vector<JoltWorld *> _worlds;
 		static JoltWorld *_sharedInstance;
 
+		uint32 _liveCollisionObjectCount = 0;
+		uint32 _liveConstraintCount = 0;
 		JPH::PhysicsSystem *_physicsSystem;
 		float _defaultDynamicBodyLinearDamping;
 		float _defaultDynamicBodyAngularDamping;

@@ -86,6 +86,7 @@ namespace RN
 
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
+		void SetJoltWorld(JoltWorld *world);
 
 		Vector3 _positionOffset;
 		Quaternion _rotationOffset;

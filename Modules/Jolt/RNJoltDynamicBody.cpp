@@ -231,7 +231,7 @@ namespace RN
 			if(sourceInterface.IsAdded(*attachment->_actor)) sourceInterface.RemoveBody(*attachment->_actor);
 			sourceInterface.DestroyBody(*attachment->_actor);
 			*attachment->_actor = prepared[index].body->GetID();
-			attachment->_world = destination;
+			attachment->SetJoltWorld(destination);
 			attachment->InvalidateMotionCache();
 			if(attachment->_isInSimulation)
 				destinationInterface.AddBody(*attachment->_actor, prepared[index].active ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
@@ -246,7 +246,7 @@ namespace RN
 			if(sourceInterface.IsAdded(oldID)) attachment->_controller->RemoveFromPhysicsSystem();
 			delete attachment->_controller;
 			attachment->_controller = entry.character;
-			attachment->_world = destination;
+			attachment->SetJoltWorld(destination);
 			attachment->_upDirection = JoltNativeConversions::ToEngineVector(convertVector(JoltNativeConversions::ToJoltVector(attachment->_upDirection)));
 			attachment->_objectBelow = nullptr;
 			attachment->_groundVelocity = Vector3();

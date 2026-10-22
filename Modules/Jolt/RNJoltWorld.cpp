@@ -284,6 +284,14 @@ namespace RN
 		ProcessQueuedBodyRemovals();
 	}
 
+	bool JoltWorld::GetHasLiveObjects() const
+	{
+		return _liveCollisionObjectCount != 0 || _liveConstraintCount != 0 ||
+			_isSimulating || _isLoadingLevel ||
+			!_internals->bodiesToAddLoadingLevel.empty() || !_internals->pendingBodyRemovals.empty() ||
+			_physicsSystem->GetNumBodies() != 0 || !_physicsSystem->GetConstraints().empty();
+	}
+
 	void JoltWorld::EnumerateCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback)
 	{
 		JPH::BodyIDVector bodyIDs;

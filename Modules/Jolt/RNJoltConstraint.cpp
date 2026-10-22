@@ -42,6 +42,7 @@ namespace RN
 		_collisionsEnabled(false),
 		_connectedBodyCollisionFilteringEnabled(false)
 	{
+		if(_world) ++_world->_liveConstraintCount;
 	}
 
 	JoltConstraint::JoltConstraint(JoltDynamicBody *body1, JoltDynamicBody *body2) : JoltConstraint(body1 ? body1->GetJoltWorld() : nullptr)
@@ -49,6 +50,7 @@ namespace RN
 		// Validate ownership before either world-local body ID is read.
 		if(!body1 || !body2 || !body1->GetJoltWorld() || body1->GetJoltWorld() != body2->GetJoltWorld())
 		{
+			if(_world) --_world->_liveConstraintCount;
 			_world = nullptr;
 			RN_ASSERT(false, "Constraint bodies must belong to the same Jolt world.");
 		}
@@ -74,6 +76,7 @@ namespace RN
 				world->GetJoltInstance()->RemoveConstraint(_constraint);
 			}
 		}
+		if(_world) --_world->_liveConstraintCount;
 	}
 
 	void JoltConstraint::InvalidateJoltConstraint(JPH::Constraint *constraint)
