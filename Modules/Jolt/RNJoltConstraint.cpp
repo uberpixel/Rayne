@@ -223,8 +223,8 @@ namespace RN
 
 		JPH::PointConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
-		settings.mPoint1 = JoltConversions::ToJoltPosition(globalPoint1);
-		settings.mPoint2 = JoltConversions::ToJoltPosition(globalPoint2);
+		settings.mPoint1 = JoltNativeConversions::ToJoltPosition(globalPoint1);
+		settings.mPoint2 = JoltNativeConversions::ToJoltPosition(globalPoint2);
 		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
 	}
 
@@ -248,12 +248,12 @@ namespace RN
 		JPH::FixedConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
 		settings.mAutoDetectPoint = false;
-		settings.mPoint1 = JoltConversions::ToJoltPosition(globalPosition1);
-		settings.mPoint2 = JoltConversions::ToJoltPosition(globalPosition2);
-		settings.mAxisX1 = JoltConversions::ToJoltVector(worldRotation1.GetRotatedVector(Vector3(1.0f, 0.0f, 0.0f)));
-		settings.mAxisY1 = JoltConversions::ToJoltVector(worldRotation1.GetRotatedVector(Vector3(0.0f, 1.0f, 0.0f)));
-		settings.mAxisX2 = JoltConversions::ToJoltVector(worldRotation2.GetRotatedVector(Vector3(1.0f, 0.0f, 0.0f)));
-		settings.mAxisY2 = JoltConversions::ToJoltVector(worldRotation2.GetRotatedVector(Vector3(0.0f, 1.0f, 0.0f)));
+		settings.mPoint1 = JoltNativeConversions::ToJoltPosition(globalPosition1);
+		settings.mPoint2 = JoltNativeConversions::ToJoltPosition(globalPosition2);
+		settings.mAxisX1 = JoltNativeConversions::ToJoltVector(worldRotation1.GetRotatedVector(Vector3(1.0f, 0.0f, 0.0f)));
+		settings.mAxisY1 = JoltNativeConversions::ToJoltVector(worldRotation1.GetRotatedVector(Vector3(0.0f, 1.0f, 0.0f)));
+		settings.mAxisX2 = JoltNativeConversions::ToJoltVector(worldRotation2.GetRotatedVector(Vector3(1.0f, 0.0f, 0.0f)));
+		settings.mAxisY2 = JoltNativeConversions::ToJoltVector(worldRotation2.GetRotatedVector(Vector3(0.0f, 1.0f, 0.0f)));
 		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
 	}
 
@@ -276,8 +276,8 @@ namespace RN
 
 		JPH::DistanceConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
-		settings.mPoint1 = JoltConversions::ToJoltPosition(globalPoint1);
-		settings.mPoint2 = JoltConversions::ToJoltPosition(globalPoint2);
+		settings.mPoint1 = JoltNativeConversions::ToJoltPosition(globalPoint1);
+		settings.mPoint2 = JoltNativeConversions::ToJoltPosition(globalPoint2);
 		settings.mMinDistance = minDistance;
 		settings.mMaxDistance = maxDistance;
 		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
@@ -336,12 +336,12 @@ namespace RN
 		JPH::SliderConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
 		settings.mAutoDetectPoint = false;
-		settings.mPoint1 = JoltConversions::ToJoltPosition(globalPosition1);
-		settings.mSliderAxis1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, sliderAxis));
-		settings.mNormalAxis1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, normalAxis));
-		settings.mPoint2 = JoltConversions::ToJoltPosition(globalPosition2);
-		settings.mSliderAxis2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, sliderAxis));
-		settings.mNormalAxis2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, normalAxis));
+		settings.mPoint1 = JoltNativeConversions::ToJoltPosition(globalPosition1);
+		settings.mSliderAxis1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, sliderAxis));
+		settings.mNormalAxis1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, normalAxis));
+		settings.mPoint2 = JoltNativeConversions::ToJoltPosition(globalPosition2);
+		settings.mSliderAxis2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, sliderAxis));
+		settings.mNormalAxis2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, normalAxis));
 
 		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
 	}
@@ -493,21 +493,21 @@ namespace RN
 
 		Quaternion normalizedWorldRotation1 = getSafeRotation(worldRotation1);
 		Quaternion normalizedWorldRotation2 = getSafeRotation(worldRotation2);
-		_constraintToBody1 = JoltConversions::ToEngineRotation(bodyInterface.GetRotation(bodyID1)).GetConjugated() * normalizedWorldRotation1;
+		_constraintToBody1 = JoltNativeConversions::ToEngineRotation(bodyInterface.GetRotation(bodyID1)).GetConjugated() * normalizedWorldRotation1;
 		_constraintToBody1.Normalize();
-		_constraintToBody2 = JoltConversions::ToEngineRotation(bodyInterface.GetRotation(bodyID2)).GetConjugated() * normalizedWorldRotation2;
+		_constraintToBody2 = JoltNativeConversions::ToEngineRotation(bodyInterface.GetRotation(bodyID2)).GetConjugated() * normalizedWorldRotation2;
 		_constraintToBody2.Normalize();
 		Vector3 hingeAxis = GetAxisVector(axis);
 		Vector3 normalAxis = GetNormalVector(axis);
 
 		JPH::HingeConstraintSettings settings;
 		settings.mSpace = JPH::EConstraintSpace::WorldSpace;
-		settings.mPoint1 = JoltConversions::ToJoltPosition(globalPosition1);
-		settings.mHingeAxis1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, hingeAxis));
-		settings.mNormalAxis1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, normalAxis));
-		settings.mPoint2 = JoltConversions::ToJoltPosition(globalPosition2);
-		settings.mHingeAxis2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, hingeAxis));
-		settings.mNormalAxis2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, normalAxis));
+		settings.mPoint1 = JoltNativeConversions::ToJoltPosition(globalPosition1);
+		settings.mHingeAxis1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, hingeAxis));
+		settings.mNormalAxis1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, normalAxis));
+		settings.mPoint2 = JoltNativeConversions::ToJoltPosition(globalPosition2);
+		settings.mHingeAxis2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, hingeAxis));
+		settings.mNormalAxis2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, normalAxis));
 
 		SetConstraint(bodyInterface.CreateConstraint(&settings, bodyID1, bodyID2), bodyID1, bodyID2);
 	}
@@ -680,12 +680,12 @@ namespace RN
 		Quaternion normalizedWorldRotation1 = getSafeRotation(worldRotation1);
 		Quaternion normalizedWorldRotation2 = getSafeRotation(worldRotation2);
 
-		settings.mPosition1 = JoltConversions::ToJoltPosition(globalPosition1);
-		settings.mAxisX1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, Vector3(1.0f, 0.0f, 0.0f)));
-		settings.mAxisY1 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation1, Vector3(0.0f, 1.0f, 0.0f)));
-		settings.mPosition2 = JoltConversions::ToJoltPosition(globalPosition2);
-		settings.mAxisX2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, Vector3(1.0f, 0.0f, 0.0f)));
-		settings.mAxisY2 = JoltConversions::ToJoltVector(getAxis(normalizedWorldRotation2, Vector3(0.0f, 1.0f, 0.0f)));
+		settings.mPosition1 = JoltNativeConversions::ToJoltPosition(globalPosition1);
+		settings.mAxisX1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, Vector3(1.0f, 0.0f, 0.0f)));
+		settings.mAxisY1 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation1, Vector3(0.0f, 1.0f, 0.0f)));
+		settings.mPosition2 = JoltNativeConversions::ToJoltPosition(globalPosition2);
+		settings.mAxisX2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, Vector3(1.0f, 0.0f, 0.0f)));
+		settings.mAxisY2 = JoltNativeConversions::ToJoltVector(getAxis(normalizedWorldRotation2, Vector3(0.0f, 1.0f, 0.0f)));
 
 		// Allow all DOFs; motors will drive to targets each tick
 		settings.MakeFreeAxis(JPH::SixDOFConstraintSettings::TranslationX);

@@ -34,6 +34,7 @@ namespace RN
 	{
 	public:
 		friend class JoltConstraint;
+		friend class JoltConversions;
 		friend class JoltDynamicBody;
 		friend class JoltKinematicController;
 		friend class JoltRigidBodyController;
@@ -55,12 +56,12 @@ namespace RN
 		JTAPI const PositionType &GetWorldPosition() const { return _worldPosition; }
 		JTAPI const Quaternion &GetWorldRotation() const { return _worldRotation; }
 
-		JTAPI JoltPosition ConvertPositionToPhysicsWorld(const PositionType &position) const;
-		JTAPI PositionType ConvertPositionFromPhysicsWorld(const JoltPosition &position) const;
-		JTAPI Vector3 ConvertVectorToPhysicsWorld(const Vector3 &vector) const;
-		JTAPI Vector3 ConvertVectorFromPhysicsWorld(const Vector3 &vector) const;
-		JTAPI Quaternion ConvertRotationToPhysicsWorld(const Quaternion &rotation) const;
-		JTAPI Quaternion ConvertRotationFromPhysicsWorld(const Quaternion &rotation) const;
+		// Instantaneous universe-space frame motion, in units/sec and radians/sec.
+		// Metadata only: no transform integration or non-inertial forces. Invalid input leaves both values unchanged.
+		JTAPI bool SetWorldVelocity(const DVector3 &linear, const Vector3 &angular);
+		JTAPI const DVector3 &GetWorldLinearVelocity() const { return _worldLinearVelocity; }
+		JTAPI const Vector3 &GetWorldAngularVelocity() const { return _worldAngularVelocity; }
+
 		JTAPI void SetDefaultDynamicBodyDamping(float linear, float angular);
 		JTAPI void SetDefaultDynamicBodyMaxVelocity(float linear, float angular);
 		JTAPI float GetDefaultDynamicBodyLinearDamping() const { return _defaultDynamicBodyLinearDamping; }
@@ -120,6 +121,8 @@ namespace RN
 		float _defaultDynamicBodyAngularDamping;
 		float _defaultDynamicBodyMaxLinearVelocity;
 		float _defaultDynamicBodyMaxAngularVelocity;
+		DVector3 _worldLinearVelocity = DVector3(0.0);
+		Vector3 _worldAngularVelocity = Vector3(0.0f);
 		PositionType _worldPosition;
 		Quaternion _worldRotation;
 		Quaternion _inverseWorldRotation;

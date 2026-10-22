@@ -108,14 +108,14 @@ namespace RN
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
 			RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
-			JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
+			JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 			Quaternion rotation = GetWorldRotation() * _rotationOffset;
 			rotation.Normalize();
 
 			JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 			JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
-			bodyInterface.SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
+			bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
@@ -123,14 +123,14 @@ namespace RN
 			if(!_owner && GetParent())
 			{
 				RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
+				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 				Quaternion rotation = GetWorldRotation() * _rotationOffset;
 				rotation.Normalize();
 
 				JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 				JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
-				bodyInterface.SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
+				bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 			}
 
 			_owner = GetParent();
@@ -151,8 +151,8 @@ namespace RN
 		JPH::Quat rotation;
 		bodyInterface.GetPositionAndRotation(*_actor, position, rotation);
 
-		RN::Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
+		RN::Quaternion rotationResult = JoltNativeConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
 		RN::Vector3 positionOffset = rotationResult.GetRotatedVector(_positionOffset);
-		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
+		JoltNativeConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
 	}
 } // namespace RN

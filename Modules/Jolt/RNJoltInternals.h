@@ -10,7 +10,7 @@
 #define __RAYNE_JOLTINTERNALS_H_
 
 #include "RNJolt.h"
-#include "RNJoltConversions.h"
+#include "RNJoltNativeConversions.h"
 #include "RNJoltKinematicController.h"
 #include "RNJoltCollisionObject.h"
 
@@ -264,8 +264,8 @@ namespace RN
 			ApplyContactResponseMassScale(co2, co1, inBody2.GetID(), ioSettings, false);
 			JPH::Vec3 joltVelocity1 = inBody1.GetLinearVelocity();
 			JPH::Vec3 joltVelocity2 = inBody2.GetLinearVelocity();
-			Vector3 velocity1 = JoltConversions::ToEngineVector(joltVelocity1);
-			Vector3 velocity2 = JoltConversions::ToEngineVector(joltVelocity2);
+			Vector3 velocity1 = JoltNativeConversions::ToEngineVector(joltVelocity1);
+			Vector3 velocity2 = JoltNativeConversions::ToEngineVector(joltVelocity2);
 			JoltContactInfo info1{};
 			JoltContactInfo info2{};
 			info1.node = co2 ? co2->GetParent() : nullptr;
@@ -302,8 +302,8 @@ namespace RN
 			ApplyContactResponseMassScale(co2, co1, inBody2.GetID(), ioSettings, false);
 			JPH::Vec3 joltVelocity1 = inBody1.GetLinearVelocity();
 			JPH::Vec3 joltVelocity2 = inBody2.GetLinearVelocity();
-			Vector3 velocity1 = JoltConversions::ToEngineVector(joltVelocity1);
-			Vector3 velocity2 = JoltConversions::ToEngineVector(joltVelocity2);
+			Vector3 velocity1 = JoltNativeConversions::ToEngineVector(joltVelocity1);
+			Vector3 velocity2 = JoltNativeConversions::ToEngineVector(joltVelocity2);
 			JoltContactInfo info1{};
 			JoltContactInfo info2{};
 			info1.node = co2 ? co2->GetParent() : nullptr;
@@ -354,14 +354,14 @@ namespace RN
 				JPH::RVec3 position = (manifold.GetWorldSpaceContactPointOn1(static_cast<JPH::uint>(i)) + manifold.GetWorldSpaceContactPointOn2(static_cast<JPH::uint>(i))) * 0.5f;
 
 				JoltEstimatedContactPointImpulse point1;
-				point1.position = JoltConversions::ToPosition(position);
-				point1.impulse = JoltConversions::ToEngineVector(-impulse);
+				point1.position = JoltNativeConversions::ToPosition(position);
+				point1.impulse = JoltNativeConversions::ToEngineVector(-impulse);
 				point1.normalImpulse = estimatedImpulse.mContactImpulse;
 				info1.estimatedContactPointImpulses.push_back(point1);
 
 				JoltEstimatedContactPointImpulse point2;
 				point2.position = point1.position;
-				point2.impulse = JoltConversions::ToEngineVector(impulse);
+				point2.impulse = JoltNativeConversions::ToEngineVector(impulse);
 				point2.normalImpulse = estimatedImpulse.mContactImpulse;
 				info2.estimatedContactPointImpulses.push_back(point2);
 			}
@@ -370,18 +370,18 @@ namespace RN
 		static Vector3 GetBodyContactPointVelocity(const JPH::Body &body, const JPH::RVec3 &position)
 		{
 			JPH::Vec3 velocity = body.GetPointVelocity(position);
-			return JoltConversions::ToEngineVector(velocity);
+			return JoltNativeConversions::ToEngineVector(velocity);
 		}
 
 		static void FillContactManifoldInfo(JoltContactInfo &info, const JPH::ContactManifold &manifold, const JPH::Body &body, const JPH::Body &otherBody, bool isFirstBody)
 		{
 			JPH::Vec3 normal = manifold.mWorldSpaceNormal;
 			if(!isFirstBody) normal = -normal;
-			info.normal = JoltConversions::ToEngineVector(normal);
+			info.normal = JoltNativeConversions::ToEngineVector(normal);
 			uint32 contactPointCount = static_cast<uint32>(manifold.mRelativeContactPointsOn1.size());
 			if(contactPointCount == 0)
 			{
-				info.position = JoltConversions::ToPosition(manifold.mBaseOffset);
+				info.position = JoltNativeConversions::ToPosition(manifold.mBaseOffset);
 				info.contactPatchRadius = 0.0f;
 				info.relativeContactVelocity = GetBodyContactPointVelocity(body, manifold.mBaseOffset) - GetBodyContactPointVelocity(otherBody, manifold.mBaseOffset);
 				return;
@@ -404,7 +404,7 @@ namespace RN
 			centerY *= inversePointCount;
 			centerZ *= inversePointCount;
 			JPH::RVec3 center(centerX, centerY, centerZ);
-			info.position = JoltConversions::ToPosition(center);
+			info.position = JoltNativeConversions::ToPosition(center);
 
 			double patchRadiusSquared = 0.0;
 			for(uint32 i = 0; i < contactPointCount; i += 1)

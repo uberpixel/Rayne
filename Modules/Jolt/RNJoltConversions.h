@@ -9,156 +9,72 @@
 #ifndef __RAYNE_JOLTCONVERSIONS_H_
 #define __RAYNE_JOLTCONVERSIONS_H_
 
-#include "RNJolt.h"
 #include "RNJoltWorld.h"
-
-#include <Jolt/Jolt.h>
 
 namespace RN
 {
 	class JoltConversions
 	{
 	public:
-		static JPH::Vec3 ToJoltVec3(const Vector3 &vector)
+		// All conversions require a non-null world; velocity positions are in universe space.
+		// Absolute point velocities include frame motion; deltas, forces and directions use ConvertVector.
+		static DVector3 ConvertLinearVelocityFromPhysicsWorld(const Vector3 &velocity, const PositionType &position, const JoltWorld *world)
 		{
-			return JPH::Vec3(vector.x, vector.y, vector.z);
+			return world->_worldLinearVelocity + DVector3(world->_worldAngularVelocity).GetCrossProduct(DVector3(position) - DVector3(world->_worldPosition)) + world->_worldRotation.GetRotatedVector(DVector3(velocity));
 		}
 
-		static JPH::RVec3 ToJoltRVec3(const Vector3 &vector)
+		static Vector3 ConvertLinearVelocityToPhysicsWorld(const DVector3 &velocity, const PositionType &position, const JoltWorld *world)
 		{
-			return JPH::RVec3(vector.x, vector.y, vector.z);
+			const DVector3 relative = velocity - world->_worldLinearVelocity - DVector3(world->_worldAngularVelocity).GetCrossProduct(DVector3(position) - DVector3(world->_worldPosition));
+			return Vector3(world->_inverseWorldRotation.GetRotatedVector(relative));
 		}
 
-		static JPH::RVec3 ToJoltRVec3(const DVector3 &vector)
+		static Vector3 ConvertAngularVelocityFromPhysicsWorld(const Vector3 &velocity, const JoltWorld *world)
 		{
-			return JPH::RVec3(vector.x, vector.y, vector.z);
+			return world->_worldAngularVelocity + ConvertVectorFromPhysicsWorld(velocity, world);
 		}
 
-		static JPH::Quat ToJoltQuat(const Quaternion &quaternion)
+		static Vector3 ConvertAngularVelocityToPhysicsWorld(const Vector3 &velocity, const JoltWorld *world)
 		{
-			return JPH::Quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+			return ConvertVectorToPhysicsWorld(velocity - world->_worldAngularVelocity, world);
 		}
 
-		static JPH::RMat44 ToJoltRMat44(const Quaternion &rotation, const JPH::RVec3 &position)
+		static JoltPosition ConvertPositionToPhysicsWorld(const PositionType &position, const JoltWorld *world)
 		{
-			return JPH::RMat44::sRotationTranslation(ToJoltQuat(rotation), position);
+			DVector3 offset(position);
+			offset -= DVector3(world->_worldPosition);
+			const DVector3 physicsPosition = world->_inverseWorldPositionRotation.GetRotatedVector(offset);
+			return JoltPosition(physicsPosition);
 		}
 
-		static JPH::RMat44 ToJoltRMat44(const JPH::Quat &rotation, const JPH::RVec3 &position)
+		static PositionType ConvertPositionFromPhysicsWorld(const JoltPosition &position, const JoltWorld *world)
 		{
-			return JPH::RMat44::sRotationTranslation(rotation, position);
+			const DVector3 worldPosition = DVector3(world->_worldPosition) + world->_worldPositionRotation.GetRotatedVector(DVector3(position));
+			return PositionType(worldPosition);
 		}
 
-		static JPH::RVec3 ToJoltPosition(const JoltPosition &position)
+		static Vector3 ConvertVectorToPhysicsWorld(const Vector3 &vector, const JoltWorld *world)
 		{
-			return ToJoltRVec3(position);
+			return world->_inverseWorldRotation.GetRotatedVector(vector);
 		}
 
-		static JPH::Vec3 ToJoltVector(const Vector3 &vector)
+		static Vector3 ConvertVectorFromPhysicsWorld(const Vector3 &vector, const JoltWorld *world)
 		{
-			return ToJoltVec3(vector);
+			return world->_worldRotation.GetRotatedVector(vector);
 		}
 
-		static JPH::Quat ToJoltRotation(const Quaternion &rotation)
+		static Quaternion ConvertRotationToPhysicsWorld(const Quaternion &rotation, const JoltWorld *world)
 		{
-			Quaternion result(rotation);
-			result.Normalize();
-			return ToJoltQuat(result);
-		}
-
-		static Vector3 ToVector3(const JPH::Vec3 &vector)
-		{
-			return Vector3(vector.GetX(), vector.GetY(), vector.GetZ());
-		}
-
-		static Vector3 ToVector3FromRVec3(const JPH::RVec3 &vector)
-		{
-			return Vector3(vector.GetX(), vector.GetY(), vector.GetZ());
-		}
-
-		static DVector3 ToDVector3(const JPH::RVec3 &vector)
-		{
-			return DVector3(vector.GetX(), vector.GetY(), vector.GetZ());
-		}
-
-		static JoltPosition ToPosition(const JPH::RVec3 &vector)
-		{
-#if RN_ENABLE_UNIVERSE_SCALE
-			return ToDVector3(vector);
-#else
-			return ToVector3FromRVec3(vector);
-#endif
-		}
-
-		static Vector3 ToEngineVector(const JPH::Vec3 &vector)
-		{
-			return ToVector3(vector);
-		}
-
-		static Quaternion ToEngineRotation(const JPH::Quat &rotation)
-		{
-			Quaternion result(rotation.GetX(), rotation.GetY(), rotation.GetZ(), rotation.GetW());
+			Quaternion result = world->_inverseWorldRotation * rotation;
 			result.Normalize();
 			return result;
 		}
 
-		static JPH::RVec3 ToJoltScenePosition(const PositionType &position, const JoltWorld *world = JoltWorld::GetSharedInstance())
+		static Quaternion ConvertRotationFromPhysicsWorld(const Quaternion &rotation, const JoltWorld *world)
 		{
-			return world ? ToJoltPosition(world->ConvertPositionToPhysicsWorld(position)) : ToJoltPosition(position);
-		}
-
-		static JPH::Quat ToJoltSceneRotation(const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			return world ? ToJoltRotation(world->ConvertRotationToPhysicsWorld(rotation)) : ToJoltRotation(rotation);
-		}
-
-		static PositionType ToScenePosition(const JPH::RVec3 &vector, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			return world ? world->ConvertPositionFromPhysicsWorld(ToPosition(vector)) : ToPosition(vector);
-		}
-
-		static Quaternion ToSceneRotation(const JPH::Quat &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			return world ? world->ConvertRotationFromPhysicsWorld(ToEngineRotation(rotation)) : ToEngineRotation(rotation);
-		}
-
-		static Vector3 ToVector3(const JoltPosition &vector)
-		{
-#if RN_ENABLE_UNIVERSE_SCALE
-			return vector.ToVector3();
-#else
-			return vector;
-#endif
-		}
-
-		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			return ToJoltScenePosition(attachment->GetWorldPosition(), world);
-		}
-
-		static JPH::RVec3 GetAttachmentPosition(const SceneNodeAttachment *attachment, const Vector3 &offset, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			return ToJoltScenePosition(attachment->GetWorldPosition() + offset, world);
-		}
-
-		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			attachment->SetWorldPosition(ToScenePosition(position, world));
-		}
-
-		static void SetAttachmentPosition(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			attachment->SetWorldPosition(ToScenePosition(position, world) + offset);
-		}
-
-		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			attachment->SetWorldTransform(ToScenePosition(position, world), rotation);
-		}
-
-		static void SetAttachmentTransform(SceneNodeAttachment *attachment, const JPH::RVec3 &position, const Vector3 &offset, const Quaternion &rotation, const JoltWorld *world = JoltWorld::GetSharedInstance())
-		{
-			attachment->SetWorldTransform(ToScenePosition(position, world) + offset, rotation);
+			Quaternion result = world->_worldRotation * rotation;
+			result.Normalize();
+			return result;
 		}
 	};
 } // namespace RN

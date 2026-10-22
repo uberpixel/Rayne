@@ -147,14 +147,26 @@ namespace RN
 			for(const auto &entry : preparedControllers) delete entry.character;
 		};
 		auto convertVector = [&](JPH::Vec3Arg vector) {
-			return JoltConversions::ToJoltVector(destination->ConvertVectorToPhysicsWorld(source->ConvertVectorFromPhysicsWorld(JoltConversions::ToEngineVector(vector))));
+			return JoltNativeConversions::ToJoltVector(JoltConversions::ConvertVectorToPhysicsWorld(JoltConversions::ConvertVectorFromPhysicsWorld(JoltNativeConversions::ToEngineVector(vector), source), destination));
 		};
-		auto convertSettings = [&](JPH::BodyCreationSettings &settings) {
-			settings.mPosition = JoltConversions::ToJoltPosition(destination->ConvertPositionToPhysicsWorld(source->ConvertPositionFromPhysicsWorld(JoltConversions::ToPosition(settings.mPosition))));
-			settings.mRotation = JoltConversions::ToJoltRotation(destination->ConvertRotationToPhysicsWorld(source->ConvertRotationFromPhysicsWorld(JoltConversions::ToEngineRotation(settings.mRotation))));
-			settings.mLinearVelocity = convertVector(settings.mLinearVelocity);
-			settings.mAngularVelocity = convertVector(settings.mAngularVelocity);
-			return JoltConversions::ToPosition(settings.mPosition).IsValid() && JoltConversions::ToEngineRotation(settings.mRotation).IsValid() && JoltConversions::ToEngineVector(settings.mLinearVelocity).IsValid() && JoltConversions::ToEngineVector(settings.mAngularVelocity).IsValid();
+		auto convertSettings = [&](JPH::BodyCreationSettings &settings, const JPH::Body &body, bool controller) {
+			const PositionType centerOfMass = JoltConversions::ConvertPositionFromPhysicsWorld(JoltNativeConversions::ToPosition(body.GetCenterOfMassPosition()), source);
+			settings.mPosition = JoltNativeConversions::ToJoltPosition(JoltConversions::ConvertPositionToPhysicsWorld(JoltConversions::ConvertPositionFromPhysicsWorld(JoltNativeConversions::ToPosition(settings.mPosition), source), destination));
+			settings.mRotation = JoltNativeConversions::ToJoltRotation(JoltConversions::ConvertRotationToPhysicsWorld(JoltConversions::ConvertRotationFromPhysicsWorld(JoltNativeConversions::ToEngineRotation(settings.mRotation), source), destination));
+			settings.mLinearVelocity = JoltNativeConversions::ToJoltVector(JoltConversions::ConvertLinearVelocityToPhysicsWorld(JoltConversions::ConvertLinearVelocityFromPhysicsWorld(JoltNativeConversions::ToEngineVector(settings.mLinearVelocity), centerOfMass, source), centerOfMass, destination));
+			// Character orientation is application-driven with angular DOFs locked.
+			settings.mAngularVelocity = controller ? convertVector(settings.mAngularVelocity) : JoltNativeConversions::ToJoltVector(JoltConversions::ConvertAngularVelocityToPhysicsWorld(JoltConversions::ConvertAngularVelocityFromPhysicsWorld(JoltNativeConversions::ToEngineVector(settings.mAngularVelocity), source), destination));
+			if(body.IsStatic() && (settings.mLinearVelocity.LengthSq() != 0.0f || settings.mAngularVelocity.LengthSq() != 0.0f)) return false;
+			if(const auto *motion = body.GetMotionPropertiesUnchecked())
+			{
+				if(settings.mLinearVelocity.Length() > settings.mMaxLinearVelocity || settings.mAngularVelocity.Length() > settings.mMaxAngularVelocity) return false;
+				if((motion->LockTranslation(settings.mLinearVelocity) - settings.mLinearVelocity).LengthSq() > 1.0e-12f || (motion->LockAngular(settings.mAngularVelocity) - settings.mAngularVelocity).LengthSq() > 1.0e-12f) return false;
+			}
+			else if(settings.mLinearVelocity.LengthSq() != 0.0f || settings.mAngularVelocity.LengthSq() != 0.0f) return false;
+			return JoltNativeConversions::ToPosition(settings.mPosition).IsValid() && JoltNativeConversions::ToEngineRotation(settings.mRotation).IsValid() && JoltNativeConversions::ToEngineVector(settings.mLinearVelocity).IsValid() && JoltNativeConversions::ToEngineVector(settings.mAngularVelocity).IsValid();
+		};
+		auto shouldActivate = [](const JPH::Body &body, const JPH::BodyCreationSettings &settings) {
+			return body.IsActive() || (!body.IsStatic() && (settings.mLinearVelocity != JPH::Vec3::sZero() || settings.mAngularVelocity != JPH::Vec3::sZero()));
 		};
 		for(auto *attachment : bodies)
 		{
@@ -162,7 +174,7 @@ namespace RN
 			if(!lock.Succeeded()) { discard(); return false; }
 			const JPH::Body &body = lock.GetBody();
 			auto settings = body.GetBodyCreationSettings();
-			if(!convertSettings(settings)) { discard(); return false; }
+			if(!convertSettings(settings, body, false)) { discard(); return false; }
 			settings.mObjectLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_isInSimulation ? attachment->_collisionFilterMask : 0, 1);
 			JPH::Body *replacement = destinationInterface.CreateBody(settings);
 			if(!replacement) { discard(); return false; }
@@ -171,7 +183,7 @@ namespace RN
 				replacement->AddForce(convertVector(body.GetAccumulatedForce()));
 				replacement->AddTorque(convertVector(body.GetAccumulatedTorque()));
 			}
-			prepared.push_back({replacement, body.IsActive(), settings, body.IsDynamic() ? replacement->GetAccumulatedForce() : JPH::Vec3::sZero(), body.IsDynamic() ? replacement->GetAccumulatedTorque() : JPH::Vec3::sZero()});
+			prepared.push_back({replacement, shouldActivate(body, settings), settings, body.IsDynamic() ? replacement->GetAccumulatedForce() : JPH::Vec3::sZero(), body.IsDynamic() ? replacement->GetAccumulatedTorque() : JPH::Vec3::sZero()});
 		}
 		for(auto *attachment : controllers)
 		{
@@ -180,7 +192,7 @@ namespace RN
 			if(!lock.Succeeded()) { discard(); return false; }
 			const auto &body = lock.GetBody();
 			auto settings = body.GetBodyCreationSettings();
-			if(!convertSettings(settings)) { discard(); return false; }
+			if(!convertSettings(settings, body, true)) { discard(); return false; }
 			characterSettings.mUp = convertVector(characterSettings.mUp);
 			characterSettings.mLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_collisionFilterMask, 1);
 			auto *character = new JPH::Character(&characterSettings, settings.mPosition, settings.mRotation, settings.mUserData, destination->GetJoltInstance());
@@ -205,7 +217,7 @@ namespace RN
 			motion->SetNumVelocityStepsOverride(settings.mNumVelocityStepsOverride);
 			uint32 supportIndex = 0xffffffff;
 			for(size_t index = 0; index < bodies.size(); ++index) if(bodies[index]->GetJoltBodyID() == attachment->_externalSupportBodyID) supportIndex = static_cast<uint32>(index);
-			preparedControllers.push_back({character, {&replacement, body.IsActive(), settings, convertVector(body.GetAccumulatedForce()), convertVector(body.GetAccumulatedTorque())}, body.IsInBroadPhase(), supportIndex, attachment->_externalSupportLocalPosition, attachment->_externalSupportAnchorMaxForce});
+			preparedControllers.push_back({character, {&replacement, shouldActivate(body, settings), settings, convertVector(body.GetAccumulatedForce()), convertVector(body.GetAccumulatedTorque())}, body.IsInBroadPhase(), supportIndex, attachment->_externalSupportLocalPosition, attachment->_externalSupportAnchorMaxForce});
 		}
 		if(beforeTransfer) beforeTransfer();
 		for(auto *attachment : controllers) attachment->ClearExternalSupportAnchor();
@@ -235,7 +247,7 @@ namespace RN
 			delete attachment->_controller;
 			attachment->_controller = entry.character;
 			attachment->_world = destination;
-			attachment->_upDirection = JoltConversions::ToEngineVector(convertVector(JoltConversions::ToJoltVector(attachment->_upDirection)));
+			attachment->_upDirection = JoltNativeConversions::ToEngineVector(convertVector(JoltNativeConversions::ToJoltVector(attachment->_upDirection)));
 			attachment->_objectBelow = nullptr;
 			attachment->_groundVelocity = Vector3();
 			attachment->_groundAngularVelocity = Vector3();
@@ -315,9 +327,9 @@ namespace RN
 
 		const JPH::Body &body = lock.GetBody();
 		_motionCacheProperties = JoltPointMotionProperties();
-		_motionCacheCenterOfMass = JoltConversions::ToPosition(body.GetCenterOfMassPosition());
-		_motionCacheLinearVelocity = JoltConversions::ToEngineVector(body.GetLinearVelocity());
-		_motionCacheAngularVelocity = JoltConversions::ToEngineVector(body.GetAngularVelocity());
+		_motionCacheCenterOfMass = JoltNativeConversions::ToPosition(body.GetCenterOfMassPosition());
+		_motionCacheLinearVelocity = JoltNativeConversions::ToEngineVector(body.GetLinearVelocity());
+		_motionCacheAngularVelocity = JoltNativeConversions::ToEngineVector(body.GetAngularVelocity());
 
 		const JPH::MotionProperties *motionProperties = body.IsDynamic() ? body.GetMotionPropertiesUnchecked() : nullptr;
 		if(motionProperties)
@@ -326,9 +338,9 @@ namespace RN
 			_motionCacheProperties.inverseMass = motionProperties->GetInverseMass();
 
 			JPH::Mat44 inverseInertia = body.GetInverseInertia();
-			_motionCacheProperties.inverseInertiaColumnX = JoltConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisX());
-			_motionCacheProperties.inverseInertiaColumnY = JoltConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisY());
-			_motionCacheProperties.inverseInertiaColumnZ = JoltConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisZ());
+			_motionCacheProperties.inverseInertiaColumnX = JoltNativeConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisX());
+			_motionCacheProperties.inverseInertiaColumnY = JoltNativeConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisY());
+			_motionCacheProperties.inverseInertiaColumnZ = JoltNativeConversions::ToEngineVector(inverseInertia * JPH::Vec3::sAxisZ());
 		}
 
 		_motionCacheIsValid = true;
@@ -377,10 +389,10 @@ namespace RN
 			worldRotation.Normalize();
 			Quaternion bodyRotation = worldRotation * _rotationOffset;
 			bodyRotation.Normalize();
-			JPH::RVec3 bodyPosition = JoltConversions::GetAttachmentPosition(this, -worldRotation.GetRotatedVector(_positionOffset), GetJoltWorld());
+			JPH::RVec3 bodyPosition = JoltNativeConversions::GetAttachmentPosition(this, -worldRotation.GetRotatedVector(_positionOffset), GetJoltWorld());
 			if(wasInSimulation)
 			{
-				bodyInterface.SetPositionAndRotation(*_actor, bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()), JPH::EActivation::DontActivate);
+				bodyInterface.SetPositionAndRotation(*_actor, bodyPosition, JoltNativeConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 			}
 			else
 			{
@@ -388,7 +400,7 @@ namespace RN
 				JPH::BodyLockWrite transformLock(lockInterface, *_actor);
 				if(transformLock.Succeeded())
 				{
-					transformLock.GetBody().SetPositionAndRotationInternal(bodyPosition, JoltConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()));
+					transformLock.GetBody().SetPositionAndRotationInternal(bodyPosition, JoltNativeConversions::ToJoltSceneRotation(bodyRotation, GetJoltWorld()));
 				}
 			}
 		}
@@ -444,7 +456,7 @@ namespace RN
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 		bool wasInSimulation = bodyInterface.IsAdded(*_actor);
 		bool shouldActivate = wasInSimulation && _isInSimulation;
-		bodyInterface.NotifyShapeChanged(*_actor, JoltConversions::ToJoltVector(previousCenterOfMass), true, shouldActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+		bodyInterface.NotifyShapeChanged(*_actor, JoltNativeConversions::ToJoltVector(previousCenterOfMass), true, shouldActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
 		_appliedShapeCenterOfMass = currentCenterOfMass;
 
 		if(hasCenterOfMassDelta)
@@ -470,14 +482,14 @@ namespace RN
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->SetLinearVelocity(*_actor, JoltConversions::ToJoltVector(velocity));
+		bodyInterface->SetLinearVelocity(*_actor, JoltNativeConversions::ToJoltVector(velocity));
 	}
 	void JoltDynamicBody::SetAngularVelocity(const Vector3 &velocity)
 	{
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->SetAngularVelocity(*_actor, JoltConversions::ToJoltVector(velocity));
+		bodyInterface->SetAngularVelocity(*_actor, JoltNativeConversions::ToJoltVector(velocity));
 	}
 
 	void JoltDynamicBody::SetDamping(float linear, float angular)
@@ -535,14 +547,14 @@ namespace RN
 		if(!globalPosition.IsValid() || !RefreshMotionCacheIfNeeded()) return JoltPointMotionProperties();
 
 		JoltPointMotionProperties properties = _motionCacheProperties;
-		properties.centerOffset = JoltConversions::ToVector3(globalPosition - _motionCacheCenterOfMass);
+		properties.centerOffset = JoltNativeConversions::ToVector3(globalPosition - _motionCacheCenterOfMass);
 		properties.velocity = _motionCacheLinearVelocity + _motionCacheAngularVelocity.GetCrossProduct(properties.centerOffset);
 		return properties;
 	}
 
 	JoltPosition JoltDynamicBody::GetCenterOfMassPosition() const
 	{
-		return (_actor && RefreshMotionCacheIfNeeded()) ? _motionCacheCenterOfMass : JoltConversions::ToPosition(JoltConversions::GetAttachmentPosition(this, GetJoltWorld()));
+		return (_actor && RefreshMotionCacheIfNeeded()) ? _motionCacheCenterOfMass : JoltNativeConversions::ToPosition(JoltNativeConversions::GetAttachmentPosition(this, GetJoltWorld()));
 	}
 
 	float JoltDynamicBody::GetPointImpulseEffectiveMass(const JoltPosition &globalPosition, const Vector3 &direction) const
@@ -682,7 +694,7 @@ namespace RN
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddForce(*_actor, JoltConversions::ToJoltVector(force));
+		bodyInterface->AddForce(*_actor, JoltNativeConversions::ToJoltVector(force));
 	}
 
 	void JoltDynamicBody::AddForce(const Vector3 &force, const JoltPosition &globalOrigin)
@@ -690,7 +702,7 @@ namespace RN
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddForce(*_actor, JoltConversions::ToJoltVector(force), JoltConversions::ToJoltPosition(globalOrigin));
+		bodyInterface->AddForce(*_actor, JoltNativeConversions::ToJoltVector(force), JoltNativeConversions::ToJoltPosition(globalOrigin));
 	}
 
 	void JoltDynamicBody::ApplyGravity(const Vector3 &gravity)
@@ -700,7 +712,7 @@ namespace RN
 		if(_isKinematic || !_isGravityEnabled) return;
 		if(_mass <= k::EpsilonFloat || gravity.GetSquaredLength() <= k::EpsilonFloat) return;
 
-		bodyInterface->AddForce(*_actor, JoltConversions::ToJoltVector(gravity * _mass), JPH::EActivation::DontActivate);
+		bodyInterface->AddForce(*_actor, JoltNativeConversions::ToJoltVector(gravity * _mass), JPH::EActivation::DontActivate);
 	}
 
 	/*	void JoltDynamicBody::ClearForces()
@@ -716,28 +728,28 @@ namespace RN
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddTorque(*_actor, JoltConversions::ToJoltVector(torque));
+		bodyInterface->AddTorque(*_actor, JoltNativeConversions::ToJoltVector(torque));
 	}
 	void JoltDynamicBody::AddTorqueImpulse(const Vector3 &torque)
 	{
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddAngularImpulse(*_actor, JoltConversions::ToJoltVector(torque));
+		bodyInterface->AddAngularImpulse(*_actor, JoltNativeConversions::ToJoltVector(torque));
 	}
 	void JoltDynamicBody::AddImpulse(const Vector3 &impulse)
 	{
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddImpulse(*_actor, JoltConversions::ToJoltVector(impulse));
+		bodyInterface->AddImpulse(*_actor, JoltNativeConversions::ToJoltVector(impulse));
 	}
 	void JoltDynamicBody::AddImpulse(const Vector3 &impulse, const JoltPosition &globalOrigin)
 	{
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
 
-		bodyInterface->AddImpulse(*_actor, JoltConversions::ToJoltVector(impulse), JoltConversions::ToJoltPosition(globalOrigin));
+		bodyInterface->AddImpulse(*_actor, JoltNativeConversions::ToJoltVector(impulse), JoltNativeConversions::ToJoltPosition(globalOrigin));
 	}
 
 	bool JoltDynamicBody::ApplyBuoyancyImpulse(const JoltPosition &globalSurfacePosition, const Vector3 &surfaceNormal, float buoyancy, float linearDrag, float angularDrag, const Vector3 &fluidVelocity, const Vector3 &gravity, float delta)
@@ -748,13 +760,13 @@ namespace RN
 		if(!bodyInterface) return false;
 
 		Vector3 normalizedSurfaceNormal = surfaceNormal.GetNormalized();
-		return bodyInterface->ApplyBuoyancyImpulse(*_actor, JoltConversions::ToJoltPosition(globalSurfacePosition),
-			JoltConversions::ToJoltVector(normalizedSurfaceNormal),
+		return bodyInterface->ApplyBuoyancyImpulse(*_actor, JoltNativeConversions::ToJoltPosition(globalSurfacePosition),
+			JoltNativeConversions::ToJoltVector(normalizedSurfaceNormal),
 			buoyancy,
 			linearDrag,
 			angularDrag,
-			JoltConversions::ToJoltVector(fluidVelocity),
-			JoltConversions::ToJoltVector(gravity),
+			JoltNativeConversions::ToJoltVector(fluidVelocity),
+			JoltNativeConversions::ToJoltVector(gravity),
 			delta);
 	}
 
@@ -799,10 +811,10 @@ namespace RN
 			{
 				worldRotation.Normalize();
 				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
+				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 				RN::Quaternion rotation = worldRotation * _rotationOffset;
 				rotation.Normalize();
-				bodyInterface.SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
+				bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 			}
 			bodyInterface.AddBody(*_actor, JPH::EActivation::Activate);
 			_isInSimulation = true;
@@ -853,8 +865,8 @@ namespace RN
 
 		targetRotation.Normalize();
 
-		JPH::RVec3 targetPosition = JoltConversions::ToJoltPosition(targetPositionVector);
-		JPH::Quat targetJoltRotation = JoltConversions::ToJoltRotation(targetRotation);
+		JPH::RVec3 targetPosition = JoltNativeConversions::ToJoltPosition(targetPositionVector);
+		JPH::Quat targetJoltRotation = JoltNativeConversions::ToJoltRotation(targetRotation);
 		targetJoltRotation = targetJoltRotation.Normalized();
 		if(targetJoltRotation.IsNaN() || !targetJoltRotation.IsNormalized())
 			return;
@@ -1060,12 +1072,12 @@ namespace RN
 				worldRotation.Normalize();
 
 				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
+				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
 				Quaternion rotation = worldRotation * _rotationOffset;
 				if(rotation.IsValid())
 				{
 					rotation.Normalize();
-					bodyInterface->SetPositionAndRotation(*_actor, position, JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
+					bodyInterface->SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 				}
 			}
 		}
@@ -1097,8 +1109,8 @@ namespace RN
 		JPH::Quat rotation;
 		bodyInterface->GetPositionAndRotation(*_actor, position, rotation);
 
-		RN::Quaternion rotationResult = JoltConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
+		RN::Quaternion rotationResult = JoltNativeConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
 		RN::Vector3 positionOffset = rotationResult.GetRotatedVector(_positionOffset);
-		JoltConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
+		JoltNativeConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());
 	}
 } // namespace RN

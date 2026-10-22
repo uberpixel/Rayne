@@ -57,9 +57,9 @@ namespace RN
 		JoltWorld *world = GetJoltWorld();
 		uint16 objectLayer = world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1);
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
-		JPH::Vec3 joltGravity = JoltConversions::ToJoltVector(gravity);
+		JPH::Vec3 joltGravity = JoltNativeConversions::ToJoltVector(gravity);
 
-		_controller->SetLinearVelocity(JoltConversions::ToJoltVector(velocity));
+		_controller->SetLinearVelocity(JoltNativeConversions::ToJoltVector(velocity));
 		if(_stepOffset > k::EpsilonFloat)
 		{
 			JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
@@ -82,14 +82,14 @@ namespace RN
 
 		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 
-		JPH::RVec3 baseOffset = JoltConversions::GetAttachmentPosition(this, GetJoltWorld()) + JoltConversions::ToJoltRVec3(offset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::GetAttachmentPosition(this, GetJoltWorld()) + JoltNativeConversions::ToJoltRVec3(offset);
 		Quaternion rot = GetWorldRotation();
 
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltSceneRotation(rot, GetJoltWorld()), baseOffset);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltSceneRotation(rot, GetJoltWorld()), baseOffset);
 
 		//TODO: Limit max distance of raycast or the result
 
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3::sOne(), worldTransform, JoltConversions::ToJoltVector(direction));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3::sOne(), worldTransform, JoltNativeConversions::ToJoltVector(direction));
 
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 
@@ -114,10 +114,10 @@ namespace RN
 				JoltContactInfoShapeData::FillForTransformedShape(hit, transformedShape, result.mSubShapeID2);
 			}
 
-			hit.position = JoltConversions::ToPosition(position);
-			hit.normal = JoltConversions::ToEngineVector(normal);
+			hit.position = JoltNativeConversions::ToPosition(position);
+			hit.normal = JoltNativeConversions::ToEngineVector(normal);
 
-			hit.distance = JoltConversions::ToVector3(result.mContactPointOn2).GetLength();
+			hit.distance = JoltNativeConversions::ToVector3(result.mContactPointOn2).GetLength();
 
 			if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
 			if(hit.node) hit.node->Retain()->Autorelease();
@@ -137,14 +137,14 @@ namespace RN
 
 		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 
-		JPH::RVec3 baseOffset = JoltConversions::GetAttachmentPosition(this, GetJoltWorld()) + JoltConversions::ToJoltRVec3(offset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::GetAttachmentPosition(this, GetJoltWorld()) + JoltNativeConversions::ToJoltRVec3(offset);
 		Quaternion rot = GetWorldRotation();
 
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltSceneRotation(rot, GetJoltWorld()), baseOffset);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltSceneRotation(rot, GetJoltWorld()), baseOffset);
 
 		//TODO: Limit max distance of raycast or the result
 
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3::sOne(), worldTransform, JoltConversions::ToJoltVector(direction));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(_shape->GetJoltShape(), JPH::Vec3::sOne(), worldTransform, JoltNativeConversions::ToJoltVector(direction));
 
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 
@@ -169,10 +169,10 @@ namespace RN
 			JoltContactInfoShapeData::FillForTransformedShape(hit, transformedShape, result.mHit.mSubShapeID2);
 		}
 
-		hit.position = JoltConversions::ToPosition(position);
-		hit.normal = JoltConversions::ToEngineVector(normal);
+		hit.position = JoltNativeConversions::ToPosition(position);
+		hit.normal = JoltNativeConversions::ToEngineVector(normal);
 
-		hit.distance = JoltConversions::ToVector3(result.mHit.mContactPointOn2).GetLength();
+		hit.distance = JoltNativeConversions::ToVector3(result.mHit.mContactPointOn2).GetLength();
 
 		if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
 		if(hit.node) hit.node->Retain()->Autorelease();
@@ -189,11 +189,11 @@ namespace RN
 
 		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 
-		JPH::RVec3 baseOffset = JoltConversions::GetAttachmentPosition(this, GetJoltWorld());
-		JoltPosition position = JoltConversions::ToPosition(baseOffset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::GetAttachmentPosition(this, GetJoltWorld());
+		JoltPosition position = JoltNativeConversions::ToPosition(baseOffset);
 		Quaternion rotation = GetWorldRotation();
 
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), baseOffset);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), baseOffset);
 		JPH::CollideShapeSettings collideSettings; //Defaults seem ok for now!?
 
 		JPH::ClosestHitCollisionCollector<JPH::CollideShapeCollector> results;
@@ -230,11 +230,11 @@ namespace RN
 
 		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 
-		JPH::RVec3 baseOffset = JoltConversions::GetAttachmentPosition(this, GetJoltWorld());
-		JoltPosition position = JoltConversions::ToPosition(baseOffset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::GetAttachmentPosition(this, GetJoltWorld());
+		JoltPosition position = JoltNativeConversions::ToPosition(baseOffset);
 		Quaternion rotation = GetWorldRotation();
 
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), baseOffset);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), baseOffset);
 		JPH::CollideShapeSettings collideSettings; //Defaults seem ok for now!?
 
 		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> results;
@@ -317,14 +317,14 @@ namespace RN
 
 		if(changeSet & SceneNode::ChangeSet::Position)
 		{
-			_controller->SetPosition(JoltConversions::GetAttachmentPosition(this, -_positionOffset, GetJoltWorld()));
+			_controller->SetPosition(JoltNativeConversions::GetAttachmentPosition(this, -_positionOffset, GetJoltWorld()));
 		}
 
 		if(changeSet & SceneNode::ChangeSet::Attachments)
 		{
 			if(!_owner && GetParent())
 			{
-				_controller->SetPosition(JoltConversions::GetAttachmentPosition(this, -_positionOffset, GetJoltWorld()));
+				_controller->SetPosition(JoltNativeConversions::GetAttachmentPosition(this, -_positionOffset, GetJoltWorld()));
 			}
 
 			_owner = GetParent();
@@ -339,6 +339,6 @@ namespace RN
 		}
 
 		JPH::RVec3 position = _controller->GetPosition();
-		JoltConversions::SetAttachmentPosition(this, position, _positionOffset, GetJoltWorld());
+		JoltNativeConversions::SetAttachmentPosition(this, position, _positionOffset, GetJoltWorld());
 	}
 } // namespace RN

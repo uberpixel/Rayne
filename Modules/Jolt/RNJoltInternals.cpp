@@ -43,8 +43,8 @@ namespace RN
 		if(info.collisionObject) info.node = info.collisionObject->GetParent();
 		if(info.node) info.node->Retain()->Autorelease();
 
-		info.position = JoltConversions::ToPosition(inContact.mPosition);
-		info.normal = JoltConversions::ToEngineVector(-inContact.mContactNormal);
+		info.position = JoltNativeConversions::ToPosition(inContact.mPosition);
+		info.normal = JoltNativeConversions::ToEngineVector(-inContact.mContactNormal);
 		info.distance = 0.0f;
 		if(controller->_contactCallback) controller->_contactCallback(info.collisionObject, info, JoltCollisionObject::ContactState::Begin);
 	}

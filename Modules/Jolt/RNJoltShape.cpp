@@ -62,7 +62,7 @@ namespace RN
 		if(!_shape) return AABB(Vector3(), Vector3());
 
 		JPH::AABox bounds = _shape->GetLocalBounds();
-		AABB result(JoltConversions::ToVector3(bounds.mMin), JoltConversions::ToVector3(bounds.mMax));
+		AABB result(JoltNativeConversions::ToVector3(bounds.mMin), JoltNativeConversions::ToVector3(bounds.mMax));
 		result.position = Vector3();
 		return result;
 	}

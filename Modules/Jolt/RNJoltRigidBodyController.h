@@ -55,6 +55,7 @@ namespace RN
 		JTAPI Vector3 GetGroundAngularVelocity() const { return _groundAngularVelocity; }
 		JTAPI Vector3 GetGroundNormal() const { return _groundNormal; }
 		JTAPI Vector3 GetLinearVelocity() const;
+		JTAPI JoltPosition GetCenterOfMassPosition() const;
 
 		JoltShape *GetShape() const { return _shape; }
 		SceneNode *GetObjectBelow() const { return _objectBelow; }

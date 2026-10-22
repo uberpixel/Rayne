@@ -149,6 +149,7 @@ endif()
 
 set(HEADERS
         RNJolt.h
+        RNJoltConversions.h
         RNJoltBodyMotion.h
         RNJoltWorld.h
         RNJoltDynamicBody.h
@@ -161,7 +162,7 @@ set(HEADERS
         RNJoltKinematicController.h)
 
 set(PRIVATE_HEADERS
-        RNJoltConversions.h
+        RNJoltNativeConversions.h
         RNJoltScaledMotorConstraint.h
         RNJoltInternals.h
         RNJoltCustomPlanetTerrainShapeInternal.h

@@ -41,8 +41,12 @@ namespace RN
 
 		JTAPI static JoltDynamicBody *WithShape(JoltShape *shape, float mass, JoltWorld *world = nullptr);
 
-		// Main thread only, outside physics updates and concurrent body access. Frames are
-		// static: velocities and pending forces rotate through universe space. Allocates
+		// Main thread only, outside physics updates and concurrent body access. Frames remain
+		// unchanged during the transaction. Absolute velocities include frame motion at the native center of mass;
+		// pending forces and torques only rotate. Sleeping bodies wake when converted
+		// local velocities require motion. Disabled bodies remain outside simulation.
+		// Rejects incompatible velocity limits,
+		// locked axes, or static-body motion before callbacks. Allocates
 		// every destination body before beforeTransfer removes the accepted constraints.
 		// A false result leaves all source bodies and constraints unchanged. The callback
 		// must remove accepted game-owned constraints without throwing or changing bodies.
@@ -52,6 +56,7 @@ namespace RN
 		// Also transfers controllers, remapping their support anchors to transferred bodies.
 		// Rejects controller support anchors outside this group; native support joints
 		// are recreated automatically, while callbacks remove/rebuild game-owned joints.
+		// Controller orientation is application-driven; native angular spin stays locked.
 		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
 			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer);
 

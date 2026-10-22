@@ -7,7 +7,7 @@
 //
 
 #include "RNJoltWorld.h"
-#include "RNJoltConversions.h"
+#include "RNJoltNativeConversions.h"
 #include "RNJoltCustomPlanetTerrainShape.h"
 #include "RNJoltCustomPlanetTerrainShapeInternal.h"
 #include "RNJoltInternals.h"
@@ -93,13 +93,13 @@ namespace RN
 
 	void JoltWorld::SetGravity(const Vector3 &gravity)
 	{
-		_physicsSystem->SetGravity(JoltConversions::ToJoltVector(gravity));
+		_physicsSystem->SetGravity(JoltNativeConversions::ToJoltVector(gravity));
 	}
 
 	Vector3 JoltWorld::GetGravity()
 	{
 		JPH::Vec3 gravity = _physicsSystem->GetGravity();
-		return JoltConversions::ToEngineVector(gravity);
+		return JoltNativeConversions::ToEngineVector(gravity);
 	}
 
 	void JoltWorld::SetWorldTransform(const PositionType &position, const Quaternion &rotation)
@@ -158,42 +158,12 @@ namespace RN
 		}
 	}
 
-	JoltPosition JoltWorld::ConvertPositionToPhysicsWorld(const PositionType &position) const
+	bool JoltWorld::SetWorldVelocity(const DVector3 &linear, const Vector3 &angular)
 	{
-		DVector3 offset(position);
-		offset -= DVector3(_worldPosition);
-		const DVector3 physicsPosition = _inverseWorldPositionRotation.GetRotatedVector(offset);
-		return JoltPosition(physicsPosition);
-	}
-
-	PositionType JoltWorld::ConvertPositionFromPhysicsWorld(const JoltPosition &position) const
-	{
-		const DVector3 worldPosition = DVector3(_worldPosition) + _worldPositionRotation.GetRotatedVector(DVector3(position));
-		return PositionType(worldPosition);
-	}
-
-	Vector3 JoltWorld::ConvertVectorToPhysicsWorld(const Vector3 &vector) const
-	{
-		return _inverseWorldRotation.GetRotatedVector(vector);
-	}
-
-	Vector3 JoltWorld::ConvertVectorFromPhysicsWorld(const Vector3 &vector) const
-	{
-		return _worldRotation.GetRotatedVector(vector);
-	}
-
-	Quaternion JoltWorld::ConvertRotationToPhysicsWorld(const Quaternion &rotation) const
-	{
-		Quaternion result = _inverseWorldRotation * rotation;
-		result.Normalize();
-		return result;
-	}
-
-	Quaternion JoltWorld::ConvertRotationFromPhysicsWorld(const Quaternion &rotation) const
-	{
-		Quaternion result = _worldRotation * rotation;
-		result.Normalize();
-		return result;
+		if(!linear.IsValid() || !angular.IsValid()) return false;
+		_worldLinearVelocity = linear;
+		_worldAngularVelocity = angular;
+		return true;
 	}
 
 	void JoltWorld::SetDefaultDynamicBodyDamping(float linear, float angular)
@@ -468,13 +438,13 @@ namespace RN
 		hit.node = nullptr;
 		hit.collisionObject = nullptr;
 
-		Vector3 diff = JoltConversions::ToVector3(globalTo - globalFrom);
+		Vector3 diff = JoltNativeConversions::ToVector3(globalTo - globalFrom);
 
 		//TODO: Limit max distance of raycast or the result
 
 		JPH::RRayCast rayInfo;
-		rayInfo.mOrigin = JoltConversions::ToJoltPosition(globalFrom);
-		rayInfo.mDirection = JoltConversions::ToJoltVector(diff);
+		rayInfo.mOrigin = JoltNativeConversions::ToJoltPosition(globalFrom);
+		rayInfo.mDirection = JoltNativeConversions::ToJoltVector(diff);
 
 		JPH::RayCastResult result;
 		uint16 objectLayer = GetObjectLayer(filterGroup, filterMask, 1);
@@ -496,8 +466,8 @@ namespace RN
 			JoltContactInfoShapeData::FillForTransformedShape(hit, transformedShape, result.mSubShapeID2);
 		}
 
-		hit.position = JoltConversions::ToPosition(position);
-		hit.normal = JoltConversions::ToEngineVector(normal);
+		hit.position = JoltNativeConversions::ToPosition(position);
+		hit.normal = JoltNativeConversions::ToEngineVector(normal);
 
 		hit.distance = static_cast<float>(globalFrom.GetDistance(hit.position));
 
@@ -514,14 +484,14 @@ namespace RN
 		hit.node = nullptr;
 		hit.collisionObject = nullptr;
 
-		Vector3 diff = JoltConversions::ToVector3(globalTo - globalFrom);
+		Vector3 diff = JoltNativeConversions::ToVector3(globalTo - globalFrom);
 
-		JPH::RVec3 baseOffset = JoltConversions::ToJoltPosition(globalFrom);
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltRotation(rotation), baseOffset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::ToJoltPosition(globalFrom);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltRotation(rotation), baseOffset);
 
 		//TODO: Limit max distance of raycast or the result
 
-		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(shape->GetJoltShape(), JoltConversions::ToJoltVec3(scale), worldTransform, JoltConversions::ToJoltVector(diff));
+		JPH::RShapeCast castInfo = JPH::RShapeCast::sFromWorldTransform(shape->GetJoltShape(), JoltNativeConversions::ToJoltVec3(scale), worldTransform, JoltNativeConversions::ToJoltVector(diff));
 
 		JPH::ShapeCastSettings castSettings; //Defaults seem ok for now!?
 
@@ -546,10 +516,10 @@ namespace RN
 			JoltContactInfoShapeData::FillForTransformedShape(hit, transformedShape, result.mHit.mSubShapeID2);
 		}
 
-		hit.position = JoltConversions::ToPosition(position);
-		hit.normal = JoltConversions::ToEngineVector(normal);
+		hit.position = JoltNativeConversions::ToPosition(position);
+		hit.normal = JoltNativeConversions::ToEngineVector(normal);
 
-		hit.distance = JoltConversions::ToVector3(result.mHit.mContactPointOn2).GetLength();
+		hit.distance = JoltNativeConversions::ToVector3(result.mHit.mContactPointOn2).GetLength();
 
 		if(hit.collisionObject) hit.node = hit.collisionObject->GetParent();
 		if(hit.node) hit.node->Retain()->Autorelease();
@@ -561,13 +531,13 @@ namespace RN
 	{
 		std::vector<JoltContactInfo> hits;
 
-		JPH::RVec3 baseOffset = JoltConversions::ToJoltPosition(globalPosition);
-		JPH::RMat44 worldTransform = JoltConversions::ToJoltRMat44(JoltConversions::ToJoltRotation(rotation), baseOffset);
+		JPH::RVec3 baseOffset = JoltNativeConversions::ToJoltPosition(globalPosition);
+		JPH::RMat44 worldTransform = JoltNativeConversions::ToJoltRMat44(JoltNativeConversions::ToJoltRotation(rotation), baseOffset);
 		JPH::CollideShapeSettings collideSettings; //Defaults seem ok for now!?
 
 		JPH::AllHitCollisionCollector<JPH::CollideShapeCollector> results;
 		uint16 objectLayer = GetObjectLayer(filterGroup, filterMask, 1);
-		_physicsSystem->GetNarrowPhaseQuery().CollideShape(shape->GetJoltShape(), JoltConversions::ToJoltVec3(scale), worldTransform.PreTranslated(shape->GetJoltShape()->GetCenterOfMass()), collideSettings, baseOffset, results, _physicsSystem->GetDefaultBroadPhaseLayerFilter(objectLayer), _physicsSystem->GetDefaultLayerFilter(objectLayer));
+		_physicsSystem->GetNarrowPhaseQuery().CollideShape(shape->GetJoltShape(), JoltNativeConversions::ToJoltVec3(scale), worldTransform.PreTranslated(shape->GetJoltShape()->GetCenterOfMass()), collideSettings, baseOffset, results, _physicsSystem->GetDefaultBroadPhaseLayerFilter(objectLayer), _physicsSystem->GetDefaultLayerFilter(objectLayer));
 
 		JPH::BodyInterface &bodyInterface = _physicsSystem->GetBodyInterface();
 		for(auto result : results.mHits)
@@ -576,7 +546,7 @@ namespace RN
 			JPH::Vec3 normal = -result.mPenetrationAxis.NormalizedOr(JPH::Vec3::sZero());
 			hit.distance = result.mPenetrationDepth;
 			hit.position = globalPosition;
-			hit.normal = JoltConversions::ToEngineVector(normal);
+			hit.normal = JoltNativeConversions::ToEngineVector(normal);
 			hit.node = nullptr;
 			hit.collisionObject = nullptr;
 
