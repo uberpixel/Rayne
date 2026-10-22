@@ -21,6 +21,7 @@ namespace JPH
 
 namespace RN
 {
+	class JoltRigidBodyController;
 	class JoltShape;
 	class JoltDynamicBody : public JoltCollisionObject
 	{
@@ -44,8 +45,14 @@ namespace RN
 		// static: velocities and pending forces rotate through universe space. Allocates
 		// every destination body before beforeTransfer removes the accepted constraints.
 		// A false result leaves all source bodies and constraints unchanged. The callback
-		// must remove the accepted constraints without throwing or changing the bodies.
+		// must remove accepted game-owned constraints without throwing or changing bodies.
 		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, JoltWorld *destination,
+			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer);
+
+		// Also transfers controllers, remapping their support anchors to transferred bodies.
+		// Rejects controller support anchors outside this group; native support joints
+		// are recreated automatically, while callbacks remove/rebuild game-owned joints.
+		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
 			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer);
 
 		JTAPI void UpdatePosition() override;

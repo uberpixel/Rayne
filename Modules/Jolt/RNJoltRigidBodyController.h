@@ -21,8 +21,10 @@ namespace JPH
 
 namespace RN
 {
+	class JoltDynamicBody;
 	class JoltRigidBodyController : public JoltCollisionObject, private JoltConstraintOwner
 	{
+		friend class JoltDynamicBody;
 	public:
 		JTAPI JoltRigidBodyController(float radius, float height, float groundTolerance = 0.05f, float mass = 80.0f, float stepOffset = 0.0f, JoltWorld *world = nullptr);
 		JTAPI ~JoltRigidBodyController() override;

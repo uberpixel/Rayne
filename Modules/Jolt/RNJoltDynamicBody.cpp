@@ -7,7 +7,9 @@
 //
 
 #include "RNJoltDynamicBody.h"
+#include "RNJoltRigidBodyController.h"
 #include "RNJoltInternals.h"
+#include <Jolt/Physics/Character/Character.h>
 #include "RNJoltWorld.h"
 #include <Jolt/Physics/Body/AllowedDOFs.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -73,6 +75,12 @@ namespace RN
 	bool JoltDynamicBody::TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, JoltWorld *destination,
 		const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer)
 	{
+		return TransferToWorld(bodies, {}, destination, canRemoveConstraint, beforeTransfer, afterTransfer);
+	}
+
+	bool JoltDynamicBody::TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
+		const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer)
+	{
 		if(!destination || bodies.empty() || !bodies.front()) return false;
 		JoltWorld *source = bodies.front()->GetJoltWorld();
 		if(!source || source == destination) return false;
@@ -85,7 +93,20 @@ namespace RN
 			if(!body || body->GetJoltWorld() != source || !body->_actor) return false;
 			for(size_t previous = 0; previous < index; ++previous) if(bodies[previous] == body) return false;
 		}
+		for(size_t index = 0; index < controllers.size(); ++index)
+		{
+			auto *controller = controllers[index];
+			if(!controller || controller->GetJoltWorld() != source || !controller->_controller || controller->_controller->GetBodyID().IsInvalid()) return false;
+			for(size_t previous = 0; previous < index; ++previous) if(controllers[previous] == controller) return false;
+			if(controller->_externalSupportAnchorValid)
+			{
+				bool internal = false;
+				for(auto *body : bodies) if(body->GetJoltBodyID() == controller->_externalSupportBodyID) internal = true;
+				if(!internal) return false;
+			}
+		}
 		auto containsBody = [&](const JPH::Body *body) {
+			for(auto *controller : controllers) if(body->GetID() == controller->_controller->GetBodyID()) return true;
 			for(auto *attachment : bodies) if(body->GetID() == *attachment->_actor) return true;
 			return false;
 		};
@@ -97,6 +118,9 @@ namespace RN
 				if(!containsBody(joint->GetBody1()) && !containsBody(joint->GetBody2())) continue;
 				if(!containsBody(joint->GetBody1()) || !containsBody(joint->GetBody2())) return false;
 			}
+			bool controllerSupport = false;
+			for(auto *controller : controllers) if(controller->_externalSupportConstraint == constraint.GetPtr()) controllerSupport = true;
+			if(controllerSupport) continue;
 			// Opaque multi-body constraints must be explicitly accepted by their owner.
 			if(!canRemoveConstraint || !canRemoveConstraint(constraint.GetPtr())) return false;
 		}
@@ -108,11 +132,29 @@ namespace RN
 			JPH::Vec3 force, torque;
 		};
 		std::vector<PreparedBody> prepared;
+		struct PreparedController
+		{
+			JPH::Character *character;
+			PreparedBody body;
+			bool added;
+			uint32 supportIndex;
+			Vector3 supportPosition;
+			float supportForce;
+		};
+		std::vector<PreparedController> preparedControllers;
 		auto discard = [&]() {
 			for(const auto &entry : prepared) destinationInterface.DestroyBody(entry.body->GetID());
+			for(const auto &entry : preparedControllers) delete entry.character;
 		};
 		auto convertVector = [&](JPH::Vec3Arg vector) {
 			return JoltConversions::ToJoltVector(destination->ConvertVectorToPhysicsWorld(source->ConvertVectorFromPhysicsWorld(JoltConversions::ToEngineVector(vector))));
+		};
+		auto convertSettings = [&](JPH::BodyCreationSettings &settings) {
+			settings.mPosition = JoltConversions::ToJoltPosition(destination->ConvertPositionToPhysicsWorld(source->ConvertPositionFromPhysicsWorld(JoltConversions::ToPosition(settings.mPosition))));
+			settings.mRotation = JoltConversions::ToJoltRotation(destination->ConvertRotationToPhysicsWorld(source->ConvertRotationFromPhysicsWorld(JoltConversions::ToEngineRotation(settings.mRotation))));
+			settings.mLinearVelocity = convertVector(settings.mLinearVelocity);
+			settings.mAngularVelocity = convertVector(settings.mAngularVelocity);
+			return JoltConversions::ToPosition(settings.mPosition).IsValid() && JoltConversions::ToEngineRotation(settings.mRotation).IsValid() && JoltConversions::ToEngineVector(settings.mLinearVelocity).IsValid() && JoltConversions::ToEngineVector(settings.mAngularVelocity).IsValid();
 		};
 		for(auto *attachment : bodies)
 		{
@@ -120,11 +162,7 @@ namespace RN
 			if(!lock.Succeeded()) { discard(); return false; }
 			const JPH::Body &body = lock.GetBody();
 			auto settings = body.GetBodyCreationSettings();
-			settings.mPosition = JoltConversions::ToJoltPosition(destination->ConvertPositionToPhysicsWorld(source->ConvertPositionFromPhysicsWorld(JoltConversions::ToPosition(settings.mPosition))));
-			settings.mRotation = JoltConversions::ToJoltRotation(destination->ConvertRotationToPhysicsWorld(source->ConvertRotationFromPhysicsWorld(JoltConversions::ToEngineRotation(settings.mRotation))));
-			settings.mLinearVelocity = convertVector(settings.mLinearVelocity);
-			settings.mAngularVelocity = convertVector(settings.mAngularVelocity);
-			if(!JoltConversions::ToPosition(settings.mPosition).IsValid() || !JoltConversions::ToEngineRotation(settings.mRotation).IsValid() || !JoltConversions::ToEngineVector(settings.mLinearVelocity).IsValid() || !JoltConversions::ToEngineVector(settings.mAngularVelocity).IsValid()) { discard(); return false; }
+			if(!convertSettings(settings)) { discard(); return false; }
 			settings.mObjectLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_isInSimulation ? attachment->_collisionFilterMask : 0, 1);
 			JPH::Body *replacement = destinationInterface.CreateBody(settings);
 			if(!replacement) { discard(); return false; }
@@ -135,7 +173,42 @@ namespace RN
 			}
 			prepared.push_back({replacement, body.IsActive(), settings, body.IsDynamic() ? replacement->GetAccumulatedForce() : JPH::Vec3::sZero(), body.IsDynamic() ? replacement->GetAccumulatedTorque() : JPH::Vec3::sZero()});
 		}
+		for(auto *attachment : controllers)
+		{
+			auto characterSettings = attachment->_controller->GetCharacterSettings();
+			JPH::BodyLockRead lock(sourcePhysics->GetBodyLockInterface(), attachment->_controller->GetBodyID());
+			if(!lock.Succeeded()) { discard(); return false; }
+			const auto &body = lock.GetBody();
+			auto settings = body.GetBodyCreationSettings();
+			if(!convertSettings(settings)) { discard(); return false; }
+			characterSettings.mUp = convertVector(characterSettings.mUp);
+			characterSettings.mLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_collisionFilterMask, 1);
+			auto *character = new JPH::Character(&characterSettings, settings.mPosition, settings.mRotation, settings.mUserData, destination->GetJoltInstance());
+			if(character->GetBodyID().IsInvalid())
+			{
+				// Jolt's Character destructor unconditionally destroys its body ID.
+				// With no body allocated only CharacterBase owns resources.
+				character->JPH::CharacterBase::~CharacterBase();
+				JPH::Character::operator delete(character);
+				discard(); return false;
+			}
+			JPH::BodyLockWrite replacementLock(destination->GetJoltInstance()->GetBodyLockInterface(), character->GetBodyID());
+			auto &replacement = replacementLock.GetBody();
+			replacement.SetAllowSleeping(settings.mAllowSleeping);
+			replacement.SetFriction(settings.mFriction);
+			replacement.SetRestitution(settings.mRestitution);
+			auto *motion = replacement.GetMotionProperties();
+			motion->SetLinearDamping(settings.mLinearDamping);
+			motion->SetAngularDamping(settings.mAngularDamping);
+			motion->SetGravityFactor(settings.mGravityFactor);
+			motion->SetNumPositionStepsOverride(settings.mNumPositionStepsOverride);
+			motion->SetNumVelocityStepsOverride(settings.mNumVelocityStepsOverride);
+			uint32 supportIndex = 0xffffffff;
+			for(size_t index = 0; index < bodies.size(); ++index) if(bodies[index]->GetJoltBodyID() == attachment->_externalSupportBodyID) supportIndex = static_cast<uint32>(index);
+			preparedControllers.push_back({character, {&replacement, body.IsActive(), settings, convertVector(body.GetAccumulatedForce()), convertVector(body.GetAccumulatedTorque())}, body.IsInBroadPhase(), supportIndex, attachment->_externalSupportLocalPosition, attachment->_externalSupportAnchorMaxForce});
+		}
 		if(beforeTransfer) beforeTransfer();
+		for(auto *attachment : controllers) attachment->ClearExternalSupportAnchor();
 		// Wrapper autoreleases can outlive their VCK owner. Invalidate any remaining
 		// native joints while their old bodies still exist.
 		for(auto *attachment : bodies) source->RemoveConstraintsForBody(*attachment->_actor);
@@ -151,12 +224,29 @@ namespace RN
 			if(attachment->_isInSimulation)
 				destinationInterface.AddBody(*attachment->_actor, prepared[index].active ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
 		}
+		for(size_t index = 0; index < controllers.size(); ++index)
+		{
+			auto *attachment = controllers[index];
+			const auto &entry = preparedControllers[index];
+			const auto oldID = attachment->_controller->GetBodyID();
+			source->RemoveConstraintsForBody(oldID);
+			source->CancelQueuedBodyRemoval(oldID);
+			if(sourceInterface.IsAdded(oldID)) attachment->_controller->RemoveFromPhysicsSystem();
+			delete attachment->_controller;
+			attachment->_controller = entry.character;
+			attachment->_world = destination;
+			attachment->_upDirection = JoltConversions::ToEngineVector(convertVector(JoltConversions::ToJoltVector(attachment->_upDirection)));
+			attachment->_objectBelow = nullptr;
+			attachment->_groundVelocity = Vector3();
+			attachment->_groundAngularVelocity = Vector3();
+			attachment->_groundNormal = Vector3();
+			attachment->_isFalling = true;
+			if(entry.added) entry.character->AddToPhysicsSystem(entry.body.active ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+			if(entry.supportIndex != 0xffffffff) attachment->SetExternalSupportAnchor(bodies[entry.supportIndex]->GetJoltBodyID(), entry.supportPosition, entry.supportForce);
+		}
 		if(afterTransfer) afterTransfer();
 		// Constraint recreation may wake bodies or clamp their velocity limits.
-		for(size_t index = 0; index < bodies.size(); ++index)
-		{
-			const auto &entry = prepared[index];
-			const auto &settings = entry.settings;
+		auto restoreBody = [&](const PreparedBody &entry, bool added) {
 			if(entry.body->IsDynamic())
 			{
 				entry.body->ResetForce(); entry.body->ResetTorque();
@@ -164,18 +254,23 @@ namespace RN
 			}
 			if(auto *motion = entry.body->GetMotionPropertiesUnchecked())
 			{
-				motion->SetMaxLinearVelocity(settings.mMaxLinearVelocity);
-				motion->SetMaxAngularVelocity(settings.mMaxAngularVelocity);
-				motion->SetLinearVelocity(settings.mLinearVelocity);
-				motion->SetAngularVelocity(settings.mAngularVelocity);
+				motion->SetMaxLinearVelocity(entry.settings.mMaxLinearVelocity);
+				motion->SetMaxAngularVelocity(entry.settings.mMaxAngularVelocity);
+				motion->SetLinearVelocity(entry.settings.mLinearVelocity);
+				motion->SetAngularVelocity(entry.settings.mAngularVelocity);
 			}
-			if(bodies[index]->_isInSimulation)
+			if(added)
 			{
-				if(entry.active) destinationInterface.ActivateBody(*bodies[index]->_actor);
-				else destinationInterface.DeactivateBody(*bodies[index]->_actor);
+				if(entry.active) destinationInterface.ActivateBody(entry.body->GetID());
+				else destinationInterface.DeactivateBody(entry.body->GetID());
 			}
+		};
+		for(size_t index = 0; index < bodies.size(); ++index)
+		{
+			restoreBody(prepared[index], bodies[index]->_isInSimulation);
 			bodies[index]->InvalidateMotionCache();
 		}
+		for(const auto &entry : preparedControllers) restoreBody(entry.body, entry.added);
 		return true;
 	}
 
