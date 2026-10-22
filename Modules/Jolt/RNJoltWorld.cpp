@@ -233,14 +233,16 @@ namespace RN
 		_paused = paused;
 	}
 
+	bool JoltWorld::CanStep(float delta) const
+	{
+		return !_paused && std::isfinite(delta) && delta >= k::EpsilonFloat && delta <= 0.1f;
+	}
+
 	void JoltWorld::Update(float delta)
 	{
 		SceneAttachment::Update(delta);
 
-		if(_paused)
-			return;
-
-		if(delta > 0.1f || delta < k::EpsilonFloat)
+		if(!CanStep(delta))
 			return;
 
 		// Step physics
@@ -262,7 +264,10 @@ namespace RN
 				if(collisionObject)
 				{
 					collisionObject->UpdatePosition();
-					quadtree->RelocateNodeIfNeeded(collisionObject->GetParent());
+					if(SceneNode *parent = collisionObject->GetParent())
+					{
+						quadtree->RelocateNodeIfNeeded(parent);
+					}
 				}
 			}
 		}
@@ -277,6 +282,18 @@ namespace RN
 		}
 
 		ProcessQueuedBodyRemovals();
+	}
+
+	void JoltWorld::EnumerateCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback)
+	{
+		JPH::BodyIDVector bodyIDs;
+		_physicsSystem->GetBodies(bodyIDs);
+		for(JPH::BodyID bodyID : bodyIDs)
+		{
+			uint64 userData = _physicsSystem->GetBodyInterface().GetUserData(bodyID);
+			JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(userData);
+			if(collisionObject) callback(collisionObject);
+		}
 	}
 
 	void JoltWorld::EnumerateActiveCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback)

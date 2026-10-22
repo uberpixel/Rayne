@@ -37,6 +37,8 @@ namespace RN
 		JTAPI void SetLinearVelocity(const Vector3 &velocity);
 		JTAPI void SetMaxLinearVelocity(float max);
 		JTAPI void ApplyGravity(const Vector3 &gravity);
+		// Adds a frame acceleration independently of the gravity enable/support settings.
+		JTAPI void ApplyAcceleration(const Vector3 &acceleration);
 		JTAPI bool Resize(float height, bool checkIfBlocked = true);
 		// Query a feet-preserving capsule at both poses without changing the body.
 		// Unlike Resize, require clear non-support contacts while allowing normal floor penetration.

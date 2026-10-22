@@ -146,7 +146,7 @@ namespace RN
 
 	void JoltRigidBodyController::ApplyGravity(const Vector3 &gravity)
 	{
-		if(!gravity.IsValid() || gravity.GetSquaredLength() <= k::EpsilonFloat || _mass <= k::EpsilonFloat)
+		if(!gravity.IsValid() || _mass <= k::EpsilonFloat)
 		{
 			return;
 		}
@@ -165,8 +165,14 @@ namespace RN
 			}
 		}
 
+		ApplyAcceleration(appliedGravity);
+	}
+
+	void JoltRigidBodyController::ApplyAcceleration(const Vector3 &acceleration)
+	{
+		if(!acceleration.IsValid() || _mass <= k::EpsilonFloat) return;
 		JPH::BodyInterface &bodyInterface = GetJoltWorld()->GetJoltInstance()->GetBodyInterface();
-		bodyInterface.AddForce(_controller->GetBodyID(), JoltNativeConversions::ToJoltVector(appliedGravity * _mass), JPH::EActivation::DontActivate);
+		bodyInterface.AddForce(_controller->GetBodyID(), JoltNativeConversions::ToJoltVector(acceleration * _mass), JPH::EActivation::DontActivate);
 	}
 
 	JoltPosition JoltRigidBodyController::GetCenterOfMassPosition() const

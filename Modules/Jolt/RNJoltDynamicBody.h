@@ -76,6 +76,7 @@ namespace RN
 		JTAPI void SetMaxDepenetrationVelocity(float max);
 		JTAPI void SetEnableCCD(bool enable);
 		JTAPI void SetEnableGravity(bool enable);
+		bool GetIsGravityEnabled() const { return _isGravityEnabled; }
 		JTAPI void SetEnableKinematic(bool enable);
 		JTAPI void SetEnableSimulation(bool enable);
 		JTAPI void LockMovement(uint32 lockFlags);
@@ -90,6 +91,8 @@ namespace RN
 		JTAPI void AddForce(const Vector3 &force);
 		JTAPI void AddForce(const Vector3 &force, const JoltPosition &globalOrigin);
 		JTAPI void ApplyGravity(const Vector3 &gravity);
+		// Adds a frame acceleration independently of the gravity enable/support settings.
+		JTAPI void ApplyAcceleration(const Vector3 &acceleration);
 		//		JTAPI void ClearForces();
 
 		JTAPI void AddTorque(const Vector3 &torque);

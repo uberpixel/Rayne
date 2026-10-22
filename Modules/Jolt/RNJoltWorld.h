@@ -79,6 +79,7 @@ namespace RN
 		JTAPI void SetInternalEdgeRemovalVertexTolerance(float tolerance);
 		JTAPI void SetDeterministicSimulation(bool deterministic);
 		JTAPI void SetPaused(bool paused);
+		JTAPI bool CanStep(float delta) const;
 
 		JTAPI JoltContactInfo CastRay(const JoltPosition &globalFrom, const JoltPosition &globalTo, uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
 		JTAPI JoltContactInfo CastSweep(JoltShape *shape, const Quaternion &rotation, const JoltPosition &globalFrom, const JoltPosition &globalTo, const Vector3 &scale = Vector3(1.0f, 1.0f, 1.0f), uint32 filterGroup = 0xffffffff, uint32 filterMask = 0xffffffff);
@@ -96,6 +97,7 @@ namespace RN
 		bool IsLoadingLevel() const { return _isLoadingLevel; }
 		JTAPI void AddBodyForLoadingLevel(JPH::Body *body);
 
+		JTAPI void EnumerateCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback);
 		JTAPI void EnumerateActiveCollisionObjects(const std::function<void(JoltCollisionObject *)> &callback);
 
 		// Legacy default: the earliest-created live world. Explicit owners never follow changes to it.

@@ -707,12 +707,14 @@ namespace RN
 
 	void JoltDynamicBody::ApplyGravity(const Vector3 &gravity)
 	{
-		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
-		if(!bodyInterface) return;
-		if(_isKinematic || !_isGravityEnabled) return;
-		if(_mass <= k::EpsilonFloat || gravity.GetSquaredLength() <= k::EpsilonFloat) return;
+		if(_isGravityEnabled) ApplyAcceleration(gravity);
+	}
 
-		bodyInterface->AddForce(*_actor, JoltNativeConversions::ToJoltVector(gravity * _mass), JPH::EActivation::DontActivate);
+	void JoltDynamicBody::ApplyAcceleration(const Vector3 &acceleration)
+	{
+		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
+		if(!bodyInterface || _isKinematic || _mass <= k::EpsilonFloat || !acceleration.IsValid()) return;
+		bodyInterface->AddForce(*_actor, JoltNativeConversions::ToJoltVector(acceleration * _mass), JPH::EActivation::DontActivate);
 	}
 
 	/*	void JoltDynamicBody::ClearForces()
