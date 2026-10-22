@@ -16,6 +16,7 @@ namespace JPH
 {
 	class BodyInterface;
 	class BodyID;
+	class Constraint;
 }
 
 namespace RN
@@ -38,6 +39,14 @@ namespace RN
 		JTAPI ~JoltDynamicBody() override;
 
 		JTAPI static JoltDynamicBody *WithShape(JoltShape *shape, float mass, JoltWorld *world = nullptr);
+
+		// Main thread only, outside physics updates and concurrent body access. Frames are
+		// static: velocities and pending forces rotate through universe space. Allocates
+		// every destination body before beforeTransfer removes the accepted constraints.
+		// A false result leaves all source bodies and constraints unchanged. The callback
+		// must remove the accepted constraints without throwing or changing the bodies.
+		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, JoltWorld *destination,
+			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer);
 
 		JTAPI void UpdatePosition() override;
 

@@ -13,6 +13,7 @@
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Body/BodyID.h>
 #include <Jolt/Physics/Body/MotionProperties.h>
+#include <Jolt/Physics/Constraints/TwoBodyConstraint.h>
 
 namespace RN
 {
@@ -67,6 +68,115 @@ namespace RN
 
 		if(_actor) delete _actor;
 		_shape->Release();
+	}
+
+	bool JoltDynamicBody::TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, JoltWorld *destination,
+		const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer)
+	{
+		if(!destination || bodies.empty() || !bodies.front()) return false;
+		JoltWorld *source = bodies.front()->GetJoltWorld();
+		if(!source || source == destination) return false;
+		auto *sourcePhysics = source->GetJoltInstance();
+		auto &sourceInterface = sourcePhysics->GetBodyInterface();
+		auto &destinationInterface = destination->GetJoltInstance()->GetBodyInterface();
+		for(size_t index = 0; index < bodies.size(); ++index)
+		{
+			auto *body = bodies[index];
+			if(!body || body->GetJoltWorld() != source || !body->_actor) return false;
+			for(size_t previous = 0; previous < index; ++previous) if(bodies[previous] == body) return false;
+		}
+		auto containsBody = [&](const JPH::Body *body) {
+			for(auto *attachment : bodies) if(body->GetID() == *attachment->_actor) return true;
+			return false;
+		};
+		for(const auto &constraint : sourcePhysics->GetConstraints())
+		{
+			if(constraint->GetType() == JPH::EConstraintType::TwoBodyConstraint)
+			{
+				const auto *joint = static_cast<const JPH::TwoBodyConstraint *>(constraint.GetPtr());
+				if(!containsBody(joint->GetBody1()) && !containsBody(joint->GetBody2())) continue;
+				if(!containsBody(joint->GetBody1()) || !containsBody(joint->GetBody2())) return false;
+			}
+			// Opaque multi-body constraints must be explicitly accepted by their owner.
+			if(!canRemoveConstraint || !canRemoveConstraint(constraint.GetPtr())) return false;
+		}
+		struct PreparedBody
+		{
+			JPH::Body *body;
+			bool active;
+			JPH::BodyCreationSettings settings;
+			JPH::Vec3 force, torque;
+		};
+		std::vector<PreparedBody> prepared;
+		auto discard = [&]() {
+			for(const auto &entry : prepared) destinationInterface.DestroyBody(entry.body->GetID());
+		};
+		auto convertVector = [&](JPH::Vec3Arg vector) {
+			return JoltConversions::ToJoltVector(destination->ConvertVectorToPhysicsWorld(source->ConvertVectorFromPhysicsWorld(JoltConversions::ToEngineVector(vector))));
+		};
+		for(auto *attachment : bodies)
+		{
+			JPH::BodyLockRead lock(sourcePhysics->GetBodyLockInterface(), *attachment->_actor);
+			if(!lock.Succeeded()) { discard(); return false; }
+			const JPH::Body &body = lock.GetBody();
+			auto settings = body.GetBodyCreationSettings();
+			settings.mPosition = JoltConversions::ToJoltPosition(destination->ConvertPositionToPhysicsWorld(source->ConvertPositionFromPhysicsWorld(JoltConversions::ToPosition(settings.mPosition))));
+			settings.mRotation = JoltConversions::ToJoltRotation(destination->ConvertRotationToPhysicsWorld(source->ConvertRotationFromPhysicsWorld(JoltConversions::ToEngineRotation(settings.mRotation))));
+			settings.mLinearVelocity = convertVector(settings.mLinearVelocity);
+			settings.mAngularVelocity = convertVector(settings.mAngularVelocity);
+			if(!JoltConversions::ToPosition(settings.mPosition).IsValid() || !JoltConversions::ToEngineRotation(settings.mRotation).IsValid() || !JoltConversions::ToEngineVector(settings.mLinearVelocity).IsValid() || !JoltConversions::ToEngineVector(settings.mAngularVelocity).IsValid()) { discard(); return false; }
+			settings.mObjectLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_isInSimulation ? attachment->_collisionFilterMask : 0, 1);
+			JPH::Body *replacement = destinationInterface.CreateBody(settings);
+			if(!replacement) { discard(); return false; }
+			if(body.IsDynamic())
+			{
+				replacement->AddForce(convertVector(body.GetAccumulatedForce()));
+				replacement->AddTorque(convertVector(body.GetAccumulatedTorque()));
+			}
+			prepared.push_back({replacement, body.IsActive(), settings, body.IsDynamic() ? replacement->GetAccumulatedForce() : JPH::Vec3::sZero(), body.IsDynamic() ? replacement->GetAccumulatedTorque() : JPH::Vec3::sZero()});
+		}
+		if(beforeTransfer) beforeTransfer();
+		// Wrapper autoreleases can outlive their VCK owner. Invalidate any remaining
+		// native joints while their old bodies still exist.
+		for(auto *attachment : bodies) source->RemoveConstraintsForBody(*attachment->_actor);
+		for(size_t index = 0; index < bodies.size(); ++index)
+		{
+			auto *attachment = bodies[index];
+			source->CancelQueuedBodyRemoval(*attachment->_actor);
+			if(sourceInterface.IsAdded(*attachment->_actor)) sourceInterface.RemoveBody(*attachment->_actor);
+			sourceInterface.DestroyBody(*attachment->_actor);
+			*attachment->_actor = prepared[index].body->GetID();
+			attachment->_world = destination;
+			attachment->InvalidateMotionCache();
+			if(attachment->_isInSimulation)
+				destinationInterface.AddBody(*attachment->_actor, prepared[index].active ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+		}
+		if(afterTransfer) afterTransfer();
+		// Constraint recreation may wake bodies or clamp their velocity limits.
+		for(size_t index = 0; index < bodies.size(); ++index)
+		{
+			const auto &entry = prepared[index];
+			const auto &settings = entry.settings;
+			if(entry.body->IsDynamic())
+			{
+				entry.body->ResetForce(); entry.body->ResetTorque();
+				entry.body->AddForce(entry.force); entry.body->AddTorque(entry.torque);
+			}
+			if(auto *motion = entry.body->GetMotionPropertiesUnchecked())
+			{
+				motion->SetMaxLinearVelocity(settings.mMaxLinearVelocity);
+				motion->SetMaxAngularVelocity(settings.mMaxAngularVelocity);
+				motion->SetLinearVelocity(settings.mLinearVelocity);
+				motion->SetAngularVelocity(settings.mAngularVelocity);
+			}
+			if(bodies[index]->_isInSimulation)
+			{
+				if(entry.active) destinationInterface.ActivateBody(*bodies[index]->_actor);
+				else destinationInterface.DeactivateBody(*bodies[index]->_actor);
+			}
+			bodies[index]->InvalidateMotionCache();
+		}
+		return true;
 	}
 
 	void JoltDynamicBody::SetCollisionFilter(uint32 group, uint32 mask)
