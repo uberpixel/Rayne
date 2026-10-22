@@ -10,10 +10,10 @@
 #include "RNObject.h"
 #include <cstdint>
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
 	#include <sys/sysctl.h>
 #endif
-#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID
 	#include <unistd.h>
 #endif
 
@@ -51,38 +51,33 @@ namespace RN
 
 	size_t GetCachelineSize()
 	{
-#if RN_PLATFORM_MAC_OS
 		size_t cacheLineSize = 0;
-		size_t sizeofSizeT = sizeof(size_t);
-
-		sysctlbyname("hw.cachelinesize", &cacheLineSize, &sizeofSizeT, 0, 0);
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS || RN_PLATFORM_VISIONOS
+		size_t resultSize = sizeof(cacheLineSize);
+		if(sysctlbyname("hw.cachelinesize", &cacheLineSize, &resultSize, nullptr, 0) != 0 || resultSize != sizeof(cacheLineSize))
+			cacheLineSize = 0;
 #elif RN_PLATFORM_WINDOWS
-		size_t cacheLineSize = 0;
 		DWORD bufferSize = 0;
-		SYSTEM_LOGICAL_PROCESSOR_INFORMATION *buffer = 0;
-
-		::GetLogicalProcessorInformation(0, &bufferSize);
-		buffer = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)malloc(bufferSize);
-
-		::GetLogicalProcessorInformation(&buffer[0], &bufferSize);
-
-		for(DWORD i = 0; i != bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i)
+		if(!::GetLogicalProcessorInformation(nullptr, &bufferSize) && ::GetLastError() == ERROR_INSUFFICIENT_BUFFER && bufferSize && bufferSize % sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) == 0)
 		{
-			if(buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1)
+			DWORD allocatedSize = bufferSize;
+			auto *buffer = static_cast<SYSTEM_LOGICAL_PROCESSOR_INFORMATION *>(malloc(bufferSize));
+			if(buffer && ::GetLogicalProcessorInformation(buffer, &bufferSize) && bufferSize <= allocatedSize && bufferSize % sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) == 0)
 			{
-				cacheLineSize = buffer[i].Cache.LineSize;
-				break;
+				for(DWORD i = 0; i < bufferSize / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); ++i)
+				{
+					if(buffer[i].Relationship == RelationCache && buffer[i].Cache.Level == 1)
+						cacheLineSize = std::max(cacheLineSize, static_cast<size_t>(buffer[i].Cache.LineSize));
+				}
 			}
+			free(buffer);
 		}
-
-		free(buffer);
-#elif RN_PLATFORM_LINUX
-		size_t cacheLineSize = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
-#else
-		size_t cacheLineSize = 128; //Best guess as used by SDL2...
+#elif (RN_PLATFORM_LINUX || RN_PLATFORM_ANDROID) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
+		long result = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+		if(result > 0)
+			cacheLineSize = static_cast<size_t>(result);
 #endif
-
-		return cacheLineSize; /* Leave here to trigger an error on all unsupported platforms */
+		return cacheLineSize >= sizeof(void *) && (cacheLineSize & (cacheLineSize - 1)) == 0 ? cacheLineSize : 64;
 	}
 
 	static size_t __CacheLineSize;
@@ -288,8 +283,14 @@ namespace RN
 
 	void __InitWeakTables()
 	{
-		__CacheLineSize = std::min(GetCachelineSize(), static_cast<size_t>(64));
-		__WeakBucketSpread = __CacheLineSize * 2;
+		__CacheLineSize = std::max(GetCachelineSize(), alignof(WeakTable));
+		// Validate alignment and rounding before calculating the full allocation.
+		size_t maxBucketSize = static_cast<size_t>(-1) / kRNWeakBucketCount;
+		if(__CacheLineSize > maxBucketSize || sizeof(WeakTable) > maxBucketSize - (__CacheLineSize - 1))
+			__CacheLineSize = std::max(static_cast<size_t>(64), alignof(WeakTable));
+
+		// Keep each table on separate cache lines, even if its members grow.
+		__WeakBucketSpread = ((sizeof(WeakTable) + __CacheLineSize - 1) / __CacheLineSize) * __CacheLineSize;
 
 		WeakTable::Init();
 	}
