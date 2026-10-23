@@ -60,6 +60,13 @@ namespace RN
 		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
 			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer);
 
+		// Optional trusted universe COM motion for initial replica placement. A false
+		// callback result retains that object's native motion. Overrides undergo the
+		// same destination speed/axis validation without modifying source state.
+		JTAPI static bool TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
+			const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer,
+			const std::function<bool(const JoltCollisionObject *, DVector3 &, Vector3 &)> &getUniverseMotion);
+
 		JTAPI void UpdatePosition() override;
 
 		JTAPI void SetCollisionFilter(uint32 group, uint32 mask) override;

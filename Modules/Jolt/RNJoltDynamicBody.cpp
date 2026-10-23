@@ -81,6 +81,13 @@ namespace RN
 	bool JoltDynamicBody::TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
 		const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer)
 	{
+		return TransferToWorld(bodies, controllers, destination, canRemoveConstraint, beforeTransfer, afterTransfer, {});
+	}
+
+	bool JoltDynamicBody::TransferToWorld(const std::vector<JoltDynamicBody *> &bodies, const std::vector<JoltRigidBodyController *> &controllers, JoltWorld *destination,
+		const std::function<bool(const JPH::Constraint *)> &canRemoveConstraint, const std::function<void()> &beforeTransfer, const std::function<void()> &afterTransfer,
+		const std::function<bool(const JoltCollisionObject *, DVector3 &, Vector3 &)> &getUniverseMotion)
+	{
 		if(!destination || bodies.empty() || !bodies.front()) return false;
 		JoltWorld *source = bodies.front()->GetJoltWorld();
 		if(!source || source == destination) return false;
@@ -149,13 +156,21 @@ namespace RN
 		auto convertVector = [&](JPH::Vec3Arg vector) {
 			return JoltNativeConversions::ToJoltVector(JoltConversions::ConvertVectorToPhysicsWorld(JoltConversions::ConvertVectorFromPhysicsWorld(JoltNativeConversions::ToEngineVector(vector), source), destination));
 		};
-		auto convertSettings = [&](JPH::BodyCreationSettings &settings, const JPH::Body &body, bool controller) {
+		auto convertSettings = [&](JPH::BodyCreationSettings &settings, const JPH::Body &body, const JoltCollisionObject *attachment, bool controller) {
 			const PositionType centerOfMass = JoltConversions::ConvertPositionFromPhysicsWorld(JoltNativeConversions::ToPosition(body.GetCenterOfMassPosition()), source);
 			settings.mPosition = JoltNativeConversions::ToJoltPosition(JoltConversions::ConvertPositionToPhysicsWorld(JoltConversions::ConvertPositionFromPhysicsWorld(JoltNativeConversions::ToPosition(settings.mPosition), source), destination));
 			settings.mRotation = JoltNativeConversions::ToJoltRotation(JoltConversions::ConvertRotationToPhysicsWorld(JoltConversions::ConvertRotationFromPhysicsWorld(JoltNativeConversions::ToEngineRotation(settings.mRotation), source), destination));
 			settings.mLinearVelocity = JoltNativeConversions::ToJoltVector(JoltConversions::ConvertLinearVelocityToPhysicsWorld(JoltConversions::ConvertLinearVelocityFromPhysicsWorld(JoltNativeConversions::ToEngineVector(settings.mLinearVelocity), centerOfMass, source), centerOfMass, destination));
 			// Character orientation is application-driven with angular DOFs locked.
 			settings.mAngularVelocity = controller ? convertVector(settings.mAngularVelocity) : JoltNativeConversions::ToJoltVector(JoltConversions::ConvertAngularVelocityToPhysicsWorld(JoltConversions::ConvertAngularVelocityFromPhysicsWorld(JoltNativeConversions::ToEngineVector(settings.mAngularVelocity), source), destination));
+			DVector3 universeLinearVelocity;
+			Vector3 universeAngularVelocity;
+			if(getUniverseMotion && getUniverseMotion(attachment, universeLinearVelocity, universeAngularVelocity))
+			{
+				if(!universeLinearVelocity.IsValid() || !universeAngularVelocity.IsValid()) return false;
+				settings.mLinearVelocity = JoltNativeConversions::ToJoltVector(JoltConversions::ConvertLinearVelocityToPhysicsWorld(universeLinearVelocity, centerOfMass, destination));
+				settings.mAngularVelocity = JoltNativeConversions::ToJoltVector(JoltConversions::ConvertAngularVelocityToPhysicsWorld(universeAngularVelocity, destination));
+			}
 			if(body.IsStatic() && (settings.mLinearVelocity.LengthSq() != 0.0f || settings.mAngularVelocity.LengthSq() != 0.0f)) return false;
 			if(const auto *motion = body.GetMotionPropertiesUnchecked())
 			{
@@ -174,7 +189,7 @@ namespace RN
 			if(!lock.Succeeded()) { discard(); return false; }
 			const JPH::Body &body = lock.GetBody();
 			auto settings = body.GetBodyCreationSettings();
-			if(!convertSettings(settings, body, false)) { discard(); return false; }
+			if(!convertSettings(settings, body, attachment, false)) { discard(); return false; }
 			settings.mObjectLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_isInSimulation ? attachment->_collisionFilterMask : 0, 1);
 			JPH::Body *replacement = destinationInterface.CreateBody(settings);
 			if(!replacement) { discard(); return false; }
@@ -192,7 +207,7 @@ namespace RN
 			if(!lock.Succeeded()) { discard(); return false; }
 			const auto &body = lock.GetBody();
 			auto settings = body.GetBodyCreationSettings();
-			if(!convertSettings(settings, body, true)) { discard(); return false; }
+			if(!convertSettings(settings, body, attachment, true)) { discard(); return false; }
 			characterSettings.mUp = convertVector(characterSettings.mUp);
 			characterSettings.mLayer = destination->GetObjectLayer(attachment->_collisionFilterGroup, attachment->_collisionFilterMask, 1);
 			auto *character = new JPH::Character(&characterSettings, settings.mPosition, settings.mRotation, settings.mUserData, destination->GetJoltInstance());
