@@ -297,6 +297,28 @@ namespace RN
 		SetPosition(pos);
 	}
 
+	void SceneNode::SetTransform(const PositionType &pos, const Quaternion &rot)
+	{
+		const PositionType localPosition = pos;
+		const Quaternion localRotation = rot;
+		const bool rotationChanged = _rotation->x != localRotation.x ||
+			_rotation->y != localRotation.y ||
+			_rotation->z != localRotation.z ||
+			_rotation->w != localRotation.w;
+		if(!rotationChanged && _position->x == localPosition.x && _position->y == localPosition.y && _position->z == localPosition.z)
+			return;
+
+		WillUpdate(ChangeSet::Position);
+
+		_position = localPosition;
+		_rotation = localRotation;
+		_euler = localRotation.GetEulerAngle();
+		if(rotationChanged)
+			InvalidateLinearTransform();
+
+		DidUpdate(ChangeSet::Position);
+	}
+
 	void SceneNode::SetWorldTransform(const PositionType &pos, const Quaternion &rot)
 	{
 		PositionType localPosition;

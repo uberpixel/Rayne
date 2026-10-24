@@ -105,6 +105,7 @@ namespace RN
 		virtual void SetPosition(const PositionType &pos);
 		virtual void SetScale(const Vector3 &scal);
 		virtual void SetRotation(const Quaternion &rot);
+		RNAPI virtual void SetTransform(const PositionType &pos, const Quaternion &rot);
 
 		RNAPI virtual void SetWorldPosition(const PositionType &pos);
 		virtual void SetWorldScale(const Vector3 &scal);
