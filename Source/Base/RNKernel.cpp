@@ -478,8 +478,7 @@ namespace RN
 
 		Clock::time_point now = Clock::now();
 
-		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-		_delta = milliseconds / 1000.0;
+		_delta = std::chrono::duration<double>(now - _lastFrame).count();
 
 		if(RN_EXPECT_FALSE(_firstFrame))
 		{
@@ -552,8 +551,7 @@ namespace RN
 		{
 			now = Clock::now();
 
-			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-			double delta = milliseconds / 1000.0;
+			double delta = std::chrono::duration<double>(now - _lastFrame).count();
 
 			if(_minDelta > delta)
 			{
