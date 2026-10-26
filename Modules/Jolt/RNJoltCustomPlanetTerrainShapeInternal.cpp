@@ -83,7 +83,17 @@ public:
 
 	AABox GetLocalBounds() const override
 	{
-		return AABox(Vec3::sReplicate(-_boundsRadius), Vec3::sReplicate(_boundsRadius));
+		// Shape coordinates are relative to the observer, not the planet center.
+		const PrecisionBase origin = GetLocalOrigin();
+		const double radius = _boundsRadius + _boundsRadius * 1.0e-6 + 0.001;
+		// Round outward after narrowing large observer-relative coordinates.
+		return AABox(
+			Vec3(std::nextafter(static_cast<float>(-origin.x - radius), -FLT_MAX),
+				std::nextafter(static_cast<float>(-origin.y - radius), -FLT_MAX),
+				std::nextafter(static_cast<float>(-origin.z - radius), -FLT_MAX)),
+			Vec3(std::nextafter(static_cast<float>(-origin.x + radius), FLT_MAX),
+				std::nextafter(static_cast<float>(-origin.y + radius), FLT_MAX),
+				std::nextafter(static_cast<float>(-origin.z + radius), FLT_MAX)));
 	}
 
 	uint GetSubShapeIDBitsRecursive() const override
