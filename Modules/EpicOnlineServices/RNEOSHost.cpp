@@ -6,10 +6,12 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+// Include zlib before RNBase.h removes the Windows near/far macros.
+#include <zlib.h>
+
 #include "RNEOSHost.h"
 
 #include <RayneConfig.h>
-#include <zlib.h>
 
 #include "RNEOSWorld.h"
 
