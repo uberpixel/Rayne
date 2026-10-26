@@ -32,11 +32,6 @@ namespace RN
 			Background = 2
 		};
 
-		template<typename F>
-		explicit Thread(F &&func, bool start = true) :
-			Thread(Function(std::move(func)), start)
-		{}
-
 		RNAPI Thread(Function &&func, bool start = true);
 
 		RNAPI ~Thread();
