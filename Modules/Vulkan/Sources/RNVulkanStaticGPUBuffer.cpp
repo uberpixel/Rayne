@@ -15,8 +15,8 @@ namespace RN
 {
 	RNDefineMeta(VulkanStaticGPUBuffer, VulkanGPUBuffer)
 
-	VulkanStaticGPUBuffer::VulkanStaticGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption, GPUResource::AccessOptions accessOptions)
-	 : _length(length), _renderer(renderer), _mappedBuffer(nullptr), _isHostVisible(false), _stagingBuffer(VK_NULL_HANDLE), _stagingAllocation(VK_NULL_HANDLE)
+	VulkanStaticGPUBuffer::VulkanStaticGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption, GPUResource::AccessOptions accessOptions, bool isStreamedBacking)
+	 : _length(length), _renderer(renderer), _mappedBuffer(nullptr), _isHostVisible(false), _isStreamedBacking(isStreamedBacking), _stagingBuffer(VK_NULL_HANDLE), _stagingAllocation(VK_NULL_HANDLE)
 	{
 		VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		bufferInfo.size = length;
@@ -45,6 +45,9 @@ namespace RN
 				break;
 		}
 
+		// Direct CPU access avoids uploads that could outlive the buffer.
+		if(isStreamedBacking) allocCreateInfo.requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
 		RNVulkanValidate(vmaCreateBuffer(renderer->_internals->memoryAllocator, &bufferInfo, &allocCreateInfo, &_buffer, &_allocation, nullptr));
 
 		VkMemoryPropertyFlags memoryPropertyFlags;
@@ -65,6 +68,13 @@ namespace RN
 	VulkanStaticGPUBuffer::~VulkanStaticGPUBuffer()
 	{
 		UnmapBuffer();
+
+		if(_isStreamedBacking)
+		{
+			// Snapshot and frame references keep this buffer alive until it is safe to destroy.
+			vmaDestroyBuffer(_renderer->_internals->memoryAllocator, _buffer, _allocation);
+			return;
+		}
 
 		//Delay the buffer deletion to end of frame to ensure that it is not in use anymore.
 		VmaAllocation allocation = _allocation;
@@ -170,9 +180,13 @@ namespace RN
 		RNVulkanValidate(vk::InvalidateMappedMemoryRanges(device, 1, &memoryRange));*/
 	}
 
-	void VulkanStaticGPUBuffer::FlushRange(const Range &range)
+	void VulkanStaticGPUBuffer::FlushRange(const Range &range, bool)
 	{
 		Lock();
+		if(_mappedBuffer && _isHostVisible && _isStreamedBacking && range.length > 0)
+		{
+			RNVulkanValidate(vmaFlushAllocation(_renderer->_internals->memoryAllocator, _allocation, range.origin, range.length));
+		}
 		if(!_mappedBuffer || _isHostVisible)
 		{
 			Unlock();

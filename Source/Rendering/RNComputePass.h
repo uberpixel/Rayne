@@ -43,6 +43,11 @@ namespace RN
 		class DispatchSnapshot
 		{
 		public:
+			void CaptureResourceBuffers(GPUBuffer::SnapshotReferences &bufferReferences)
+			{
+				for(auto &entry : _resourceBuffers) entry.second = bufferReferences.CaptureBuffer(entry.second.Get());
+			}
+
 			Shader *GetShader() const { return _shader.Get(); }
 			RNAPI const DispatchSize &GetGroupCount() const;
 			RNAPI const DispatchOffset &GetGroupOffset() const;

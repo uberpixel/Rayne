@@ -224,7 +224,7 @@ namespace RN
 		class DrawItem
 		{
 		public:
-			DrawItem(Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
+			DrawItem(GPUBuffer::SnapshotReferences &bufferReferences, Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
 				_sourceDrawable(sourceDrawable),
 				_drawSnapshot(drawSnapshot),
 				_modelMatrix(modelMatrix),
@@ -235,6 +235,9 @@ namespace RN
 			{
 				sourceDrawable->GetMeshBufferSnapshot(_meshBuffers);
 				_indirectDrawSnapshot = sourceDrawable->GetIndirectDrawSnapshot();
+				bufferReferences.CaptureBuffer(_meshBuffers.GetVertexBuffer());
+				bufferReferences.CaptureBuffer(_meshBuffers.GetIndicesBuffer());
+				_indirectDrawSnapshot.CaptureArgumentBuffer(bufferReferences);
 				HashCombine(_meshInstancingHash, GetMesh().GetVerticesCount());
 				HashCombine(_meshInstancingHash, GetMesh().GetIndicesCount());
 				HashCombine(_meshInstancingHash, GetMesh().GetPipelineHash());
@@ -272,7 +275,8 @@ namespace RN
 		class Pass
 		{
 		public:
-			Pass(const RenderPass::DrawSnapshot &drawSnapshot, const Material::DrawSnapshot *overrideMaterialSnapshot, uint64 overrideMaterialCacheIdentity, uint64 overrideMaterialSnapshotVersion) :
+			Pass(const std::shared_ptr<GPUBuffer::SnapshotReferences> &bufferReferences, const RenderPass::DrawSnapshot &drawSnapshot, const Material::DrawSnapshot *overrideMaterialSnapshot, uint64 overrideMaterialCacheIdentity, uint64 overrideMaterialSnapshotVersion) :
+				_bufferReferences(bufferReferences),
 				_drawSnapshot(drawSnapshot),
 				_hasOverrideMaterial(overrideMaterialSnapshot != nullptr),
 				_overrideMaterialCacheIdentity(overrideMaterialSnapshot ? overrideMaterialCacheIdentity : 0),
@@ -343,7 +347,7 @@ namespace RN
 			void SetPassResourceBuffer(const String *name, GPUBuffer *buffer)
 			{
 				size_t nameHash = name->GetHash();
-				if(buffer) _passResourceBuffers[nameHash] = buffer;
+				if(buffer) _passResourceBuffers[nameHash] = _bufferReferences->CaptureBuffer(buffer);
 				else _passResourceBuffers.erase(nameHash);
 			}
 
@@ -422,6 +426,7 @@ namespace RN
 			const std::vector<size_t> &GetDrawItemIndices() const { return _drawItemIndices; }
 
 		private:
+			std::shared_ptr<GPUBuffer::SnapshotReferences> _bufferReferences;
 			RenderPass::DrawSnapshot _drawSnapshot;
 			bool _hasOverrideMaterial;
 			uint64 _overrideMaterialCacheIdentity;
@@ -453,11 +458,14 @@ namespace RN
 			_attachmentSnapshots.clear();
 			_globalTextures.clear();
 			_globalBuffers.clear();
+			_bufferReferences = std::make_shared<GPUBuffer::SnapshotReferences>();
 #if RN_BUILD_DEBUG
 			_globalTextureNames.clear();
 			_globalBufferNames.clear();
 #endif
 		}
+
+		const std::shared_ptr<GPUBuffer::SnapshotReferences> &GetBufferReferences() const { return _bufferReferences; }
 
 		uint64 GetFrameID() const { return _frameID; }
 		
@@ -549,7 +557,7 @@ namespace RN
 #if RN_BUILD_DEBUG
 			SetGlobalResourceName(_globalBufferNames, nameHash, name, buffer != nullptr);
 #endif
-			if(buffer) _globalBuffers[nameHash] = buffer;
+			if(buffer) _globalBuffers[nameHash] = _bufferReferences->CaptureBuffer(buffer);
 			else _globalBuffers.erase(nameHash);
 		}
 
@@ -566,7 +574,7 @@ namespace RN
 
 		size_t AddPass(const RenderPass::DrawSnapshot &drawSnapshot, const Material::DrawSnapshot *overrideMaterialSnapshot, uint64 overrideMaterialCacheIdentity, uint64 overrideMaterialSnapshotVersion)
 		{
-			_passes.emplace_back(drawSnapshot, overrideMaterialSnapshot, overrideMaterialCacheIdentity, overrideMaterialSnapshotVersion);
+			_passes.emplace_back(_bufferReferences, drawSnapshot, overrideMaterialSnapshot, overrideMaterialCacheIdentity, overrideMaterialSnapshotVersion);
 			return _passes.size() - 1;
 		}
 
@@ -587,7 +595,7 @@ namespace RN
 			}
 
 			Drawable::DrawSnapshotBundle drawSnapshot = sourceDrawable->GetDrawSnapshotBundleForFrame(_frameID);
-			_drawItems.emplace_back(sourceDrawable, drawSnapshot, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			_drawItems.emplace_back(*_bufferReferences, sourceDrawable, drawSnapshot, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
 			return _drawItems.size() - 1;
 		}
 
@@ -658,6 +666,7 @@ namespace RN
 		}
 #endif
 
+		std::shared_ptr<GPUBuffer::SnapshotReferences> _bufferReferences = std::make_shared<GPUBuffer::SnapshotReferences>();
 		uint64 _frameID = 0;
 		std::vector<StrongRef<RenderFramePresentationState>> _presentationStates;
 		std::deque<Pass> _passes;

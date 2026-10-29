@@ -25,7 +25,7 @@ namespace RN
 		MTLAPI void *GetBuffer() override;
 		MTLAPI void UnmapBuffer() override;
 		MTLAPI void InvalidateRange(const Range &range) override;
-		MTLAPI void FlushRange(const Range &range) override;
+		MTLAPI void FlushRange(const Range &range, bool discard = false) override;
 		MTLAPI size_t GetLength() const override;
 		
 	protected:

@@ -28,16 +28,16 @@ namespace RN
 	public:
 		friend VulkanDynamicBufferPool;
 
-		VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions);
+		VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions, bool isOwnedByPool = false);
 		~VulkanDynamicGPUBuffer();
 
-		VKAPI void Advance(size_t currentFrame, size_t completedFrame, bool isOwnedByPool);
+		VKAPI void Advance(size_t currentFrame, size_t completedFrame);
 		GPUBuffer *GetActiveGPUBuffer() const { return _buffers[_bufferIndex]; }
-		void *GetBuffer() override { return _buffers[_hostBufferIndex]->GetBuffer(); }
+		VKAPI void *GetBuffer() override;
 
 		void UnmapBuffer() override { } //Can't be unmapped and is just permanently mapped
 		void InvalidateRange(const Range &range) override { _buffers[_bufferIndex]->InvalidateRange(range); }
-		VKAPI void FlushRange(const Range &range) override;
+		VKAPI void FlushRange(const Range &range, bool discard = false) override;
 		void FlushInternal(); //Used internally by the dynamic buffer pool for flushing without advancing
 		virtual size_t GetLength() const override { return _totalSize; }
 		GPUBuffer *GetActiveBuffer() const final { return GetActiveGPUBuffer(); }
@@ -56,7 +56,10 @@ namespace RN
 		std::vector<VulkanStaticGPUBuffer*> _buffers;
 		std::vector<size_t> _bufferFrames;
 		size_t _bufferIndex;
-		size_t _hostBufferIndex; //This will usually be one ahead of _bufferIndex, used to write data to from the CPU when streaming meshes
+		size_t _hostBufferIndex; // Backing selected for CPU writes and published on flush.
+
+		bool _isOwnedByPool;
+		bool _hasPendingWrite = false;
 
 		size_t _sizeUsed;
 		size_t _offsetToFreeData;

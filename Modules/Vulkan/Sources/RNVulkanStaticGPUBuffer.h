@@ -21,17 +21,30 @@ namespace RN
 	{
 	public:
 		friend class VulkanRenderer;
+		friend class VulkanDynamicGPUBuffer;
 
 		VKAPI void *GetBuffer() final;
 		VKAPI void UnmapBuffer() final;
 		VKAPI void InvalidateRange(const Range &range) final;
-		VKAPI void FlushRange(const Range &range) final;
+		VKAPI void FlushRange(const Range &range, bool discard = false) final;
 		VKAPI size_t GetLength() const final;
 
 		VkBuffer GetVulkanBuffer() const final;
+		StrongRef<GPUBuffer> GetSnapshotReference() final { return _isStreamedBacking ? this : nullptr; }
+
+		void ReserveForSnapshot() noexcept final
+		{
+			_snapshotReservationCount.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		void ReleaseSnapshotReservation() noexcept final
+		{
+			_snapshotReservationCount.fetch_sub(1, std::memory_order_release);
+		}
 
 	private:
-		VulkanStaticGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption, GPUResource::AccessOptions accessOptions);
+		bool HasSnapshotReservations() const { return _snapshotReservationCount.load(std::memory_order_acquire) != 0; }
+		VulkanStaticGPUBuffer(VulkanRenderer *renderer, void *data, size_t length, GPUResource::UsageOptions usageOption, GPUResource::AccessOptions accessOptions, bool isStreamedBacking = false);
 		~VulkanStaticGPUBuffer() override;
 
 		VulkanRenderer *_renderer;
@@ -43,6 +56,8 @@ namespace RN
 		VmaAllocation _stagingAllocation;
 
 		bool _isHostVisible;
+		bool _isStreamedBacking;
+		std::atomic<uint32> _snapshotReservationCount {0};
 		size_t _length;
 		std::atomic<void *> _mappedBuffer;
 

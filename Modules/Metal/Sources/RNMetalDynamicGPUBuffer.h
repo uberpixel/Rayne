@@ -22,7 +22,7 @@ namespace RN
 		MTLAPI void *GetBuffer() final;
 		MTLAPI void UnmapBuffer() final;
 		MTLAPI void InvalidateRange(const Range &range) final;
-		MTLAPI void FlushRange(const Range &range) final;
+		MTLAPI void FlushRange(const Range &range, bool discard = false) final;
 		MTLAPI size_t GetLength() const final { return _length; }
 		MTLAPI GPUBuffer *GetActiveBuffer() const final;
 		

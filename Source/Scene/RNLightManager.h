@@ -28,7 +28,14 @@ namespace RN
 				_spotLightBuffer(spotLightBuffer ? spotLightBuffer->GetActiveBuffer() : nullptr),
 				_clusterRecordsBuffer(clusterRecordsBuffer ? clusterRecordsBuffer->GetActiveBuffer() : nullptr),
 				_clusterIndexBuffer(clusterIndexBuffer ? clusterIndexBuffer->GetActiveBuffer() : nullptr)
-			{}
+			{
+				if(!IsValid()) return;
+				_bufferReservations = std::make_shared<GPUBuffer::SnapshotReferences>();
+				_bufferReservations->CaptureBuffer(_pointLightBuffer.Get());
+				_bufferReservations->CaptureBuffer(_spotLightBuffer.Get());
+				_bufferReservations->CaptureBuffer(_clusterRecordsBuffer.Get());
+				_bufferReservations->CaptureBuffer(_clusterIndexBuffer.Get());
+			}
 
 			bool IsValid() const { return _pointLightBuffer.Get() || _spotLightBuffer.Get() || _clusterRecordsBuffer.Get() || _clusterIndexBuffer.Get(); }
 			GPUBuffer *GetPointLightBuffer() const { return _pointLightBuffer.Get(); }
@@ -41,6 +48,9 @@ namespace RN
 			StrongRef<GPUBuffer> _spotLightBuffer;
 			StrongRef<GPUBuffer> _clusterRecordsBuffer;
 			StrongRef<GPUBuffer> _clusterIndexBuffer;
+
+			// Copies share reservations so the contents stay valid until all copies are released.
+			std::shared_ptr<GPUBuffer::SnapshotReferences> _bufferReservations;
 		};
 
 		struct ClusterRecord

@@ -116,7 +116,7 @@ namespace RN
 		void SubmitComputePass(VulkanFrameSubmission &submission, ComputePass *computePass, VulkanRenderPass *previousRenderPass, Camera *camera, const std::vector<Camera *> *multiviewSnapshotCameras);
 		void SubmitDrawable(VulkanFrameSubmission &submission, Drawable *drawable, const SceneNode *node);
 		void SubmitDrawable(VulkanFrameSubmission &submission, Drawable *drawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint16 renderGroup, uint64 sourceNodeUID, int32 renderPriority);
-		bool PrepareRenderFrame(VulkanFrameSubmission &submission);
+		void PrepareRenderFrame(VulkanFrameSubmission &submission);
 		void UpdateDescriptorSets(VulkanFrameSubmission &submission);
 		void RenderDrawable(VkCommandBuffer commandBuffer, const VulkanPreparedDrawItem &drawItem, uint32 instanceCount);
 		bool ShouldInheritViews(RenderPass::ViewMode viewMode, bool isSubpass, bool hasInheritedViewState, bool destinationSupportsViewState) const;
@@ -131,14 +131,14 @@ namespace RN
 
 		void SetupRendertargets(VkCommandBuffer commandBuffer, const VulkanFrameSubmission &submission, const VulkanRenderPass &renderPass);
 		VkRenderPass GetVulkanRenderPass(const RenderFrame &renderFrame, const VulkanRenderPass *renderPass);
-		void SubmitPendingResourceCommandBuffers();
+		bool SubmitPendingResourceCommandBuffers(bool signalFence = false);
 		void CreateMipMapForTexture(VulkanTexture *texture);
 		void CreateMipMaps();
 
 		void CreateVulkanCommandBuffers(size_t count, std::vector<VkCommandBuffer> &buffers);
 		VkCommandBuffer CreateVulkanCommandBuffer();
 
-		void UpdateFrameFences();
+		bool UpdateFrameFences();
 		void ReleaseFrameResources(uint32 frame);
 
 		Window *_mainWindow;
@@ -164,12 +164,17 @@ namespace RN
 
 		VulkanDynamicBufferPool *_dynamicBufferPool;
 
-		std::vector<VkFence> _frameFences;
-		std::vector<uint32> _frameFenceValues;
+		struct FrameFence
+		{
+			VkFence fence = VK_NULL_HANDLE;
+			uint32 frameValue = static_cast<uint32>(-1);
+			std::shared_ptr<GPUBuffer::SnapshotReferences> bufferReferences;
+		};
+		std::vector<FrameFence> _frameFences;
 		uint32 _currentFrameFenceIndex;
 
-		size_t _currentFrame;
-		size_t _completedFrame;
+		std::atomic<size_t> _currentFrame;
+		std::atomic<size_t> _completedFrame;
 
 		uint8 _currentMultiviewLayer;
 		uint8 _currentMultiviewCount;

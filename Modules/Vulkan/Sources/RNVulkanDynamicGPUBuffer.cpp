@@ -15,19 +15,19 @@ namespace RN
 	RNDefineMeta(VulkanDynamicGPUBuffer, VulkanGPUBuffer)
 	RNDefineMeta(VulkanDynamicBufferReference, Object)
 
-	VulkanDynamicGPUBuffer::VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions) :
+	VulkanDynamicGPUBuffer::VulkanDynamicGPUBuffer(Renderer *renderer, size_t size, GPUResource::UsageOptions usageOptions, bool isOwnedByPool) :
 		_bufferIndex(0),
 		_hostBufferIndex(0),
+		_isOwnedByPool(isOwnedByPool),
 		_sizeUsed(0),
 		_offsetToFreeData(0),
 		_totalSize(size),
 		_sizeReserved(0),
-        _usageOptions(usageOptions)
+		_usageOptions(usageOptions)
 	{
 		VulkanRenderer *realRenderer = renderer->Downcast<VulkanRenderer>();
-		GPUBuffer *buffer = realRenderer->CreateBufferWithLength(size, usageOptions, GPUResource::AccessOptions::WriteOnly, false);
-		_buffers.push_back(dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
-		_bufferFrames.push_back(0);
+		_buffers.push_back(new VulkanStaticGPUBuffer(realRenderer, nullptr, size, usageOptions, GPUResource::AccessOptions::WriteOnly, !isOwnedByPool));
+		if(isOwnedByPool) _bufferFrames.push_back(0);
 	}
 
 	VulkanDynamicGPUBuffer::~VulkanDynamicGPUBuffer()
@@ -42,12 +42,49 @@ namespace RN
 		return (remainder == 0) ? value : (value + alignment - remainder);
 	}
 
-	void VulkanDynamicGPUBuffer::FlushRange(const Range &range)
+	void *VulkanDynamicGPUBuffer::GetBuffer()
 	{
-		_buffers[_hostBufferIndex]->FlushRange(range);
+		if(!_isOwnedByPool && !_hasPendingWrite)
+		{
+			_hostBufferIndex = _bufferIndex;
+			if(_buffers[_hostBufferIndex]->HasSnapshotReservations())
+			{
+				for(_hostBufferIndex = 0; _hostBufferIndex < _buffers.size(); _hostBufferIndex++)
+				{
+					if(!_buffers[_hostBufferIndex]->HasSnapshotReservations()) break;
+				}
+				if(_hostBufferIndex == _buffers.size())
+				{
+					VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+					_buffers.push_back(new VulkanStaticGPUBuffer(renderer, nullptr, _totalSize, _usageOptions, GPUResource::AccessOptions::WriteOnly, true));
+				}
+			}
+			_hasPendingWrite = true;
+		}
+		return _buffers[_hostBufferIndex]->GetBuffer();
+	}
 
-		VulkanRenderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-		Advance(realRenderer->_currentFrame, realRenderer->_completedFrame, false);
+	void VulkanDynamicGPUBuffer::FlushRange(const Range &range, bool discard)
+	{
+		RN_ASSERT(range.origin <= _totalSize && range.length <= _totalSize - range.origin, "Invalid streamed buffer flush range");
+		if(!_isOwnedByPool && _hasPendingWrite && _hostBufferIndex != _bufferIndex && !discard)
+		{
+			size_t end = range.origin + range.length;
+			if(range.origin || end < _totalSize)
+			{
+				uint8 *destination = static_cast<uint8 *>(_buffers[_hostBufferIndex]->GetBuffer());
+				const uint8 *source = static_cast<const uint8 *>(_buffers[_bufferIndex]->GetBuffer());
+				if(range.origin) std::memcpy(destination, source, range.origin);
+				if(end < _totalSize) std::memcpy(destination + end, source + end, _totalSize - end);
+			}
+			_buffers[_hostBufferIndex]->Flush();
+		}
+		else
+		{
+			_buffers[_hostBufferIndex]->FlushRange(range);
+		}
+		_bufferIndex = _hostBufferIndex;
+		_hasPendingWrite = false;
 	}
 
 	void VulkanDynamicGPUBuffer::FlushInternal() //Used internally by the dynamic buffer pool for flushing without advancing
@@ -55,42 +92,31 @@ namespace RN
 		_buffers[_bufferIndex]->Flush();
 	}
 
-	void VulkanDynamicGPUBuffer::Advance(size_t currentFrame, size_t completedFrame, bool isOwnedByPool)
+	void VulkanDynamicGPUBuffer::Advance(size_t currentFrame, size_t completedFrame)
 	{
-		_bufferIndex = _hostBufferIndex;
-		// Standalone streamed buffers call Advance() right after writes/flushes,
-		// so we can safely tag the just-published buffer as in-flight.
-		if(!isOwnedByPool) _bufferFrames[_bufferIndex] = currentFrame;
+		RN_ASSERT(_isOwnedByPool, "Only pooled buffers use frame-based rotation");
 		_hostBufferIndex = (_hostBufferIndex + 1) % _buffers.size();
-
 		if(completedFrame == static_cast<size_t>(-1) || _bufferFrames[_hostBufferIndex] > completedFrame)
 		{
-			VulkanRenderer *realRenderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
-			GPUBuffer *buffer = realRenderer->CreateBufferWithLength(_totalSize, _usageOptions, GPUResource::AccessOptions::WriteOnly, false);
-
-			_hostBufferIndex += 1;
+			VulkanRenderer *renderer = Renderer::GetActiveRenderer()->Downcast<VulkanRenderer>();
+			VulkanStaticGPUBuffer *buffer = new VulkanStaticGPUBuffer(renderer, nullptr, _totalSize, _usageOptions, GPUResource::AccessOptions::WriteOnly);
+			_hostBufferIndex++;
 			if(_hostBufferIndex >= _buffers.size())
 			{
-				_buffers.push_back(dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
+				_buffers.push_back(buffer);
 				_bufferFrames.push_back(currentFrame);
 			}
 			else
 			{
-				const size_t insertIndex = _hostBufferIndex;
-				_buffers.insert(_buffers.begin() + insertIndex, dynamic_cast<VulkanStaticGPUBuffer*>(buffer));
-				_bufferFrames.insert(_bufferFrames.begin() + insertIndex, currentFrame);
-				// Insertion can shift indices; keep standalone published-buffer index stable.
-				if(!isOwnedByPool && insertIndex <= _bufferIndex) ++_bufferIndex;
+				_buffers.insert(_buffers.begin() + _hostBufferIndex, buffer);
+				_bufferFrames.insert(_bufferFrames.begin() + _hostBufferIndex, currentFrame);
 			}
 		}
 		else
 		{
-			// For pooled suballocation buffers we pre-reserve the upcoming host buffer for this frame.
-			// For standalone streamed buffers (e.g. LightManager) we only timestamp actually written buffers.
-			if(isOwnedByPool) _bufferFrames[_hostBufferIndex] = currentFrame;
+			_bufferFrames[_hostBufferIndex] = currentFrame;
 		}
-
-		if(isOwnedByPool) _bufferIndex = _hostBufferIndex;
+		_bufferIndex = _hostBufferIndex;
 	}
 
 	void VulkanDynamicGPUBuffer::Reset()
@@ -196,7 +222,7 @@ namespace RN
 	void VulkanDynamicBufferPool::Update(Renderer *renderer, size_t currentFrame, size_t completedFrame)
 	{
 		_dynamicBuffers->Enumerate<VulkanDynamicGPUBuffer>([&](VulkanDynamicGPUBuffer *buffer, uint32 index, bool &stop){
-			buffer->Advance(currentFrame, completedFrame, true);
+			buffer->Advance(currentFrame, completedFrame);
 			buffer->Reset();
 		});
 
@@ -215,7 +241,7 @@ namespace RN
 		{
 			//TODO: limit to a maximum size per buffer
 			size_t requiredBufferSize = std::max(typeSize.second, static_cast<size_t>(kRNMinimumDynamicBufferSize));
-			VulkanDynamicGPUBuffer *dynamicBuffer = new VulkanDynamicGPUBuffer(renderer, requiredBufferSize, typeSize.first);
+			VulkanDynamicGPUBuffer *dynamicBuffer = new VulkanDynamicGPUBuffer(renderer, requiredBufferSize, typeSize.first, true);
 
 			_newReferences->Enumerate<VulkanDynamicBufferReference>([&](VulkanDynamicBufferReference *reference, uint32 index, bool &stop){
 				if(reference->usageOptions == typeSize.first)

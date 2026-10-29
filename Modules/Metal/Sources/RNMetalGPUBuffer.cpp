@@ -39,7 +39,7 @@ namespace RN
 		//This apparently happens just by the gpu writing into the buffer and finishing that operation
 	}
 
-	void MetalGPUBuffer::FlushRange(const Range &range)
+	void MetalGPUBuffer::FlushRange(const Range &range, bool)
 	{
 #if RN_PLATFORM_MAC_OS
 		id<MTLBuffer> buffer = (id<MTLBuffer>)_buffer;

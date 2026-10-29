@@ -691,19 +691,19 @@ namespace RN
 		EnsureBufferCapacity(_clusterIndexBuffer, static_cast<size_t>(ComputeClusterCount()) * 2u * _buildInput.maxLightsPerCluster * sizeof(uint16));
 		EnsureBufferCapacity(_clusterRecordsBuffer, headerBytes + kLightManagerShaderMaxClusterRecords * sizeof(ClusterRecord));
 
-		auto uploadLights = [](GPUBuffer *buffer, const auto &lights, size_t bufferSize) {
+		auto uploadLights = [](GPUBuffer *buffer, const auto &lights) {
 			size_t used = lights.size() * sizeof(lights[0]);
 			if(used > 0) memcpy(buffer->GetBuffer(), lights.data(), used);
-			buffer->FlushRange(Range(0, bufferSize));
+			buffer->FlushRange(Range(0, used), true);
 		};
-		uploadLights(_pointLightBuffer, _buildInput.pointLights, pointBytes);
-		uploadLights(_spotLightBuffer, _buildInput.spotLights, spotBytes);
+		uploadLights(_pointLightBuffer, _buildInput.pointLights);
+		uploadLights(_spotLightBuffer, _buildInput.spotLights);
 
 		if(indexBytes > 0)
 		{
 			void *dst = _clusterIndexBuffer->GetBuffer();
 			memcpy(dst, _clusterLightIndices.data(), indexBytes);
-			_clusterIndexBuffer->FlushRange(Range(0, indexBytes));
+			_clusterIndexBuffer->FlushRange(Range(0, indexBytes), true);
 		}
 
 		if(recordsBytes > 0)
@@ -712,7 +712,7 @@ namespace RN
 			// Write header
 			memcpy(dst, &_buildInput.grid, headerBytes);
 			memcpy(static_cast<uint8 *>(dst) + headerBytes, _clusterRecords.data(), recordsBytes);
-			_clusterRecordsBuffer->FlushRange(Range(0, headerBytes + recordsBytes));
+			_clusterRecordsBuffer->FlushRange(Range(0, headerBytes + recordsBytes), true);
 		}
 	}
 } // namespace RN

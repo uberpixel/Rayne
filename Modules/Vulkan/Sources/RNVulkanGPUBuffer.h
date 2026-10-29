@@ -22,7 +22,7 @@ namespace RN
 		VKAPI void *GetBuffer() override = 0;
 		VKAPI void UnmapBuffer() override = 0;
 		VKAPI void InvalidateRange(const Range &range) override = 0;
-		VKAPI void FlushRange(const Range &range) override = 0;
+		VKAPI void FlushRange(const Range &range, bool discard = false) override = 0;
 		VKAPI size_t GetLength() const override = 0;
 
 		virtual VkBuffer GetVulkanBuffer() const = 0;

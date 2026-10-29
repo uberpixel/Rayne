@@ -354,6 +354,8 @@ namespace RN
 	VulkanRenderer::~VulkanRenderer()
 	{
 		StopRenderThread();
+		RNVulkanValidate(vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice()));
+		for(FrameFence &fence : _frameFences) fence.bufferReferences.reset();
 
 		SafeRelease(_mainWindow);
 		FlushAllDeletedDrawables();
@@ -482,13 +484,14 @@ namespace RN
 		if(!_currentResourcesCommandBuffer)
 		{
 			VulkanCommandBuffer *commandBuffer = nullptr;
+			const size_t completedFrame = _completedFrame.load();
 			for(int i = 0; i < _commandBufferResourcesPool->GetCount(); i++)
 			{
 				commandBuffer = static_cast<VulkanCommandBuffer*>(_commandBufferResourcesPool->GetObjectAtIndex(i));
-				if(commandBuffer->_frameValue < _completedFrame && _completedFrame != -1) break;
+				if(commandBuffer->_frameValue < completedFrame && completedFrame != static_cast<size_t>(-1)) break;
 			}
 
-			if(!commandBuffer || commandBuffer->_frameValue >= _completedFrame || _completedFrame == -1)
+			if(!commandBuffer || commandBuffer->_frameValue >= completedFrame || completedFrame == static_cast<size_t>(-1))
 			{
 				commandBuffer = new VulkanCommandBuffer(GetVulkanDevice()->GetDevice(), _commandPoolSynchronised);
 
@@ -528,7 +531,7 @@ namespace RN
 		_lock.Unlock();
 	}
 
-	void VulkanRenderer::SubmitPendingResourceCommandBuffers()
+	bool VulkanRenderer::SubmitPendingResourceCommandBuffers(bool signalFence)
 	{
 		RN_PROFILE_SCOPE();
 		AssertOnRenderThread();
@@ -542,6 +545,7 @@ namespace RN
 		_currentResourcesCommandBuffer = nullptr; //Always stays inside it's pool array, so just don't do any retain release
 		_currentResourcesCommandBufferLock.Unlock();
 
+		bool submitted = false;
 		_lock.Lock();
 		if(_submittedCommandBuffers->GetCount() > 0 || resourcesCommandBuffer)
 		{
@@ -565,13 +569,16 @@ namespace RN
 
 			{
 				RN_PROFILE_ATRACE_SCOPE_N("VK QueueSubmit Resource Uploads");
-				RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, VK_NULL_HANDLE));
+				RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, signalFence ? _frameFences[_currentFrameFenceIndex].fence : VK_NULL_HANDLE));
+				if(signalFence) _frameFences[_currentFrameFenceIndex].frameValue = _currentFrame;
+				submitted = true;
 			}
 
 			//RNVulkanValidate(vk::DeviceWaitIdle(GetVulkanDevice()->GetDevice()));
 			_submittedCommandBuffers->RemoveAllObjects();
 		}
 		_lock.Unlock();
+		return submitted;
 	}
 
 	Window *VulkanRenderer::CreateAWindow(const Vector2 &size, Screen *screen, const Window::SwapChainDescriptor &descriptor, void *hwnd)
@@ -598,17 +605,20 @@ namespace RN
 		return _mainWindow;
 	}
 
-	void VulkanRenderer::UpdateFrameFences()
+	bool VulkanRenderer::UpdateFrameFences()
 	{
 		RN_PROFILE_SCOPE();
 		AssertOnRenderThread();
 		//Check fence status
 		int index = 0;
 		int freeFenceIndex = -1;
-		for(VkFence fence : _frameFences)
+		size_t outstandingFrames = 0;
+		for(FrameFence &frameFence : _frameFences)
 		{
-			if(_frameFenceValues[index] != -1)
+			VkFence fence = frameFence.fence;
+			if(frameFence.frameValue != static_cast<uint32>(-1))
 			{
+				outstandingFrames++;
 				VkResult status = vk::GetFenceStatus(GetVulkanDevice()->GetDevice(), fence);
 				if(status < 0)
 				{
@@ -618,8 +628,9 @@ namespace RN
 				}
 				if(status == VK_SUCCESS)
 				{
-					const size_t completedFrameValue = _frameFenceValues[index];
-					if(_completedFrame == static_cast<size_t>(-1) || completedFrameValue > _completedFrame)
+					const size_t completedFrameValue = frameFence.frameValue;
+					const size_t completedFrame = _completedFrame.load();
+					if(completedFrame == static_cast<size_t>(-1) || completedFrameValue > completedFrame)
 					{
 						_completedFrame = completedFrameValue;
 					}
@@ -627,7 +638,9 @@ namespace RN
 					_internals->descriptorPool.ResetFramePool(this, index);
 					RNVulkanValidate(vk::ResetFences(GetVulkanDevice()->GetDevice(), 1, &fence));
 
-					_frameFenceValues[index] = -1;
+					frameFence.bufferReferences.reset();
+					outstandingFrames--;
+					frameFence.frameValue = -1;
 					freeFenceIndex = index;
 				}
 			}
@@ -639,21 +652,24 @@ namespace RN
 			index += 1;
 		}
 
+		// Poll fences even when the GPU is too busy to accept another frame.
+		if(outstandingFrames >= 5) return false;
+
 		if(freeFenceIndex == -1)
 		{
 			VkFenceCreateInfo fenceInfo = {};
 			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-			VkFence frameFence;
-			RNVulkanValidate(vk::CreateFence(GetVulkanDevice()->GetDevice(), &fenceInfo, GetAllocatorCallback(), &frameFence));
+			FrameFence frameFence;
+			RNVulkanValidate(vk::CreateFence(GetVulkanDevice()->GetDevice(), &fenceInfo, GetAllocatorCallback(), &frameFence.fence));
 			_frameFences.push_back(frameFence);
-			_frameFenceValues.push_back(-1);
 
 			freeFenceIndex = _frameFences.size() - 1;
 		}
 
 		_currentFrameFenceIndex = freeFenceIndex;
 		_internals->descriptorPool.SetActiveFramePool(this, _currentFrameFenceIndex);
+		return true;
 	}
 
 	void VulkanRenderer::ReleaseFrameResources(uint32 frame)
@@ -843,14 +859,22 @@ namespace RN
 		}
 
 		RN_PROFILE_ATRACE_SCOPE_N("RN RenderThread Execute Render Frame");
+		const bool hasFrameFence = UpdateFrameFences();
 		if(!submission.renderFrame.BeginPresentationStatesOnRenderThread())
 		{
+			if(hasFrameFence)
+			{
+				// Pending uploads still need a fence when presentation is skipped.
+				CreateMipMaps();
+				if(SubmitPendingResourceCommandBuffers(true)) _currentFrame++;
+			}
 			FinishRenderFrameSubmission(submission.renderFrame);
 			return true;
 		}
 
-		if(PrepareRenderFrame(submission))
+		if(hasFrameFence)
 		{
+			PrepareRenderFrame(submission);
 			RenderFrameSubmission(submission);
 			PrintFrameStatistics(submission.renderFrame);
 		}
@@ -1140,10 +1164,12 @@ namespace RN
 
 		submitInfo.pWaitDstStageMask = presentSemaphoresWaitStages.data();
 
-		_frameFenceValues[_currentFrameFenceIndex] = _currentFrame;
+		FrameFence &frameFence = _frameFences[_currentFrameFenceIndex];
+		frameFence.bufferReferences = submission.renderFrame.GetBufferReferences();
+		frameFence.frameValue = _currentFrame;
 		{
 			RN_PROFILE_ATRACE_SCOPE_N("VK QueueSubmit Frame");
-			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, _frameFences[_currentFrameFenceIndex]));
+			RNVulkanValidate(vk::QueueSubmit(_workQueue, 1, &submitInfo, frameFence.fence));
 		}
 
 		for(VulkanSwapChain *swapChain : submission.swapChains)
@@ -1462,6 +1488,7 @@ namespace RN
 		vulkanComputePass.framebuffer = nullptr;
 		vulkanComputePass.resolveFramebuffer = nullptr;
 		computePass->GetDispatchSnapshot(vulkanComputePass.computeDispatch);
+		vulkanComputePass.computeDispatch.CaptureResourceBuffers(*frameSubmission.renderFrame.GetBufferReferences());
 		if(previousRenderPass && previousRenderPass->renderFramePassIndex != RenderFrame::InvalidPassIndex)
 		{
 			const RenderFrame::Pass &previousFramePass = frameSubmission.renderFrame.GetPass(previousRenderPass->renderFramePassIndex);
@@ -1898,21 +1925,12 @@ namespace RN
 		}
 	}
 
-	bool VulkanRenderer::PrepareRenderFrame(VulkanFrameSubmission &submission)
+	void VulkanRenderer::PrepareRenderFrame(VulkanFrameSubmission &submission)
 	{
 		RN_PROFILE_SCOPE();
 		RN_PROFILE_ATRACE_SCOPE_N("VK Prepare Render Frame");
 		AssertOnRenderThread();
 		_internals->stateCoordinator.SavePipelineCache(Kernel::GetSharedInstance()->GetApplication()->GetBuildNumber(), GetVulkanDevice()); //This won't do anything if no new pipelines were loaded
-
-		UpdateFrameFences(); //Releases resources of frames that finished
-
-		const bool hasCompletedFrame = (_completedFrame != static_cast<size_t>(-1));
-		if((!hasCompletedFrame && _currentFrame > 4) || (hasCompletedFrame && (_currentFrame - _completedFrame > 4)))
-		{
-			//RNDebug("Too many frames in-flight, ignore this one");
-			return false; //Don't submit a new frame if there are already 5 frames in flight
-		}
 
 		PrepareRendererAttachments(submission.renderFrame);
 		CreateMipMaps();
@@ -2091,9 +2109,8 @@ namespace RN
 		}
 
 		// Do this after pipeline preparation so newly created uniform references have backing buffers.
-		_dynamicBufferPool->Update(this, _currentFrame, _completedFrame);
+		_dynamicBufferPool->Update(this, _currentFrame.load(), _completedFrame.load());
 		UpdateDescriptorSets(submission);
-		return true;
 	}
 
 	void VulkanRenderer::SubmitDrawable(Drawable *drawable, const SceneNode *node)
@@ -3309,7 +3326,7 @@ namespace RN
 	void VulkanRenderer::AddFrameFinishedCallback(std::function<void()> callback, size_t frameOffset)
 	{
 		Lock();
-		_internals->frameResources.push_back({ _currentFrame + frameOffset, callback });
+		_internals->frameResources.push_back({ _currentFrame.load() + frameOffset, callback });
 		Unlock();
 	}
 }

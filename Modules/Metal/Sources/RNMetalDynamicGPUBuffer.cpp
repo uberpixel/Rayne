@@ -47,7 +47,7 @@ namespace RN
 		// No-op for CPU writes
 	}
 
-	void MetalDynamicGPUBuffer::FlushRange(const Range &range)
+	void MetalDynamicGPUBuffer::FlushRange(const Range &range, bool)
 	{
 	#if RN_PLATFORM_MAC_OS
 		id<MTLBuffer> writeBuffer = _buffers[_writeIndex];

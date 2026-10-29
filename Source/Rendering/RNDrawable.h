@@ -108,6 +108,7 @@ namespace RN
 		class IndirectDrawSnapshot
 		{
 		public:
+			void CaptureArgumentBuffer(GPUBuffer::SnapshotReferences &bufferReferences) { _argumentBuffer = bufferReferences.CaptureBuffer(_argumentBuffer.Get()); }
 			GPUBuffer *GetArgumentBuffer() const { return _argumentBuffer.Get(); }
 			size_t GetArgumentBufferOffset() const { return _argumentBufferOffset; }
 			uint32 GetDrawCount() const { return _drawCount; }
