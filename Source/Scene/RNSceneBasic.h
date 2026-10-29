@@ -36,6 +36,8 @@ namespace RN
 	protected:
 		RNAPI SceneBasic(const OcclusionCullingParameters &occlusionCullingParameters = OcclusionCullingParameters());
 
+		virtual bool AllowsParallelNodeUpdates() const { return true; }
+
 		RNAPI void Update(float delta) override;
 		RNAPI void Render(Renderer *renderer) override;
 		RNAPI void PrepareForShutdown() override;

@@ -68,6 +68,7 @@ namespace RN
 		RN_PROFILE_SCOPE();
 		WillUpdate(delta);
 
+		const bool allowsParallelNodeUpdates = AllowsParallelNodeUpdates();
 		WorkQueue *queue = WorkQueue::GetGlobalQueue(WorkQueue::Priority::High);
 
 		for(size_t i = 0; i < 4; i++)
@@ -81,7 +82,7 @@ namespace RN
 
 			while(member)
 			{
-				if(count == kRNSceneUpdateBatchSize)
+				if(allowsParallelNodeUpdates && count == kRNSceneUpdateBatchSize)
 				{
 					if(!group) group = new WorkGroup();
 					group->Perform(queue, [&, member, first] {
