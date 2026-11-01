@@ -47,7 +47,7 @@ namespace RN
 
 	float ResonanceAudioSampler::GetSample(double time, uint8 channel, bool isRepeating)
 	{
-		if(!_asset)
+		if(!_asset || !std::isfinite(time))
 		{
 			return 0.0f;
 		}

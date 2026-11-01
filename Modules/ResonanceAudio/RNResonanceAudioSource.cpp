@@ -238,11 +238,13 @@ namespace RN
 
 	void ResonanceAudioSource::SetPitch(float pitch)
 	{
+		if(!std::isfinite(pitch)) return;
 		_pitch.store(pitch, std::memory_order_relaxed);
 	}
 
 	void ResonanceAudioSource::SetVolume(float volume)
 	{
+		if(!std::isfinite(volume)) return;
 		_volume.store(volume, std::memory_order_relaxed);
 	}
 
@@ -312,6 +314,7 @@ namespace RN
 
 	void ResonanceAudioSource::Seek(double time)
 	{
+		if(!std::isfinite(time)) return;
 		_pendingSeekTime.store(std::max(time, 0.0), std::memory_order_release);
 		_playbackRevision.fetch_add(1, std::memory_order_acq_rel);
 	}
@@ -373,6 +376,7 @@ namespace RN
 		{
 			targetPitch *= _dopplerPitchMultiplier.load(std::memory_order_relaxed);
 		}
+		if(!std::isfinite(targetPitch)) targetPitch = 1.0f;
 		float pitch = _currentPitch;
 		float pitchStep = sampleCount > 0 ? (targetPitch - pitch) / static_cast<float>(sampleCount) : 0.0f;
 		float volume = _isPositional ? 1.0f : _volume.load(std::memory_order_relaxed);
@@ -399,8 +403,9 @@ namespace RN
 			for(int j = 0; j < channelCount; j++)
 			{
 				int sampleChannel = isMonoAsset ? 0 : j;
-				float value = _isPlaying ? _sampler->GetSample(localTime, sampleChannel + channel, isRepeating) : 0.0f;
-				targetBuffer[i * channelCount + j] = value * gain;
+				const float sample = (_isPlaying ? _sampler->GetSample(localTime, sampleChannel + channel, isRepeating) : 0.0f) * gain;
+				// Keep corrupt stream samples out of Resonance's persistent filters.
+				targetBuffer[i * channelCount + j] = std::isfinite(sample) ? sample : 0.0f;
 			}
 			if(_isPlaying) localTime += sampleLength * pitch;
 			pitch += pitchStep;
@@ -474,9 +479,8 @@ namespace RN
 			//For none positional sources this happens in the audio handling callback
 			ResonanceAudioListenerContext *listenerContext = _world->GetListenerContext();
 			float *newBuffer = listenerContext ? listenerContext->GetSharedFrameData() : nullptr;
-			if(newBuffer)
+			if(newBuffer && Update(static_cast<double>(frameSize) / static_cast<double>(sampleRate), frameSize, &newBuffer, 1))
 			{
-				Update(static_cast<double>(frameSize) / static_cast<double>(sampleRate), frameSize, &newBuffer, 1);
 				_world->GetAudioAPI()->SetInterleavedBuffer(_sourceID, newBuffer, 1, frameSize);
 			}
 		}
