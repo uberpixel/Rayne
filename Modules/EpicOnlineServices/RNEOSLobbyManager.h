@@ -55,6 +55,7 @@ namespace RN
 		EOSAPI EOSLobbyInfo();
 		EOSAPI ~EOSLobbyInfo();
 
+		String *lobbyID;
 		String *lobbyName;
 		String *lobbyLevel;
 		String *lobbyVersion;

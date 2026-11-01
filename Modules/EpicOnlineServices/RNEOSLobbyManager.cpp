@@ -30,12 +30,13 @@ namespace RN
 	RNDefineMeta(EOSLobbyManager, Object)
 
 	EOSLobbyInfo::EOSLobbyInfo() :
-		lobbyName(nullptr), lobbyLevel(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0), currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr), createTimestamp(0)
+		lobbyID(nullptr), lobbyName(nullptr), lobbyLevel(nullptr), lobbyVersion(nullptr), maximumPlayerCount(0), currentPlayerCount(0), lobbyHandle(nullptr), ownerHandle(nullptr), createTimestamp(0)
 	{
 	}
 
 	EOSLobbyInfo::~EOSLobbyInfo()
 	{
+		SafeRelease(lobbyID);
 		SafeRelease(lobbyName);
 		SafeRelease(lobbyLevel);
 		SafeRelease(lobbyVersion);
@@ -1076,6 +1077,7 @@ namespace RN
 
 				if(lobbyDetailsInfo)
 				{
+					lobbyInfo->lobbyID = lobbyDetailsInfo->LobbyId ? new String(lobbyDetailsInfo->LobbyId) : nullptr;
 					lobbyInfo->maximumPlayerCount = lobbyDetailsInfo->MaxMembers;
 					lobbyInfo->currentPlayerCount = lobbyInfo->maximumPlayerCount - lobbyDetailsInfo->AvailableSlots;
 					lobbyInfo->ownerHandle = lobbyDetailsInfo->LobbyOwnerUserId;
