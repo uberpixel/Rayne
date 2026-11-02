@@ -212,6 +212,7 @@ namespace RN
 		RNDefineMeta(View, Entity)
 
 		View::View() :
+			_backgroundModelDirty(true),
 			_clipToBounds(false),
 			_isClippingEnabled(true),
 			_isHidden(false),
@@ -577,6 +578,8 @@ namespace RN
 			if(_frame == frame) return;
 
 			Lock();
+			if(_frame.GetSize() != frame.GetSize() || _bounds.GetSize() != frame.GetSize())
+				_backgroundModelDirty = true;
 			_frame = frame;
 
 			RN::Vector3 newPosition(_frame.x, -_frame.y, 0.0f);
@@ -599,6 +602,8 @@ namespace RN
 			if(_bounds == bounds) return;
 
 			Lock();
+			if(_bounds.GetSize() != bounds.GetSize())
+				_backgroundModelDirty = true;
 			_bounds = bounds;
 
 			size_t count = _subviews->GetCount();
@@ -722,6 +727,7 @@ namespace RN
 			
 			_mirrorU = mirrorU;
 			_mirrorV = mirrorV;
+			_backgroundModelDirty = true;
 			SetNeedsRenderPreparation();
 			Unlock();
 		}
@@ -737,6 +743,7 @@ namespace RN
 			
 			_uvOffset = offset;
 			_uvScale = scale;
+			_backgroundModelDirty = true;
 			SetNeedsRenderPreparation();
 			Unlock();
 		}
@@ -792,6 +799,7 @@ namespace RN
 			if(radius == _cornerRadius) return;
 
 			_cornerRadius = radius;
+			_backgroundModelDirty = true;
 			SetNeedsRenderPreparation();
 		}
 
@@ -906,7 +914,11 @@ namespace RN
 			_hasOutline = true;
 			_outlineColor = color;
 
-			if(thickness != _outlineThickness) SetNeedsRenderPreparation();
+			if(thickness != _outlineThickness)
+			{
+				_backgroundModelDirty = true;
+				SetNeedsRenderPreparation();
+			}
 			_outlineThickness = thickness;
 
 			if(model)
@@ -1027,6 +1039,14 @@ namespace RN
 			//subviewsCopy->Release();
 
 			return needsRedraw;
+		}
+
+		void View::UpdateBackgroundModelIfNeeded()
+		{
+			Lock();
+			if(_backgroundModelDirty || !GetModel())
+				View::UpdateModel();
+			Unlock();
 		}
 
 		void View::UpdateModel()
@@ -1661,6 +1681,8 @@ namespace RN
 
 			model->CalculateBoundingVolumes();
 			SetBoundingBox(model->GetBoundingBox());
+
+			_backgroundModelDirty = false;
 			Unlock();
 		}
 

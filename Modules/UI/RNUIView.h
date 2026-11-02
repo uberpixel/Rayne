@@ -105,6 +105,7 @@ namespace RN
 			UIAPI Vector4 GetClippingRect() const;
 
 			UIAPI virtual void UpdateModel();
+			UIAPI void UpdateBackgroundModelIfNeeded();
 			UIAPI void PrepareForRender() override;
 
 			UIAPI void WillUpdate(ChangeSet changeSet) override;
@@ -141,6 +142,8 @@ namespace RN
 
 			Rect _bounds;
 			Rect _frame;
+
+			bool _backgroundModelDirty;
 
 			Vector2 _oldFrameSize; //Used to check if the frame size changed since the last frame, in which case the mesh needs updating. This is delayed to catch multiple changes to the size that end up the same as before
 

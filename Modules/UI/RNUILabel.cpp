@@ -933,7 +933,7 @@ namespace RN
 
 		void Label::UpdateModel()
 		{
-			View::UpdateModel();
+			UpdateBackgroundModelIfNeeded();
 
 			Lock();
 			if(!_attributedText || _attributedText->GetLength() == 0)
