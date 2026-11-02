@@ -463,6 +463,41 @@ namespace RN
 		return true;
 	}
 
+	void JoltCompoundShape::SetChildMasses(const std::vector<float> &masses)
+	{
+		if(masses.empty()) return;
+
+		// Shared children or nonuniform nested scaling can move a child's COM.
+		// Keep the incremental transform updates for those cases.
+		std::unordered_set<const JPH::Shape *> visited;
+		bool canBatch = true;
+		for(size_t i = 0; i < _shapes.size(); i += 1)
+		{
+			JoltShape *child = _shapes[i];
+			float mass = i < masses.size() ? masses[i] : 0.0f;
+			if(child && child->GetJoltShape() && mass <= k::EpsilonFloat) mass = child->GetJoltShape()->GetMassProperties().mMass;
+			if(!child || !CanScaleMassUniformly(child, mass, visited))
+			{
+				canBatch = false;
+				break;
+			}
+		}
+		if(!canBatch)
+		{
+			for(size_t i = 0; i < masses.size(); i += 1) SetChildMass(i, masses[i]);
+			return;
+		}
+
+		bool changed = false;
+		for(size_t i = 0; i < masses.size() && i < _shapes.size(); i += 1)
+		{
+			if(masses[i] <= k::EpsilonFloat) continue;
+			_shapes[i]->SetMass(masses[i]);
+			changed = true;
+		}
+		if(changed) UpdateCenterOfMass();
+	}
+
 	void JoltCompoundShape::SetMass(float mass)
 	{
 		if(mass <= k::EpsilonFloat) return;

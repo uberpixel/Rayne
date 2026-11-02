@@ -152,6 +152,8 @@ namespace RN
 		JTAPI void AddChild(JoltShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 		JTAPI void AddChild(JoltShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation, uint32 userData);
 		JTAPI bool SetChildMass(size_t index, float mass);
+		// Applies indexed masses in order; entries <= epsilon leave the child unchanged.
+		JTAPI void SetChildMasses(const std::vector<float> &masses);
 		JTAPI void SetMass(float mass) override;
 
 		JoltShape *GetShape(size_t index) const { return _shapes[index]; }
