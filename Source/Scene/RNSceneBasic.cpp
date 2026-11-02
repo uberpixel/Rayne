@@ -75,14 +75,14 @@ namespace RN
 		{
 			RN_PROFILE_SCOPE_N("Update by Priority");
 			WorkGroup *group = nullptr;
-			IntrusiveList<SceneNode>::Member *member = _updateNodes[i].GetHead();
-			IntrusiveList<SceneNode>::Member *first = member;
+			IntrusiveList<SceneNode>::Member *first = _updateNodes[i].GetHead();
+			IntrusiveList<SceneNode>::Member *member = allowsParallelNodeUpdates ? first : nullptr;
 
 			size_t count = 0;
 
 			while(member)
 			{
-				if(allowsParallelNodeUpdates && count == kRNSceneUpdateBatchSize)
+				if(count == kRNSceneUpdateBatchSize)
 				{
 					if(!group) group = new WorkGroup();
 					group->Perform(queue, [&, member, first] {
