@@ -70,7 +70,6 @@ namespace RN
 		JTAPI float GetDefaultDynamicBodyMaxLinearVelocity() const { return _defaultDynamicBodyMaxLinearVelocity; }
 		JTAPI float GetDefaultDynamicBodyMaxAngularVelocity() const { return _defaultDynamicBodyMaxAngularVelocity; }
 
-		// Step worlds serially: native failure hooks select one recorder until all update jobs join.
 		JTAPI void Update(float delta) final;
 		JTAPI void WillUpdate(float delta) final;
 		JTAPI void SetSubsteps(uint8 substeps);

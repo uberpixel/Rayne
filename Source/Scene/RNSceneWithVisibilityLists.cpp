@@ -134,6 +134,9 @@ namespace RN
 	{
 		WillRender(renderer);
 
+		for(auto *shadowLightMember = _lights.GetHead(); shadowLightMember; shadowLightMember = shadowLightMember->GetNext())
+			shadowLightMember->Get()->UpdateShadows();
+
 		for(int cameraPriority = 0; cameraPriority < 3; cameraPriority++)
 		{
 			IntrusiveList<Camera>::Member *member = _cameras.GetHead();

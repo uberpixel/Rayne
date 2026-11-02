@@ -98,9 +98,9 @@ namespace RN
 		bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
 		RNAPI void SetSuppressShadows(bool suppress);
 		RNAPI void UpdateShadowParameters(const ShadowParameter &parameter);
+		RNAPI void UpdateShadows();
 
 		RNAPI void Render(Renderer *renderer, Camera *camera) const override;
-		RNAPI void Update(float delta) override;
 		RNAPI void DidUpdate(ChangeSet change) override;
 
 		RNAPI bool CanRender(Renderer *renderer, Camera *camera) const override;
@@ -143,8 +143,6 @@ namespace RN
 		bool ActivateDirectionalShadows(bool useMultiview);
 		bool ActivatePointShadows(bool useMultiview);
 		bool ActivateSpotShadows(bool useMultiview);
-
-		void UpdateShadows();
 
 		Type _lightType;
 

@@ -540,12 +540,6 @@ namespace RN
 		}
 	}
 
-	void Light::Update(float delta)
-	{
-		SceneNode::Update(delta);
-		UpdateShadows();
-	}
-
 	void Light::UpdateShadows()
 	{
 		if(_suppressShadows || _shadowDepthCameras.GetCount() == 0)

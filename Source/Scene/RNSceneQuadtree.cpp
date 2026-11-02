@@ -249,6 +249,9 @@ namespace RN
 		RN_PROFILE_SCOPE();
 		WillRender(renderer);
 
+		for(auto *shadowLightMember = _lights.GetHead(); shadowLightMember; shadowLightMember = shadowLightMember->GetNext())
+			shadowLightMember->Get()->UpdateShadows();
+
 		//Run camera PostUpdate once for each camera
 		IntrusiveList<Camera>::Member *cameraMember = _cameras.GetHead();
 		while(cameraMember)
