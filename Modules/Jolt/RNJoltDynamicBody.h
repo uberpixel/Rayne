@@ -84,6 +84,7 @@ namespace RN
 		JTAPI void SetEnableCCD(bool enable);
 		JTAPI void SetEnableGravity(bool enable);
 		bool GetIsGravityEnabled() const { return _isGravityEnabled; }
+		JTAPI void SetGravityFactor(float factor);
 		JTAPI void SetEnableKinematic(bool enable);
 		JTAPI void SetEnableSimulation(bool enable);
 		JTAPI void LockMovement(uint32 lockFlags);
@@ -147,6 +148,7 @@ namespace RN
 		Vector3 _appliedShapeCenterOfMass;
 		bool _isKinematic;
 		bool _isGravityEnabled;
+		float _gravityFactor;
 		bool _isInSimulation;
 		mutable bool _motionCacheIsValid = false;
 		mutable JoltPointMotionProperties _motionCacheProperties;

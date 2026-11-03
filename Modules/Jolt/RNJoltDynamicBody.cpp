@@ -24,7 +24,7 @@ namespace RN
 	JoltDynamicBody::JoltDynamicBody(JoltShape *shape, float mass, JoltWorld *owningWorld) :
 		JoltCollisionObject(owningWorld),
 		_shape(shape->Retain()),
-		_actor(nullptr), _mass(mass), _appliedShapeCenterOfMass(shape->GetCenterOfMass()), _isKinematic(false), _isGravityEnabled(true), _isInSimulation(false)
+		_actor(nullptr), _mass(mass), _appliedShapeCenterOfMass(shape->GetCenterOfMass()), _isKinematic(false), _isGravityEnabled(true), _gravityFactor(1.0f), _isInSimulation(false)
 	{
 		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
@@ -686,7 +686,15 @@ namespace RN
 		_isGravityEnabled = enable;
 		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
 		if(!bodyInterface) return;
-		bodyInterface->SetGravityFactor(*_actor, enable ? 1.0f : 0.0f);
+		bodyInterface->SetGravityFactor(*_actor, enable ? _gravityFactor : 0.0f);
+	}
+
+	void JoltDynamicBody::SetGravityFactor(float factor)
+	{
+		_gravityFactor = factor;
+		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
+		if(!bodyInterface) return;
+		bodyInterface->SetGravityFactor(*_actor, _isGravityEnabled ? factor : 0.0f);
 	}
 
 	void JoltDynamicBody::SetFriction(float friction)
@@ -811,7 +819,7 @@ namespace RN
 			{
 				world->CancelQueuedBodyRemoval(*_actor);
 				bodyInterface.SetObjectLayer(*_actor, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
-				bodyInterface.SetGravityFactor(*_actor, _isGravityEnabled ? 1.0f : 0.0f);
+				bodyInterface.SetGravityFactor(*_actor, _isGravityEnabled ? _gravityFactor : 0.0f);
 				bodyInterface.SetMotionType(*_actor, _isKinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic, JPH::EActivation::DontActivate);
 			}
 			return;
@@ -835,7 +843,7 @@ namespace RN
 			bodyInterface.AddBody(*_actor, JPH::EActivation::Activate);
 			_isInSimulation = true;
 			bodyInterface.SetObjectLayer(*_actor, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
-			bodyInterface.SetGravityFactor(*_actor, _isGravityEnabled ? 1.0f : 0.0f);
+			bodyInterface.SetGravityFactor(*_actor, _isGravityEnabled ? _gravityFactor : 0.0f);
 			bodyInterface.SetMotionType(*_actor, _isKinematic ? JPH::EMotionType::Kinematic : JPH::EMotionType::Dynamic, JPH::EActivation::DontActivate);
 			return;
 		}
