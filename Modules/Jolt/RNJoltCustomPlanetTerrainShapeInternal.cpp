@@ -9,6 +9,8 @@
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Geometry/ClipPoly.h>
+#include <Jolt/Geometry/EPAPenetrationDepth.h>
+#include <Jolt/Physics/Collision/NarrowPhaseStats.h>
 #include <Jolt/Geometry/ClosestPoint.h>
 #include <Jolt/Geometry/RayTriangle.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -315,7 +317,11 @@ private:
 	static constexpr uint32 SampledTriangleGridMask = (1u << CollisionGridBlockCellBits) - 1u;
 	static constexpr uint SampledGridVertexCacheSize = 8192;
 	static constexpr uint SampledGridVertexCacheWays = 4;
-	static constexpr uint32 SampledGridVertexCacheSetMask = SampledGridVertexCacheSize / SampledGridVertexCacheWays - 1u;
+	static constexpr uint SampledGridVertexTileSize = 8;
+	static constexpr uint SampledGridVertexTileArea = SampledGridVertexTileSize * SampledGridVertexTileSize;
+	static constexpr uint SampledGridVertexTileCount = SampledGridVertexCacheSize / SampledGridVertexTileArea;
+	static constexpr uint SampledGridVertexTileRowStride = 5;
+	static constexpr uint32 SampledGridVertexCacheSetMask = SampledGridVertexTileCount / SampledGridVertexCacheWays - 1u;
 	static constexpr float MinimumTriangleNormalLengthSq = 1.0e-12f;
 	static constexpr float MinimumSolidRecoverySupportDepth = 0.005f;
 	static constexpr float AboveSurfaceQueryMargin = 4.0f;
@@ -339,43 +345,46 @@ private:
 
 	struct CachedSampledGridVertex
 	{
-		const RNCustomPlanetTerrainShape *shape = nullptr;
 		uint32 revision = 0;
 		uint32 cacheEpoch = 0;
-		uint8 face = 0xff;
-		uint8 useOrder = 0;
-		int gridU = 0;
-		int gridV = 0;
 		double absoluteX = 0.0;
 		double absoluteY = 0.0;
 		double absoluteZ = 0.0;
 		Vec3 normal = Vec3::sZero();
+		bool sampled = false;
 		bool valid = false;
+	};
+
+	struct SampledGridVertexTileKey
+	{
+		const RNCustomPlanetTerrainShape *shape = nullptr;
+		int tileU = 0;
+		int tileV = 0;
+		uint8 face = 0xff;
+	};
+
+	struct SampledGridVertexCacheSet
+	{
+		SampledGridVertexTileKey keys[SampledGridVertexCacheWays];
+		uint8 useOrder = 0x1b; // MRU to LRU: ways 3, 2, 1, 0; fill way 0 first.
+
+		void Touch(uint way)
+		{
+			const uint8 order = useOrder;
+			if((order & 3u) == way) return;
+			if(((order >> 2u) & 3u) == way)
+				useOrder = static_cast<uint8>((order & 0xf0u) | ((order & 3u) << 2u) | way);
+			else if(((order >> 4u) & 3u) == way)
+				useOrder = static_cast<uint8>((order & 0xc0u) | ((order & 0xfu) << 2u) | way);
+			else
+				useOrder = static_cast<uint8>(((order & 0x3fu) << 2u) | way);
+		}
 	};
 
 	struct SampledGridVertexCache
 	{
-		SampledGridVertexCache()
-		{
-			for(uint i = 0; i < SampledGridVertexCacheSize; i += SampledGridVertexCacheWays)
-				entries[i].useOrder = 0x1b; // MRU to LRU: ways 3, 2, 1, 0; fill way 0 first.
-		}
-
-		void Touch(CachedSampledGridVertex *set, uint way)
-		{
-			// Keep the four-way LRU permutation in the first entry's padding.
-			// A hit changes only this byte, not all four vertex cache lines.
-			const uint8 order = set[0].useOrder;
-			if((order & 3u) == way) return;
-			if(((order >> 2u) & 3u) == way)
-				set[0].useOrder = static_cast<uint8>((order & 0xf0u) | ((order & 3u) << 2u) | way);
-			else if(((order >> 4u) & 3u) == way)
-				set[0].useOrder = static_cast<uint8>((order & 0xc0u) | ((order & 0xfu) << 2u) | way);
-			else
-				set[0].useOrder = static_cast<uint8>(((order & 0x3fu) << 2u) | way);
-		}
-
-		CachedSampledGridVertex entries[SampledGridVertexCacheSize];
+		SampledGridVertexCacheSet sets[SampledGridVertexTileCount / SampledGridVertexCacheWays];
+		CachedSampledGridVertex tiles[SampledGridVertexTileCount][SampledGridVertexTileArea];
 	};
 
 	struct SampledGridRowScratch
@@ -404,18 +413,11 @@ private:
 		return (triangleID & SampledTriangleIDFlag) != 0;
 	}
 
-	static uint32 GetSampledGridVertexHash(uint8 face, int gridU, int gridV)
+	static uint32 GetSampledGridVertexTileSet(uint8 face, int tileU, int tileV)
 	{
-		uint32 hash = 0x9e3779b9u;
-		hash ^= static_cast<uint32>(face) + 0x85ebca6bu + (hash << 6u) + (hash >> 2u);
-		hash ^= static_cast<uint32>(gridU) + 0xc2b2ae35u + (hash << 6u) + (hash >> 2u);
-		hash ^= static_cast<uint32>(gridV) + 0x27d4eb2fu + (hash << 6u) + (hash >> 2u);
-		hash ^= hash >> 16u;
-		hash *= 0x7feb352du;
-		hash ^= hash >> 15u;
-		hash *= 0x846ca68bu;
-		hash ^= hash >> 16u;
-		return hash;
+		// Spread both grid axes across all sets while bounding conflicts in
+		// compact query footprints. Exact tile keys still distinguish aliases.
+		return (static_cast<uint32>(tileU) + SampledGridVertexTileRowStride * static_cast<uint32>(tileV) + static_cast<uint32>(face) * 5u) & SampledGridVertexCacheSetMask;
 	}
 
 	static Vec3 GetTriangleNormal(const Triangle &triangle)
@@ -833,10 +835,17 @@ private:
 			_collectingTriangles = false;
 			// A real ridge can have only an edge contact. Prefer face contacts whenever
 			// available, but retain the deepest raw contact if no triangle supports a face.
-			if(!_hasUsefulHit && _hasEdgeContact) AddHit(_edgeContact);
+			if(!_hasUsefulHit && _hasEdgeContact)
+			{
+				if(_settings.mCollectFacesMode == ECollectFacesMode::CollectFaces)
+					_convex->GetSupportingFace(SubShapeID(), _edgeFaceDirection, _scale, _transform, _edgeContact.mShape1Face);
+				AddHit(_edgeContact);
+			}
 			UpdateEarlyOutFraction(_collector.GetEarlyOutFraction());
 			return _hasUsefulHit;
 		}
+
+		void SetRawFaceDirection(Vec3Arg direction) { _rawFaceDirection = direction; }
 
 		void AddHit(const CollideShapeResult &result) override
 		{
@@ -852,6 +861,7 @@ private:
 					if(result.mPenetrationDepth >= -_settings.mMaxSeparationDistance && (!_hasEdgeContact || result.mPenetrationDepth > _edgeContact.mPenetrationDepth))
 					{
 						_edgeContact = result;
+						_edgeFaceDirection = _rawFaceDirection;
 						_hasEdgeContact = true;
 					}
 					return;
@@ -939,6 +949,8 @@ private:
 		Vec3 _scale;
 		Mat44 _transform;
 		const CollideShapeSettings &_settings;
+		// Keep the original convex-local GJK/EPA axis for the selected edge fallback.
+		Vec3 _rawFaceDirection = Vec3::sZero(), _edgeFaceDirection = Vec3::sZero();
 		CollideShapeResult _edgeContact;
 		bool _hasEdgeContact = false;
 		bool _hasUsefulHit = false;
@@ -1000,6 +1012,95 @@ private:
 		{
 			using CollideConvexVsTriangles::CollideConvexVsTriangles;
 
+			// Adapted from Jolt CollideConvexVsTriangles::Collide (2021 Jorrit Rouwe, MIT).
+			// Keep GJK/EPA, backface and numerical checks in sync. Terrain always uses
+			// CollideWithAll and CollectFaces; defer the raw convex face until an edge fallback.
+			void CollideTerrainTriangle(Vec3Arg inV0, Vec3Arg inV1, Vec3Arg inV2, const SubShapeID &inSubShapeID2)
+			{
+				Vec3 v0 = mTransform2To1 * (mScale2 * inV0);
+				Vec3 v1 = mTransform2To1 * (mScale2 * inV1);
+				Vec3 v2 = mTransform2To1 * (mScale2 * inV2);
+
+				Vec3 triangleNormal = mScaleSign2 * (v1 - v0).Cross(v2 - v0);
+
+				bool backFacing = triangleNormal.Dot(v0) > 0.0f;
+				if(mCollideShapeSettings.mBackFaceMode == EBackFaceMode::IgnoreBackFaces && backFacing)
+					return;
+
+				AABox triangleBounds = AABox::sFromTwoPoints(v0, v1);
+				triangleBounds.Encapsulate(v2);
+
+				// Get intersection between triangle and shape box, if there is none, we're done
+				if(!triangleBounds.Overlaps(mBoundsOf1))
+					return;
+
+				TriangleConvexSupport triangle(v0, v1, v2);
+
+				// Start GJK with the axis pointing toward the triangle.
+				Vec3 penetrationAxis = -triangleNormal, point1, point2;
+				EPAPenetrationDepth penDepth;
+				EPAPenetrationDepth::EStatus status;
+
+				if(mShape1ExCvxRadius == nullptr)
+					mShape1ExCvxRadius = mShape1->GetSupportFunction(ConvexShape::ESupportMode::ExcludeConvexRadius, mBufferExCvxRadius, mScale1);
+
+				// Perform GJK step
+				float maxSeparationDistance = mCollideShapeSettings.mMaxSeparationDistance;
+				status = penDepth.GetPenetrationDepthStepGJK(*mShape1ExCvxRadius, mShape1ExCvxRadius->GetConvexRadius() + maxSeparationDistance, triangle, 0.0f, mCollideShapeSettings.mCollisionTolerance, penetrationAxis, point1, point2);
+
+				if(status == EPAPenetrationDepth::EStatus::NotColliding)
+					return;
+				else if(status == EPAPenetrationDepth::EStatus::Indeterminate)
+				{
+					// Need to run expensive EPA algorithm
+
+					// We know we're overlapping at this point, so we can set the max separation distance to 0.
+					// Numerically it is possible that GJK finds that the shapes are overlapping but EPA finds that they're separated.
+					// In order to avoid this, we clamp the max separation distance to 1 so that we don't excessively inflate the shape,
+					// but we still inflate it enough to avoid the case where EPA misses the collision.
+					maxSeparationDistance = min(maxSeparationDistance, 1.0f);
+
+					if(mShape1IncCvxRadius == nullptr)
+						mShape1IncCvxRadius = mShape1->GetSupportFunction(ConvexShape::ESupportMode::IncludeConvexRadius, mBufferIncCvxRadius, mScale1);
+
+					AddConvexRadius shape1WithSeparation(*mShape1IncCvxRadius, maxSeparationDistance);
+
+					// Perform EPA step
+					if(!penDepth.GetPenetrationDepthStepEPA(shape1WithSeparation, triangle, mCollideShapeSettings.mPenetrationTolerance, penetrationAxis, point1, point2))
+						return;
+				}
+
+				// Check if the penetration is bigger than the early out fraction
+				float penetrationDepth = (point2 - point1).Length() - maxSeparationDistance;
+				if(-penetrationDepth >= mCollector.GetEarlyOutFraction())
+					return;
+
+				// Correct point1 for the added separation distance
+				float penetrationAxisLength = penetrationAxis.Length();
+				if(penetrationAxisLength > 0.0f)
+					point1 -= penetrationAxis * (maxSeparationDistance / penetrationAxisLength);
+
+				// Convert to world space
+				point1 = mTransform1 * point1;
+				point2 = mTransform1 * point2;
+				Vec3 penetrationAxisWorld = mTransform1.Multiply3x3(penetrationAxis);
+
+				CollideShapeResult result(point1, point2, penetrationAxisWorld, penetrationDepth, mSubShapeID1, inSubShapeID2, TransformedShape::sGetBodyID(mCollector.GetContext()));
+
+				static_cast<OffsetCollideShapeCollector &>(mCollector).SetRawFaceDirection(-penetrationAxis);
+				result.mShape2Face.resize(3);
+				result.mShape2Face[0] = mTransform1 * v0;
+				result.mShape2Face[1] = mTransform1 * v1;
+				result.mShape2Face[2] = mTransform1 * v2;
+
+				// Preserve winding when the terrain is inside out.
+				if(mScaleSign2 < 0.0f)
+					std::swap(result.mShape2Face[1], result.mShape2Face[2]);
+
+				JPH_IF_TRACK_NARROWPHASE_STATS(TrackNarrowPhaseCollector track;)
+				mCollector.AddHit(result);
+			}
+
 			bool ShouldAbort() const
 			{
 				return mCollector.ShouldEarlyOut();
@@ -1012,7 +1113,7 @@ private:
 
 			void VisitTriangle(const Triangle &triangle, [[maybe_unused]] Vec3Arg normal)
 			{
-				Collide(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], 0, subShapeIDCreator.PushID(GetTriangleSubShapeID(triangle.id), TriangleSubShapeIDBits).GetID());
+				CollideTerrainTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], subShapeIDCreator.PushID(GetTriangleSubShapeID(triangle.id), TriangleSubShapeIDBits).GetID());
 			}
 
 			SubShapeIDCreator subShapeIDCreator;
@@ -1424,45 +1525,60 @@ private:
 		return cache;
 	}
 
-	bool BuildSampledGridVertex(SampledGridVertexCache &cache, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	static int GetSampledGridTileCoordinate(int coordinate)
 	{
-		// Four candidates prevent nearby vertices with the same hash bucket from
-		// repeatedly evicting each other. Capacity and absolute grid keys stay fixed.
-		const uint32 setIndex = GetSampledGridVertexHash(face, gridU, gridV) & SampledGridVertexCacheSetMask;
-		CachedSampledGridVertex *set = &cache.entries[setIndex * SampledGridVertexCacheWays];
-		uint cacheWay = set[0].useOrder >> 6u;
+		// Round toward negative infinity, including at the signed coordinate limits.
+		const int size = static_cast<int>(SampledGridVertexTileSize);
+		return coordinate / size - (coordinate % size < 0 ? 1 : 0);
+	}
+
+	CachedSampledGridVertex *GetSampledGridVertexTile(SampledGridVertexCache &cache, uint8 face, int gridU, int gridV) const
+	{
+		const int tileU = GetSampledGridTileCoordinate(gridU);
+		const int tileV = GetSampledGridTileCoordinate(gridV);
+		const uint32 setIndex = GetSampledGridVertexTileSet(face, tileU, tileV);
+		SampledGridVertexCacheSet &set = cache.sets[setIndex];
+		uint way = set.useOrder >> 6u;
 		int emptyWay = -1;
 		bool found = false;
 		for(uint i = 0; i < SampledGridVertexCacheWays; i += 1)
 		{
-			const CachedSampledGridVertex &candidate = set[i];
-			if(candidate.shape == this && candidate.face == face && candidate.gridU == gridU && candidate.gridV == gridV)
+			const SampledGridVertexTileKey &key = set.keys[i];
+			if(key.shape == this && key.face == face && key.tileU == tileU && key.tileV == tileV)
 			{
-				cacheWay = i;
+				way = i;
 				found = true;
 				break;
 			}
-			if(!candidate.shape && emptyWay < 0) emptyWay = static_cast<int>(i);
+			if(!key.shape && emptyWay < 0) emptyWay = static_cast<int>(i);
 		}
-		// Refresh matching keys in place; otherwise prefer an empty slot to LRU.
-		// An older epoch may still contain reusable geometry.
-		if(!found && emptyWay >= 0) cacheWay = static_cast<uint>(emptyWay);
-		CachedSampledGridVertex &cachedVertex = set[cacheWay];
-		bool current = found && cachedVertex.revision == collisionRevision && cachedVertex.cacheEpoch == cacheEpoch;
+		if(!found && emptyWay >= 0) way = static_cast<uint>(emptyWay);
+		CachedSampledGridVertex *tile = cache.tiles[setIndex * SampledGridVertexCacheWays + way];
+		if(!found)
+		{
+			set.keys[way] = {this, tileU, tileV, face};
+			for(uint i = 0; i < SampledGridVertexTileArea; i += 1) tile[i].sampled = false;
+		}
+		set.Touch(way);
+		return tile;
+	}
+
+	bool RefreshSampledGridVertex(CachedSampledGridVertex &cachedVertex, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	{
+		bool current = cachedVertex.sampled && cachedVertex.revision == collisionRevision && cachedVertex.cacheEpoch == cacheEpoch;
 		Vec3 direction;
 		if(!current)
 		{
 			direction = GetCubeSphereDirection(face,
 				static_cast<double>(gridU) * CollisionGridCellSize / referenceRadius,
 				static_cast<double>(gridV) * CollisionGridCellSize / referenceRadius);
-			if(found && _provider && _provider->CanReusePlanetTerrainCollisionSample(direction.GetX(), direction.GetY(), direction.GetZ(), cachedVertex.revision, cachedVertex.cacheEpoch, collisionRevision, cacheEpoch))
+			if(cachedVertex.sampled && _provider && _provider->CanReusePlanetTerrainCollisionSample(direction.GetX(), direction.GetY(), direction.GetZ(), cachedVertex.revision, cachedVertex.cacheEpoch, collisionRevision, cacheEpoch))
 			{
 				cachedVertex.revision = collisionRevision;
 				cachedVertex.cacheEpoch = cacheEpoch;
 				current = true;
 			}
 		}
-		cache.Touch(set, cacheWay);
 		if(current)
 		{
 			if(!cachedVertex.valid) return false;
@@ -1477,12 +1593,9 @@ private:
 		RN::JoltCustomPlanetTerrainSample sample;
 		const bool valid = _provider && _provider->SamplePlanetTerrain(direction.GetX(), direction.GetY(), direction.GetZ(), sample);
 
-		cachedVertex.shape = this;
 		cachedVertex.revision = collisionRevision;
 		cachedVertex.cacheEpoch = cacheEpoch;
-		cachedVertex.face = face;
-		cachedVertex.gridU = gridU;
-		cachedVertex.gridV = gridV;
+		cachedVertex.sampled = true;
 		cachedVertex.valid = valid;
 		if(!valid) return false;
 
@@ -1495,13 +1608,29 @@ private:
 		return true;
 	}
 
+	bool BuildSampledGridVertex(SampledGridVertexCache &cache, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	{
+		CachedSampledGridVertex *tile = GetSampledGridVertexTile(cache, face, gridU, gridV);
+		const uint mask = SampledGridVertexTileSize - 1u;
+		const uint offset = (static_cast<uint>(gridV) & mask) * SampledGridVertexTileSize + (static_cast<uint>(gridU) & mask);
+		return RefreshSampledGridVertex(tile[offset], face, gridU, gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, position, normal);
+	}
+
 	void FillSampledGridVertexRow(SampledGridVertexCache &cache, uint8 face, int minU, int gridV, uint vertexCount, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Array<Vec3> &positions, Array<uint8> &valid) const
 	{
 		positions.resize(vertexCount);
 		valid.resize(vertexCount);
-		for(uint i = 0; i < vertexCount; i += 1)
+		const uint mask = SampledGridVertexTileSize - 1u;
+		const uint rowOffset = (static_cast<uint>(gridV) & mask) * SampledGridVertexTileSize;
+		for(uint i = 0; i < vertexCount;)
 		{
-			valid[i] = BuildSampledGridVertex(cache, face, minU + static_cast<int>(i), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i]) ? 1 : 0;
+			const int gridU = minU + static_cast<int>(i);
+			const uint tileOffset = static_cast<uint>(gridU) & mask;
+			const uint count = min(SampledGridVertexTileSize - tileOffset, vertexCount - i);
+			CachedSampledGridVertex *tile = GetSampledGridVertexTile(cache, face, gridU, gridV);
+			for(uint j = 0; j < count; j += 1)
+				valid[i + j] = RefreshSampledGridVertex(tile[rowOffset + tileOffset + j], face, gridU + static_cast<int>(j), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i + j]) ? 1 : 0;
+			i += count;
 		}
 	}
 
