@@ -242,6 +242,8 @@ namespace RN
 			//TODO: limit to a maximum size per buffer
 			size_t requiredBufferSize = std::max(typeSize.second, static_cast<size_t>(kRNMinimumDynamicBufferSize));
 			VulkanDynamicGPUBuffer *dynamicBuffer = new VulkanDynamicGPUBuffer(renderer, requiredBufferSize, typeSize.first, true);
+			//Track the initial backing buffer's first use.
+			dynamicBuffer->_bufferFrames[dynamicBuffer->_bufferIndex] = currentFrame;
 
 			_newReferences->Enumerate<VulkanDynamicBufferReference>([&](VulkanDynamicBufferReference *reference, uint32 index, bool &stop){
 				if(reference->usageOptions == typeSize.first)
