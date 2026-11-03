@@ -86,6 +86,23 @@ namespace RN
 			return true;
 		}
 
+		void SamplePlanetTerrainBatch(JoltCustomPlanetTerrainBatchSample *samples, unsigned int count, unsigned int &revision, unsigned int &epoch) const override
+		{
+			if(!_provider) return;
+			RN_ASSERT(count <= 32, "Terrain sample batches are bounded to 32 vertices");
+			JoltCustomPlanetTerrainProvider::BatchSample batch[32];
+			for(unsigned int i = 0; i < count; i += 1) batch[i].direction = Vector3(samples[i].directionX, samples[i].directionY, samples[i].directionZ);
+			_provider->SamplePlanetTerrainBatch(batch, count, revision, epoch);
+			for(unsigned int i = 0; i < count; i += 1)
+			{
+				auto &target = samples[i];
+				const auto &source = batch[i].sample;
+				target.valid = batch[i].valid;
+				if(!target.valid) continue;
+				target.sample = {source.position.x, source.position.y, source.position.z, source.normal.x, source.normal.y, source.normal.z, source.radius};
+			}
+		}
+
 	private:
 		~JoltCustomPlanetTerrainProviderAdapter() override
 		{
@@ -95,6 +112,13 @@ namespace RN
 		uint32 _referenceCount;
 		JoltCustomPlanetTerrainProvider *_provider;
 	};
+
+	void JoltCustomPlanetTerrainProvider::SamplePlanetTerrainBatch(BatchSample *samples, uint32 count, uint32 &revision, uint32 &epoch) const
+	{
+		revision = GetPlanetTerrainCollisionRevision();
+		epoch = GetPlanetTerrainCollisionCacheEpoch();
+		for(uint32 i = 0; i < count; i += 1) samples[i].valid = SamplePlanetTerrain(samples[i].direction, samples[i].sample);
+	}
 
 	double JoltCustomPlanetTerrainProvider::GetMaximumPlanetTerrainProjectionInRegion([[maybe_unused]] uint8 face, [[maybe_unused]] double minU, [[maybe_unused]] double minV, [[maybe_unused]] double maxU, [[maybe_unused]] double maxV, [[maybe_unused]] const DVector3 &direction) const
 	{

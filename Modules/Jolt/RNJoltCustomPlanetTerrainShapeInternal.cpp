@@ -1556,6 +1556,9 @@ private:
 		CachedSampledGridVertex *tile = cache.tiles[setIndex * SampledGridVertexCacheWays + way];
 		if(!found)
 		{
+#ifdef RN_PLANET_TERRAIN_SAMPLE_STATS
+			if(set.keys[way].shape) RN::JoltCustomPlanetTerrainInternal::samplingStats.tileReplacements++;
+#endif
 			set.keys[way] = {this, tileU, tileV, face};
 			for(uint i = 0; i < SampledGridVertexTileArea; i += 1) tile[i].sampled = false;
 		}
@@ -1563,17 +1566,24 @@ private:
 		return tile;
 	}
 
-	bool RefreshSampledGridVertex(CachedSampledGridVertex &cachedVertex, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr) const
+	bool RefreshSampledGridVertex(CachedSampledGridVertex &cachedVertex, uint8 face, int gridU, int gridV, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, uint32 collisionRevision, uint32 cacheEpoch, Vec3 &position, Vec3 *normal = nullptr, bool deferSampling = false, const RN::JoltCustomPlanetTerrainBatchSample *batch = nullptr, Vec3 *missDirection = nullptr) const
 	{
-		bool current = cachedVertex.sampled && cachedVertex.revision == collisionRevision && cachedVertex.cacheEpoch == cacheEpoch;
+		bool current = !batch && cachedVertex.sampled && cachedVertex.revision == collisionRevision && cachedVertex.cacheEpoch == cacheEpoch;
 		Vec3 direction;
-		if(!current)
+		if(!current && !batch)
 		{
+#ifdef RN_PLANET_TERRAIN_SAMPLE_STATS
+			if(cachedVertex.sampled) RN::JoltCustomPlanetTerrainInternal::samplingStats.epochRefreshes++;
+			else RN::JoltCustomPlanetTerrainInternal::samplingStats.coldVertices++;
+#endif
 			direction = GetCubeSphereDirection(face,
 				static_cast<double>(gridU) * CollisionGridCellSize / referenceRadius,
 				static_cast<double>(gridV) * CollisionGridCellSize / referenceRadius);
 			if(cachedVertex.sampled && _provider && _provider->CanReusePlanetTerrainCollisionSample(direction.GetX(), direction.GetY(), direction.GetZ(), cachedVertex.revision, cachedVertex.cacheEpoch, collisionRevision, cacheEpoch))
 			{
+#ifdef RN_PLANET_TERRAIN_SAMPLE_STATS
+				RN::JoltCustomPlanetTerrainInternal::samplingStats.revalidations++;
+#endif
 				cachedVertex.revision = collisionRevision;
 				cachedVertex.cacheEpoch = cacheEpoch;
 				current = true;
@@ -1590,8 +1600,11 @@ private:
 			return true;
 		}
 
+		if(deferSampling) { if(missDirection) *missDirection = direction; return false; }
+		if(batch) direction = Vec3(batch->directionX, batch->directionY, batch->directionZ);
 		RN::JoltCustomPlanetTerrainSample sample;
-		const bool valid = _provider && _provider->SamplePlanetTerrain(direction.GetX(), direction.GetY(), direction.GetZ(), sample);
+		const bool valid = batch ? batch->valid : (_provider && _provider->SamplePlanetTerrain(direction.GetX(), direction.GetY(), direction.GetZ(), sample));
+		if(batch && valid) sample = batch->sample;
 
 		cachedVertex.revision = collisionRevision;
 		cachedVertex.cacheEpoch = cacheEpoch;
@@ -1628,8 +1641,28 @@ private:
 			const uint tileOffset = static_cast<uint>(gridU) & mask;
 			const uint count = min(SampledGridVertexTileSize - tileOffset, vertexCount - i);
 			CachedSampledGridVertex *tile = GetSampledGridVertexTile(cache, face, gridU, gridV);
+			RN::JoltCustomPlanetTerrainBatchSample misses[SampledGridVertexTileSize];
+			uint offsets[SampledGridVertexTileSize];
+			uint missCount = 0;
 			for(uint j = 0; j < count; j += 1)
-				valid[i + j] = RefreshSampledGridVertex(tile[rowOffset + tileOffset + j], face, gridU + static_cast<int>(j), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i + j]) ? 1 : 0;
+			{
+				auto &vertex = tile[rowOffset + tileOffset + j];
+				Vec3 direction;
+				valid[i+j] = RefreshSampledGridVertex(vertex, face, gridU + static_cast<int>(j), gridV, localBase, localOrigin, referenceRadius, collisionRevision, cacheEpoch, positions[i+j], nullptr, true, nullptr, &direction) ? 1 : 0;
+				if(vertex.sampled && vertex.revision == collisionRevision && vertex.cacheEpoch == cacheEpoch) continue;
+				misses[missCount].directionX = direction.GetX(); misses[missCount].directionY = direction.GetY(); misses[missCount].directionZ = direction.GetZ();
+				offsets[missCount++] = j;
+			}
+			if(missCount)
+			{
+				uint32 sampledRevision = collisionRevision, sampledEpoch = cacheEpoch;
+				if(_provider) _provider->SamplePlanetTerrainBatch(misses, missCount, sampledRevision, sampledEpoch);
+				for(uint m = 0; m < missCount; m += 1)
+				{
+					const uint j = offsets[m];
+					valid[i+j] = RefreshSampledGridVertex(tile[rowOffset + tileOffset + j], face, gridU + static_cast<int>(j), gridV, localBase, localOrigin, referenceRadius, sampledRevision, sampledEpoch, positions[i+j], nullptr, false, &misses[m]) ? 1 : 0;
+				}
+			}
 			i += count;
 		}
 	}

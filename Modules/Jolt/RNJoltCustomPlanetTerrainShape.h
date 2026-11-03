@@ -22,6 +22,16 @@ namespace RN
 			float radius;
 		};
 
+		struct BatchSample
+		{
+			Vector3 direction;
+			SurfaceSample sample;
+			bool valid = false;
+		};
+		// Fill at most 32 samples and return the version of the state actually sampled.
+		// Providers with concurrent publication must pin that state for the batch.
+		JTAPI virtual void SamplePlanetTerrainBatch(BatchSample *samples, uint32 count, uint32 &revision, uint32 &epoch) const;
+
 		JTAPI virtual float GetMaximumPlanetTerrainRadius() const = 0;
 		// Bounds dot(position, direction), including collision and fallback surfaces.
 		// Zero disables regional ray culling for providers without such bounds.

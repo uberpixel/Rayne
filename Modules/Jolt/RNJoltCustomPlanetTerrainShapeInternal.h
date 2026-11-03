@@ -27,6 +27,13 @@ namespace RN
 		float radius;
 	};
 
+	struct JoltCustomPlanetTerrainBatchSample
+	{
+		float directionX, directionY, directionZ;
+		JoltCustomPlanetTerrainSample sample;
+		bool valid = false;
+	};
+
 	class JoltCustomPlanetTerrainInternalProvider
 	{
 	public:
@@ -44,12 +51,29 @@ namespace RN
 		virtual bool CanReusePlanetTerrainCollisionSample(float, float, float, unsigned int, unsigned int, unsigned int, unsigned int) const { return false; }
 		virtual bool SamplePlanetTerrain(float directionX, float directionY, float directionZ, JoltCustomPlanetTerrainSample &sample) const = 0;
 
+		// Collider submits at most 32 vertices; return the sampled state version.
+		// Providers with concurrent publication must pin that state for the batch.
+		virtual void SamplePlanetTerrainBatch(JoltCustomPlanetTerrainBatchSample *samples, unsigned int count, unsigned int &revision, unsigned int &epoch) const
+		{
+			revision = GetPlanetTerrainCollisionRevision();
+			epoch = GetPlanetTerrainCollisionCacheEpoch();
+			for(unsigned int i = 0; i < count; i += 1)
+				samples[i].valid = SamplePlanetTerrain(samples[i].directionX, samples[i].directionY, samples[i].directionZ, samples[i].sample);
+		}
+
 	protected:
 		virtual ~JoltCustomPlanetTerrainInternalProvider() = default;
 	};
 
 	namespace JoltCustomPlanetTerrainInternal
 	{
+#ifdef RN_PLANET_TERRAIN_SAMPLE_STATS
+		struct SamplingStats
+		{
+			unsigned long coldVertices = 0, tileReplacements = 0, epochRefreshes = 0, revalidations = 0;
+		};
+		inline thread_local SamplingStats samplingStats;
+#endif
 		JPH::Shape *CreateShape(JoltCustomPlanetTerrainInternalProvider *provider, bool solidRecoveryOnly);
 		void RegisterShape();
 		void InstallSimulationCollideBodyVsBody(JPH::PhysicsSystem *physicsSystem);
