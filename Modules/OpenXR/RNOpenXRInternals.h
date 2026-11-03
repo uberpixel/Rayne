@@ -36,6 +36,7 @@ namespace RN
 
 		XrSpace trackingSpace;
 		XrTime currentFramePredictedDisplayTime;
+		std::vector<XrTime> pendingReferenceSpaceChanges;
 		bool currentFrameShouldRender;
 		bool currentFrameIsValid;
 		bool headTrackingValid;

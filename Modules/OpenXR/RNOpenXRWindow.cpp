@@ -654,6 +654,7 @@ namespace RN
 
 		ResetTilePropertiesHintCache();
 		ResetCurrentFrameState();
+		_internals->pendingReferenceSpaceChanges.clear();
 	}
 
 	void OpenXRWindow::ReleaseSessionLayers()
@@ -2296,12 +2297,10 @@ namespace RN
 						const XrEventDataReferenceSpaceChangePending &referenceSpaceChangePendingEvent =
 						*reinterpret_cast<XrEventDataReferenceSpaceChangePending *>(&event);
 
-						//if(referenceSpaceChangePendingEvent.poseValid)
+						if(referenceSpaceChangePendingEvent.session == _internals->session)
 						{
-							//RNDebug("Changed pose: (" << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.x << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.y << ", " << referenceSpaceChangePendingEvent.poseInPreviousSpace.position.z << ")");
+							_internals->pendingReferenceSpaceChanges.push_back(referenceSpaceChangePendingEvent.changeTime);
 						}
-
-						NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
 						break;
 					}
 					case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
@@ -2439,6 +2438,19 @@ namespace RN
 		if(_hasVisibility && _hasInputFocus)
 		{
 			_hmdTrackingState.mode = VRHMDTrackingState::Mode::Rendering;
+		}
+
+		if(validViews)
+		{
+			auto &pendingChanges = _internals->pendingReferenceSpaceChanges;
+			auto firstRemoved = std::remove_if(pendingChanges.begin(), pendingChanges.end(), [this](XrTime changeTime) {
+				return changeTime <= _internals->currentFramePredictedDisplayTime;
+			});
+			if(firstRemoved != pendingChanges.end())
+			{
+				pendingChanges.erase(firstRemoved, pendingChanges.end());
+				NotificationManager::GetSharedInstance()->PostNotification(kRNVRDidRecenter, nullptr);
+			}
 		}
 
 		//This is fine on android too, but is spamming too much into the logs on quest
