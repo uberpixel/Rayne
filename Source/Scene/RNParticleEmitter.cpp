@@ -39,7 +39,8 @@ namespace RN
 		_time(0.0f),
 		_particleOrigin(),
 		_hasParticleOrigin(false),
-		_meshIsInitialized(false)
+		_meshIsInitialized(false),
+		_meshParticleCount(0)
 	{
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::MersenneTwister);
 
@@ -85,7 +86,8 @@ namespace RN
 		_time(emitter->_time),
 		_particleOrigin(),
 		_hasParticleOrigin(false),
-		_meshIsInitialized(false)
+		_meshIsInitialized(false),
+		_meshParticleCount(0)
 	{
 		_rng = SafeRetain(emitter->GetGenerator());
 		InitializeParticleGeometry();
@@ -158,6 +160,7 @@ namespace RN
 						 vertexCount, indexCount, true); //Create a streamable mesh
 
 		_meshIsInitialized = false;
+		_meshParticleCount = 0;
 		if(_drawable)
 			_drawable->SetSources(_mesh, _material, nullptr);
 	}
@@ -339,6 +342,37 @@ namespace RN
 		_particles.resize(newNumParticles, defaultParticle);
 	}
 
+	void ParticleEmitter::UpdateMeshIndices(uint32 particleCount) const
+	{
+		if(_meshIsInitialized && _meshParticleCount == particleCount) return;
+
+		_mesh->BeginChanges(false);
+		const size_t indexStride = _mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetSize();
+		uint8 *indexPtr = static_cast<uint8 *>(_mesh->GetCPUIndicesBuffer());
+
+		const uint32 indicesPerParticle = (_particleVertexCount - (_hasCenterVertex ? 1 : 2)) * 3;
+		const uint32 clearEnd = _meshIsInitialized ? _meshParticleCount : _maxParticles;
+		if(particleCount < clearEnd)
+			memset(indexPtr + static_cast<size_t>(particleCount) * indicesPerParticle * indexStride, 0, static_cast<size_t>(clearEnd - particleCount) * indicesPerParticle * indexStride);
+
+		auto writeIndices = [&](auto indexType) {
+			auto *indices = reinterpret_cast<decltype(indexType) *>(indexPtr) + static_cast<size_t>(_meshParticleCount) * indicesPerParticle;
+			for(uint32 particle = _meshParticleCount; particle < particleCount; particle++)
+			{
+				const uint32 base = particle * _particleVertexCount;
+				for(uint32 index = 0; index < indicesPerParticle; index++) *indices++ = static_cast<decltype(indexType)>(base + _particleIndices[index]);
+			}
+		};
+		if(indexStride == sizeof(uint16))
+			writeIndices(uint16 {});
+		else
+			writeIndices(uint32 {});
+
+		_mesh->changedIndices = true;
+		_mesh->EndChanges();
+		_meshParticleCount = particleCount;
+	}
+
 	void ParticleEmitter::UpdateMesh() const
 	{
 		if(HasFlags(Flags::Hidden) || GetNumParticles() == 0)
@@ -346,6 +380,8 @@ namespace RN
 			return;
 		}
 		
+		UpdateMeshIndices(std::min(GetNumParticles(), static_cast<size_t>(_maxParticles)));
+
 #if RN_PLATFORM_MAC_OS
 		_mesh->BeginChanges(false);
 #else
@@ -370,27 +406,10 @@ namespace RN
 
 		const size_t stride = _mesh->GetStride();
 		const size_t vertexStride = _mesh->GetVertexPositionsSeparatedSize() > 0 ? _mesh->GetVertexPositionsSeparatedStride() : stride;
-		const size_t indexStride = _mesh->GetAttribute(Mesh::VertexAttribute::Feature::Indices)->GetSize();
-		uint8 *indexPtr;
-		if(indexStride == sizeof(uint16))
-		{
-			auto indexIterator = chunk.GetIterator<uint16>(Mesh::VertexAttribute::Feature::Indices);
-			indexPtr = reinterpret_cast<uint8 *>(&*indexIterator);
-		}
-		else
-		{
-			auto indexIterator = chunk.GetIterator<uint32>(Mesh::VertexAttribute::Feature::Indices);
-			indexPtr = reinterpret_cast<uint8 *>(&*indexIterator);
-		}
 
 		auto copy1 = [](uint8 *&ptr, size_t stride, const auto &value) {
 			memcpy(ptr, &value, sizeof(value));
 			ptr += stride;
-		};
-
-		auto copyIndex = [&indexPtr, indexStride, copy1](uint32 index) {
-			if(indexStride == sizeof(uint16)) copy1(indexPtr, indexStride, static_cast<uint16>(index));
-			else copy1(indexPtr, indexStride, index);
 		};
 
 		float scale = _ignoreScale ? 1.0f : GetWorldScale().x;
@@ -404,9 +423,7 @@ namespace RN
 			increment = -1;
 		}
 
-		const uint32 indicesPerParticle = (_particleVertexCount - (_hasCenterVertex ? 1 : 2)) * 3;
-		uint32 outputParticle = 0;
-		for(int i = start; i >= 0 && i < stop; i += increment, outputParticle++)
+		for(int i = start; i >= 0 && i < stop; i += increment)
 		{
 			const ParticleData &particle = _particles[i];
 			const Vector2 halfSize = particle.size / 2.0f * scale;
@@ -440,18 +457,10 @@ namespace RN
 					copy1(sizePtr, stride, Vector2(point.x * halfSize.x, point.y * halfSize.y));
 				}
 			}
-
-			const uint32 base = outputParticle * _particleVertexCount;
-			for(uint32 index = 0; index < indicesPerParticle; index++) copyIndex(base + _particleIndices[index]);
-		}
-		for(uint32 i = stop; i < _maxParticles; i++)
-		{
-			for(uint32 index = 0; index < indicesPerParticle; index++) copyIndex(0);
 		}
 
 		//TODO:Make this less ugly... these variables should get set when changing things with the iterator or something
 		_mesh->changedVertices = true;
-		_mesh->changedIndices = true;
 		_mesh->EndChanges();
 
 		_meshIsInitialized = true;

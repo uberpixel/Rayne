@@ -108,6 +108,7 @@ namespace RN
 
 	private:
 		void UpdateMesh() const;
+		void UpdateMeshIndices(uint32 particleCount) const;
 		void InitializeParticleGeometry();
 
 		std::vector<float> _lifespans;
@@ -141,6 +142,7 @@ namespace RN
 
 		// mutable so it can change in UpdateMesh
 		mutable bool _meshIsInitialized;
+		mutable uint32 _meshParticleCount;
 
 		__RNDeclareMetaInternal(ParticleEmitter)
 	};
