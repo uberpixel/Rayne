@@ -60,7 +60,7 @@ namespace RN
 		JTAPI JoltPosition GetCenterOfMassPosition() const;
 
 		JoltShape *GetShape() const { return _shape; }
-		SceneNode *GetObjectBelow() const { return _objectBelow; }
+		JTAPI SceneNode *GetObjectBelow() const;
 		bool GetIsFalling() const { return _isFalling; }
 		uint32 GetContactResponseSupportBodyID() const override { return _externalSupportAnchorValid ? _externalSupportBodyID : 0xffffffff; }
 
@@ -76,7 +76,6 @@ namespace RN
 		float _mass;
 		float _stepOffset;
 		Vector3 _upDirection;
-		SceneNode *_objectBelow;
 		Vector3 _groundVelocity;
 		Vector3 _groundAngularVelocity;
 		Vector3 _groundNormal;

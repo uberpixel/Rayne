@@ -30,7 +30,7 @@ namespace RN
 
 	JoltRigidBodyController::JoltRigidBodyController(float radius, float height, float groundTolerance, float mass, float stepOffset, JoltWorld *owningWorld) :
 		JoltCollisionObject(owningWorld),
-		_radius(radius), _height(height), _groundTolerance(groundTolerance), _mass(mass), _stepOffset(stepOffset), _upDirection(0.0f, 1.0f, 0.0f), _objectBelow(nullptr), _groundVelocity(), _groundAngularVelocity(), _groundNormal(), _isFalling(false), _externalSupportAnchorValid(false), _externalSupportCollisionFilteringEnabled(false), _externalSupportBodyID(InvalidSupportBodyID), _externalSupportLocalPosition(), _externalSupportAnchorMaxForce(0.0f), _externalSupportConstraint(nullptr)
+		_radius(radius), _height(height), _groundTolerance(groundTolerance), _mass(mass), _stepOffset(stepOffset), _upDirection(0.0f, 1.0f, 0.0f), _groundVelocity(), _groundAngularVelocity(), _groundNormal(), _isFalling(false), _externalSupportAnchorValid(false), _externalSupportCollisionFilteringEnabled(false), _externalSupportBodyID(InvalidSupportBodyID), _externalSupportLocalPosition(), _externalSupportAnchorMaxForce(0.0f), _externalSupportConstraint(nullptr)
 	{
 		JoltWorld *world = GetJoltWorld();
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
@@ -608,11 +608,25 @@ namespace RN
 		_controller->SetPositionAndRotation(position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
 	}
 
+	SceneNode *JoltRigidBodyController::GetObjectBelow() const
+	{
+		if(_isFalling || !_controller->IsSupported()) return nullptr;
+
+		JPH::BodyLockRead groundLock(GetJoltWorld()->GetJoltInstance()->GetBodyLockInterface(), _controller->GetGroundBodyID());
+		if(!groundLock.SucceededAndIsInBroadPhase()) return nullptr;
+
+		JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(groundLock.GetBody().GetUserData());
+		SceneNode *object = collisionObject ? collisionObject->GetParent() : nullptr;
+		return object ? object->Retain()->Autorelease() : nullptr;
+	}
+
 	void JoltRigidBodyController::UpdateGroundState()
 	{
-		if(!_controller->IsSupported())
+		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
+		// Jolt's cached ground body ID may outlive the body itself.
+		JPH::BodyLockRead groundLock(physics->GetBodyLockInterface(), _controller->GetGroundBodyID());
+		if(!_controller->IsSupported() || !groundLock.SucceededAndIsInBroadPhase())
 		{
-			_objectBelow = nullptr;
 			_groundVelocity = Vector3();
 			_groundAngularVelocity = Vector3();
 			_groundNormal = Vector3();
@@ -620,18 +634,9 @@ namespace RN
 			return;
 		}
 
-		JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(_controller->GetGroundUserData());
-		_objectBelow = collisionObject ? collisionObject->GetParent() : nullptr;
-		if(_objectBelow) _objectBelow->Retain()->Autorelease();
-
-		JPH::Vec3 groundVelocity = _controller->GetGroundVelocity();
-		_groundVelocity = JoltNativeConversions::ToEngineVector(groundVelocity);
-		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
-		JPH::BodyLockRead groundLock(physics->GetBodyLockInterface(), _controller->GetGroundBodyID());
-		JPH::Vec3 groundAngularVelocity = groundLock.Succeeded()? groundLock.GetBody().GetAngularVelocity() : JPH::Vec3::sZero();
-		_groundAngularVelocity = JoltNativeConversions::ToEngineVector(groundAngularVelocity);
-		JPH::Vec3 groundNormal = _controller->GetGroundNormal();
-		_groundNormal = JoltNativeConversions::ToEngineVector(groundNormal);
+		_groundVelocity = JoltNativeConversions::ToEngineVector(_controller->GetGroundVelocity());
+		_groundAngularVelocity = JoltNativeConversions::ToEngineVector(groundLock.GetBody().GetAngularVelocity());
+		_groundNormal = JoltNativeConversions::ToEngineVector(_controller->GetGroundNormal());
 		_isFalling = false;
 	}
 

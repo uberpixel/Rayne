@@ -11,6 +11,7 @@
 #include "RNJoltWorld.h"
 
 #include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 
 namespace RN
@@ -19,7 +20,7 @@ namespace RN
 
 	JoltKinematicController::JoltKinematicController(float radius, float height, float stepOffset, JoltWorld *owningWorld) :
 		JoltCollisionObject(owningWorld),
-		_radius(radius), _height(height), _stepOffset(stepOffset), _objectBelow(nullptr), _isFalling(false)
+		_radius(radius), _height(height), _stepOffset(stepOffset), _isFalling(false)
 	{
 		JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
 
@@ -296,19 +297,22 @@ namespace RN
 		return Vector3(0.0f, -(_height * 0.5f + _radius), 0.0f);
 	}
 
+	SceneNode *JoltKinematicController::GetObjectBelow() const
+	{
+		if(_isFalling || !_controller->IsSupported()) return nullptr;
+
+		JPH::BodyLockRead groundLock(GetJoltWorld()->GetJoltInstance()->GetBodyLockInterface(), _controller->GetGroundBodyID());
+		if(!groundLock.SucceededAndIsInBroadPhase()) return nullptr;
+
+		JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(groundLock.GetBody().GetUserData());
+		SceneNode *object = collisionObject ? collisionObject->GetParent() : nullptr;
+		return object ? object->Retain()->Autorelease() : nullptr;
+	}
+
 	void JoltKinematicController::UpdateGroundState()
 	{
-		if(!_controller->IsSupported())
-		{
-			_objectBelow = nullptr;
-			_isFalling = true;
-			return;
-		}
-
-		JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(_controller->GetGroundUserData());
-		_objectBelow = collisionObject ? collisionObject->GetParent() : nullptr;
-		if(_objectBelow) _objectBelow->Retain()->Autorelease();
-		_isFalling = false;
+		JPH::BodyLockRead groundLock(GetJoltWorld()->GetJoltInstance()->GetBodyLockInterface(), _controller->GetGroundBodyID());
+		_isFalling = !_controller->IsSupported() || !groundLock.SucceededAndIsInBroadPhase();
 	}
 
 	void JoltKinematicController::DidUpdate(SceneNode::ChangeSet changeSet)

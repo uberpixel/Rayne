@@ -44,7 +44,7 @@ namespace RN
 		
 		JoltShape *GetShape() const { return _shape; }
 
-		SceneNode *GetObjectBelow() const { return _objectBelow; }
+		JTAPI SceneNode *GetObjectBelow() const;
 		bool GetIsFalling() const { return _isFalling; }
 
 	protected:
@@ -58,7 +58,6 @@ namespace RN
 		float _radius;
 		float _height;
 		float _stepOffset;
-		SceneNode *_objectBelow;
 		bool _isFalling;
 
 		void UpdateGroundState();

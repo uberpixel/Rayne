@@ -263,7 +263,6 @@ namespace RN
 			attachment->_controller = entry.character;
 			attachment->SetJoltWorld(destination);
 			attachment->_upDirection = JoltNativeConversions::ToEngineVector(convertVector(JoltNativeConversions::ToJoltVector(attachment->_upDirection)));
-			attachment->_objectBelow = nullptr;
 			attachment->_groundVelocity = Vector3();
 			attachment->_groundAngularVelocity = Vector3();
 			attachment->_groundNormal = Vector3();
