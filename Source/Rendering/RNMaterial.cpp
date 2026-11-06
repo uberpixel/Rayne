@@ -45,31 +45,35 @@ namespace RN
 		_customShaderUniforms = properties._customShaderUniforms;
 	}
 
+	Material::Properties::CustomUniforms &Material::Properties::GetWritableCustomUniforms()
+	{
+		if(!_customShaderUniforms)
+			_customShaderUniforms = std::make_shared<CustomUniforms>();
+		else if(_customShaderUniforms.use_count() != 1)
+			_customShaderUniforms = std::make_shared<CustomUniforms>(*_customShaderUniforms);
+		return *_customShaderUniforms;
+	}
+
 	void Material::Properties::SetCustomShaderUniform(const String *name, Value *value)
 	{
-		_customShaderUniforms[name->GetHash()] = value;
+		GetWritableCustomUniforms()[name->GetHash()] = value;
 	}
 
 	void Material::Properties::SetCustomShaderUniform(const String *name, Number *number)
 	{
-		_customShaderUniforms[name->GetHash()] = number;
+		GetWritableCustomUniforms()[name->GetHash()] = number;
 	}
 
 	Object *Material::Properties::GetCustomShaderUniform(const String *name) const
 	{
-		const auto result = _customShaderUniforms.find(name->GetHash());
-		if(result != _customShaderUniforms.end())
-		{
-			return result->second.Get();
-		}
-
-		return nullptr;
+		return GetCustomShaderUniform(name->GetHash());
 	}
 
 	Object *Material::Properties::GetCustomShaderUniform(size_t nameHash) const
 	{
-		const auto result = _customShaderUniforms.find(nameHash);
-		if(result != _customShaderUniforms.end())
+		if(!_customShaderUniforms) return nullptr;
+		const auto result = _customShaderUniforms->find(nameHash);
+		if(result != _customShaderUniforms->end())
 		{
 			return result->second.Get();
 		}
@@ -111,74 +115,69 @@ namespace RN
 		blendFactorDestinationAlpha = properties.blendFactorDestinationAlpha;
 	}
 
+	const Material::DrawSnapshot::Resources &Material::DrawSnapshot::GetResourceData() const
+	{
+		if(_resources) return *_resources;
+		static const Resources defaults;
+		return defaults;
+	}
+
 	void Material::DrawSnapshot::Reset()
 	{
-		_textures = nullptr;
-
-		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
-		{
-			_vertexShader[i] = nullptr;
-			_fragmentShader[i] = nullptr;
-		}
-
-		_override = 0;
-
+		_resources.reset();
 		Properties defaultProperties;
 		_properties.CopyFromProperties(defaultProperties);
-
-		PipelineProperties defaultPipelineProperties;
-		_pipelineProperties.CopyFromPipelineProperties(defaultPipelineProperties);
 	}
 
 	Shader *Material::DrawSnapshot::GetFragmentShader(Shader::UsageHint type) const
 	{
+		const Resources &resources = GetResourceData();
 		uint8 index = static_cast<uint8>(type);
-		if(!_fragmentShader[index].Get() && !_vertexShader[index].Get())
-			return _fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)].Get();
-
-		return _fragmentShader[index].Get();
+		if(!resources.fragmentShader[index].Get() && !resources.vertexShader[index].Get())
+			return resources.fragmentShader[static_cast<uint8>(Shader::UsageHint::Default)].Get();
+		return resources.fragmentShader[index].Get();
 	}
 
 	Shader *Material::DrawSnapshot::GetVertexShader(Shader::UsageHint type) const
 	{
+		const Resources &resources = GetResourceData();
 		uint8 index = static_cast<uint8>(type);
-		if(!_vertexShader[index].Get())
-			return _vertexShader[static_cast<uint8>(Shader::UsageHint::Default)].Get();
-
-		return _vertexShader[index].Get();
+		if(!resources.vertexShader[index].Get())
+			return resources.vertexShader[static_cast<uint8>(Shader::UsageHint::Default)].Get();
+		return resources.vertexShader[index].Get();
 	}
 
 	Shader *Material::DrawSnapshot::GetSelectedFragmentShader(Shader::UsageHint type, const DrawSnapshot *overrideMaterial) const
 	{
-		if(overrideMaterial && !(overrideMaterial->_override & Override::GroupShaders) && !(_override & Override::GroupShaders))
+		if(overrideMaterial && !(overrideMaterial->GetResourceData().override & Override::GroupShaders) && !(GetResourceData().override & Override::GroupShaders))
 			return overrideMaterial->GetFragmentShader(type);
-
 		return GetFragmentShader(type);
 	}
 
 	Shader *Material::DrawSnapshot::GetSelectedVertexShader(Shader::UsageHint type, const DrawSnapshot *overrideMaterial) const
 	{
-		if(overrideMaterial && !(overrideMaterial->_override & Override::GroupShaders) && !(_override & Override::GroupShaders))
+		if(overrideMaterial && !(overrideMaterial->GetResourceData().override & Override::GroupShaders) && !(GetResourceData().override & Override::GroupShaders))
 			return overrideMaterial->GetVertexShader(type);
-
 		return GetVertexShader(type);
 	}
 
 	void Material::DrawSnapshot::SetTextures(const Array *textures)
 	{
+		auto resources = std::make_shared<Resources>(GetResourceData());
 		Array *copy = SafeCopy(textures);
-		_textures = copy;
+		resources->textures = copy;
 		SafeRelease(copy);
+		_resources = std::move(resources);
 	}
 
 	void Material::DrawSnapshot::GetMergedProperties(const DrawSnapshot *overrideMaterial, Properties &properties) const
 	{
-		Material::MergeProperties(_properties, _override, overrideMaterial ? &overrideMaterial->_properties : nullptr, overrideMaterial ? overrideMaterial->_override : 0, properties);
+		Material::MergeProperties(_properties, GetResourceData().override, overrideMaterial ? &overrideMaterial->_properties : nullptr, overrideMaterial ? overrideMaterial->GetResourceData().override : 0, properties);
 	}
 
 	void Material::DrawSnapshot::GetMergedPipelineProperties(const DrawSnapshot *overrideMaterial, PipelineProperties &properties) const
 	{
-		Material::MergePipelineProperties(_pipelineProperties, _override, overrideMaterial ? &overrideMaterial->_pipelineProperties : nullptr, overrideMaterial ? overrideMaterial->_override : 0, properties);
+		Material::MergePipelineProperties(GetResourceData().pipelineProperties, GetResourceData().override, overrideMaterial ? &overrideMaterial->GetResourceData().pipelineProperties : nullptr, overrideMaterial ? overrideMaterial->GetResourceData().override : 0, properties);
 	}
 
 	Material::Material(Shader *vertexShader, Shader *fragmentShader) :
@@ -248,26 +247,26 @@ namespace RN
 		if(_textures->IsEqualLite(textures)) return;
 		SafeRelease(_textures);
 		_textures = textures->Copy();
-		MarkDrawSnapshotDirty();
+		MarkResourcesDirty();
 	}
 
 	void Material::AddTexture(Framebuffer *texture)
 	{
 		_textures->AddObject(texture);
-		MarkDrawSnapshotDirty();
+		MarkResourcesDirty();
 	}
 
 	void Material::AddTexture(Texture *texture)
 	{
 		_textures->AddObject(texture);
-		MarkDrawSnapshotDirty();
+		MarkResourcesDirty();
 	}
 
 	void Material::RemoveAllTextures()
 	{
 		if(_textures->GetCount() == 0) return;
 		_textures->RemoveAllObjects();
-		MarkDrawSnapshotDirty();
+		MarkResourcesDirty();
 	}
 
 	void Material::SetFragmentShader(Shader *shader, Shader::UsageHint type)
@@ -515,11 +514,12 @@ namespace RN
 		result.uiOutlineColor = properties.uiOutlineColor;
 
 		result._customShaderUniforms = properties._customShaderUniforms;
-		if(!(overrideMaterialOverride & Override::CustomUniforms) && !(override & Override::CustomUniforms) && overrideProperties->_customShaderUniforms.size() > 0)
+		if(!(overrideMaterialOverride & Override::CustomUniforms) && !(override & Override::CustomUniforms) && overrideProperties->_customShaderUniforms && !overrideProperties->_customShaderUniforms->empty())
 		{
-			for(auto const &data : overrideProperties->_customShaderUniforms)
+			auto &uniforms = result.GetWritableCustomUniforms();
+			for(auto const &data : *overrideProperties->_customShaderUniforms)
 			{
-				result._customShaderUniforms[data.first] = data.second;
+				uniforms[data.first] = data.second;
 			}
 		}
 	}
@@ -623,16 +623,22 @@ namespace RN
 
 	void Material::GetDrawSnapshot(DrawSnapshot &snapshot) const
 	{
-		snapshot._override = _override;
-		snapshot.SetTextures(_textures);
-
-		snapshot._properties.CopyFromProperties(_properties);
-		snapshot._pipelineProperties.CopyFromPipelineProperties(_pipelineProperties);
-
-		for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+		if(!_sharedSnapshotResources)
 		{
-			snapshot._vertexShader[i] = _vertexShader[i];
-			snapshot._fragmentShader[i] = _fragmentShader[i];
+			auto resources = std::make_shared<DrawSnapshot::Resources>();
+			resources->override = _override;
+			Array *textures = SafeCopy(_textures);
+			resources->textures = textures;
+			SafeRelease(textures);
+			resources->pipelineProperties.CopyFromPipelineProperties(_pipelineProperties);
+			for(uint8 i = 0; i < static_cast<uint8>(Shader::UsageHint::COUNT); i++)
+			{
+				resources->vertexShader[i] = _vertexShader[i];
+				resources->fragmentShader[i] = _fragmentShader[i];
+			}
+			_sharedSnapshotResources = std::move(resources);
 		}
+		snapshot._resources = _sharedSnapshotResources;
+		snapshot._properties.CopyFromProperties(_properties);
 	}
 } // namespace RN

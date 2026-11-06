@@ -109,7 +109,9 @@ namespace RN
 			RNAPI Object *GetCustomShaderUniform(size_t nameHash) const;
 
 		private:
-			std::map<size_t, StrongRef<Object>> _customShaderUniforms; //WARNING: The key is the hash of the string, which could potentially have conflicts!
+			using CustomUniforms = std::map<size_t, StrongRef<Object>>;
+			CustomUniforms &GetWritableCustomUniforms();
+			std::shared_ptr<CustomUniforms> _customShaderUniforms; //WARNING: The key is the hash of the string, which could potentially have conflicts!
 		};
 		
 		class PipelineProperties
@@ -162,10 +164,19 @@ namespace RN
 
 		class DrawSnapshot
 		{
+		private:
+			struct Resources
+			{
+				StrongRef<Shader> fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
+				StrongRef<Shader> vertexShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
+				StrongRef<Array> textures;
+				uint32 override = 0;
+				PipelineProperties pipelineProperties;
+			};
+
 		public:
 			DrawSnapshot() = default;
 			DrawSnapshot(const DrawSnapshot &snapshot) = default;
-
 			DrawSnapshot &operator=(const DrawSnapshot &snapshot) = default;
 
 			RNAPI void Reset();
@@ -175,7 +186,7 @@ namespace RN
 			RNAPI Shader *GetSelectedFragmentShader(Shader::UsageHint type, const DrawSnapshot *overrideMaterial) const;
 			RNAPI Shader *GetSelectedVertexShader(Shader::UsageHint type, const DrawSnapshot *overrideMaterial) const;
 
-			const Array *GetTextures() const { return _textures.Get(); }
+			const Array *GetTextures() const { return _resources ? _resources->textures.Get() : nullptr; }
 			RNAPI void SetTextures(const Array *textures);
 
 			RNAPI void GetMergedProperties(const DrawSnapshot *overrideMaterial, Properties &properties) const;
@@ -183,16 +194,10 @@ namespace RN
 
 		private:
 			friend class Material;
+			RNAPI const Resources &GetResourceData() const;
 
-			StrongRef<Shader> _fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
-			StrongRef<Shader> _vertexShader[static_cast<uint8>(Shader::UsageHint::COUNT)];
-
-			StrongRef<Array> _textures;
-
-			uint32 _override = 0;
-
+			std::shared_ptr<const Resources> _resources;
 			Properties _properties;
-			PipelineProperties _pipelineProperties;
 		};
 
 		RN_OPTIONS(Override, uint32,
@@ -302,10 +307,15 @@ namespace RN
 			_drawSnapshotVersion += 1;
 			_sharedDrawSnapshot.reset();
 		}
+		void MarkResourcesDirty()
+		{
+			_sharedSnapshotResources.reset();
+			MarkDrawSnapshotDirty();
+		}
 		void MarkPipelineDirty()
 		{
 			_pipelineVersion += 1;
-			MarkDrawSnapshotDirty();
+			MarkResourcesDirty();
 		}
 
 		static void MergeProperties(const Properties &properties, uint32 override, const Properties *overrideProperties, uint32 overrideMaterialOverride, Properties &result);
@@ -320,6 +330,7 @@ namespace RN
 
 		uint64 _drawSnapshotVersion;
 		mutable std::shared_ptr<const DrawSnapshot> _sharedDrawSnapshot;
+		mutable std::shared_ptr<const DrawSnapshot::Resources> _sharedSnapshotResources;
 		uint64 _pipelineVersion;
 
 		Properties _properties;
