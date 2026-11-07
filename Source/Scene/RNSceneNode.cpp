@@ -175,9 +175,12 @@ namespace RN
 		_transformVersion = 1;
 #if RN_ENABLE_UNIVERSE_SCALE
 		_linearTransformVersion = 1;
+		_cachedWorldLinearDataVersion = 0;
+		_localTransformDirty = true;
+		_inverseLocalTransformDirty = true;
 		_linearTransformDirty = false;
 #endif
-		_boundsDirty = true;
+		_boundsDirty = BoundingBoxDirty | BoundingSphereDirty;
 		_cachedWorldDataVersion = 0;
 		_cachedMatrixVersion = 0;
 		_cachedInverseMatrixVersion = 0;
@@ -258,11 +261,14 @@ namespace RN
 		WillUpdate(ChangeSet::Generic);
 		const Vector3 position(boundingBox.position);
 		_boundingBox = AABB(position + boundingBox.minExtend, position + boundingBox.maxExtend);
+		_boundsDirty |= BoundingBoxDirty;
 
 		if(calculateBoundingSphere)
+		{
 			_boundingSphere = Sphere(_boundingBox);
+			_boundsDirty |= BoundingSphereDirty;
+		}
 
-		_boundsDirty = true;
 		DidUpdate(ChangeSet::Generic);
 	}
 
@@ -270,7 +276,7 @@ namespace RN
 	{
 		WillUpdate(ChangeSet::Generic);
 		_boundingSphere = Sphere(Vector3(boundingSphere.position) + boundingSphere.offset, boundingSphere.radius);
-		_boundsDirty = true;
+		_boundsDirty |= BoundingSphereDirty;
 		DidUpdate(ChangeSet::Generic);
 	}
 
@@ -633,7 +639,8 @@ namespace RN
 			{
 				SceneNode *child = static_cast<SceneNode *>(_children->GetObjectAtIndex(i));
 #if RN_ENABLE_UNIVERSE_SCALE
-				if(linearTransformDirty) child->InvalidateLinearTransform();
+				// Inherited changes invalidate world matrices while preserving the local matrices.
+				if(linearTransformDirty) child->_linearTransformDirty = true;
 #endif
 				child->DidUpdate(ChangeSet::Position);
 			}
@@ -680,105 +687,124 @@ namespace RN
 			transform.m[2] * position.x + transform.m[6] * position.y + transform.m[10] * position.z);
 	}
 
-	void SceneNode::UpdateInternalData() const
+	void SceneNode::RecalculateWorldData(uint64 transformVersion) const
 	{
-		const uint64 transformVersion = _transformVersion;
-		if(_cachedWorldDataVersion != transformVersion)
+		const PositionType position = _position;
+#if RN_ENABLE_UNIVERSE_SCALE
+		const uint64 linearTransformVersion = _linearTransformVersion;
+		const bool linearDataChanged = _cachedWorldLinearDataVersion != linearTransformVersion;
+#else
+		const bool linearDataChanged = true;
+#endif
+		if(_parent)
 		{
-			const PositionType position = _position;
-			if(_parent)
-			{
-				_parent->UpdateInternalData();
-				_parent->UpdateInternalTransformData();
+			_parent->UpdateInternalData();
+			_parent->UpdateInternalTransformData();
 
-				const PositionType localOffset = TransformLinearPosition(_parent->_worldTransform, position);
-				_worldPosition = _parent->_worldPosition + localOffset;
+			const PositionType localOffset = TransformLinearPosition(_parent->_worldTransform, position);
+			_worldPosition = _parent->_worldPosition + localOffset;
+			if(linearDataChanged)
+			{
 				_worldRotation = _parent->_worldRotation * _rotation;
 				_worldScale = _parent->_worldScale * _scale;
-				_worldEuler = _parent->_worldEuler + _euler;
 			}
-			else
+			_worldEuler = _parent->_worldEuler + _euler;
+		}
+		else
+		{
+			_worldPosition = _position;
+			if(linearDataChanged)
 			{
-				_worldPosition = _position;
 				_worldRotation = _rotation;
 				_worldScale = _scale;
-				_worldEuler = _euler;
 			}
-
-			_cachedWorldDataVersion = transformVersion;
+			_worldEuler = _euler;
 		}
+
+#if RN_ENABLE_UNIVERSE_SCALE
+		_cachedWorldLinearDataVersion = linearTransformVersion;
+#endif
+		_cachedWorldDataVersion = transformVersion;
 	}
 
-	void SceneNode::UpdateInternalTransformData() const
+	void SceneNode::RecalculateWorldTransform(uint64 transformVersion) const
 	{
-		const uint64 transformVersion = GetTransformCacheVersion();
-		if(_cachedMatrixVersion != transformVersion)
+#if RN_ENABLE_UNIVERSE_SCALE
+		// Ancestor rotation and scale change the world matrix, not this local matrix.
+		if(_localTransformDirty)
+#endif
 		{
 #if RN_ENABLE_UNIVERSE_SCALE
 			_localTransform = Matrix();
+			_localTransformDirty = false;
 #else
 			const Vector3 position(_position);
 			_localTransform = Matrix::WithTranslation(position);
 #endif
 			_localTransform.Rotate(_rotation);
 			_localTransform.Scale(_scale);
-
-			if(_parent)
-			{
-				_parent->UpdateInternalTransformData();
-				_worldTransform = _parent->_worldTransform * _localTransform;
-			}
-			else
-			{
-				_worldTransform = _localTransform;
-			}
-
-			_cachedMatrixVersion = transformVersion;
 		}
+
+		if(_parent)
+		{
+			_parent->UpdateInternalTransformData();
+			_worldTransform = _parent->_worldTransform * _localTransform;
+		}
+		else
+		{
+			_worldTransform = _localTransform;
+		}
+
+		_cachedMatrixVersion = transformVersion;
 	}
 
-	void SceneNode::UpdateInternalInverseTransformData() const
+	void SceneNode::RecalculateInverseWorldTransform(uint64 transformVersion) const
 	{
-		const uint64 transformVersion = GetTransformCacheVersion();
-		if(_cachedInverseMatrixVersion != transformVersion)
+#if RN_ENABLE_UNIVERSE_SCALE
+		if(_inverseLocalTransformDirty)
+#endif
 		{
 			_inverseLocalTransform = Matrix::WithScaling(_scale != 0.0f ? (Vector3(1.0f, 1.0f, 1.0f) / _scale) : Vector3(0.0f, 0.0f, 0.0f));
 			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
-#if !RN_ENABLE_UNIVERSE_SCALE
+#if RN_ENABLE_UNIVERSE_SCALE
+			_inverseLocalTransformDirty = false;
+#else
 			const Vector3 position(_position);
 			_inverseLocalTransform.Translate(position * -1.0f);
 #endif
-			if(_parent)
-			{
-				_parent->UpdateInternalInverseTransformData();
-				_inverseWorldTransform = _inverseLocalTransform * _parent->_inverseWorldTransform;
-			}
-			else
-			{
-				_inverseWorldTransform = _inverseLocalTransform;
-			}
-
-			_cachedInverseMatrixVersion = transformVersion;
 		}
+		if(_parent)
+		{
+			_parent->UpdateInternalInverseTransformData();
+			_inverseWorldTransform = _inverseLocalTransform * _parent->_inverseWorldTransform;
+		}
+		else
+		{
+			_inverseWorldTransform = _inverseLocalTransform;
+		}
+
+		_cachedInverseMatrixVersion = transformVersion;
 	}
 
-	void SceneNode::UpdateInternalBoundsData() const
+	void SceneNode::RecalculateBounds(uint64 transformVersion, uint8 requestedBounds) const
 	{
-		UpdateInternalData();
+		if(_cachedBoundsVersion != transformVersion)
+			_boundsDirty = BoundingBoxDirty | BoundingSphereDirty;
 
-		const uint64 transformVersion = GetTransformCacheVersion();
-		if(_boundsDirty || _cachedBoundsVersion != transformVersion)
+		if(requestedBounds == BoundingBoxDirty)
 		{
 			_transformedBoundingBox = _boundingBox;
 			_transformedBoundingBox *= _worldScale;
 			_transformedBoundingBox.Rotate(_worldRotation);
-
+		}
+		else
+		{
 			_transformedBoundingSphere = _boundingSphere;
 			_transformedBoundingSphere *= _worldScale;
 			_transformedBoundingSphere.SetRotation(_worldRotation);
-
-			_cachedBoundsVersion = transformVersion;
-			_boundsDirty = false;
 		}
+
+		_boundsDirty &= ~requestedBounds;
+		_cachedBoundsVersion = transformVersion;
 	}
 } // namespace RN

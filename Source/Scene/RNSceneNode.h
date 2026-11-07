@@ -216,14 +216,24 @@ namespace RN
 		void SetNeedsRenderPreparation() { _needsRenderPreparation = true; }
 
 	private:
+		enum BoundsDirtyFlag : uint8
+		{
+			BoundingBoxDirty = (1 << 0),
+			BoundingSphereDirty = (1 << 1)
+		};
+
 		void Initialize();
 		void InvalidateLinearTransform();
 		uint64 GetTransformCacheVersion() const;
 		static PositionType TransformLinearPosition(const Matrix &transform, const PositionType &position);
-		RNAPI void UpdateInternalData() const;
-		RNAPI void UpdateInternalTransformData() const;
-		RNAPI void UpdateInternalInverseTransformData() const;
-		RNAPI void UpdateInternalBoundsData() const;
+		void UpdateInternalData() const;
+		void UpdateInternalTransformData() const;
+		void UpdateInternalInverseTransformData() const;
+		void UpdateInternalBoundsData(uint8 requestedBounds) const;
+		RNAPI void RecalculateWorldData(uint64 transformVersion) const;
+		RNAPI void RecalculateWorldTransform(uint64 transformVersion) const;
+		RNAPI void RecalculateInverseWorldTransform(uint64 transformVersion) const;
+		RNAPI void RecalculateBounds(uint64 transformVersion, uint8 requestedBounds) const;
 
 		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
 
@@ -259,9 +269,12 @@ namespace RN
 		uint64 _transformVersion;
 #if RN_ENABLE_UNIVERSE_SCALE
 		uint64 _linearTransformVersion;
+		mutable uint64 _cachedWorldLinearDataVersion;
+		mutable bool _localTransformDirty;
+		mutable bool _inverseLocalTransformDirty;
 		bool _linearTransformDirty;
 #endif
-		mutable bool _boundsDirty;
+		mutable uint8 _boundsDirty;
 		mutable uint64 _cachedWorldDataVersion;
 		mutable uint64 _cachedMatrixVersion;
 		mutable uint64 _cachedInverseMatrixVersion;
@@ -404,6 +417,8 @@ namespace RN
 	{
 #if RN_ENABLE_UNIVERSE_SCALE
 		_linearTransformDirty = true;
+		_localTransformDirty = true;
+		_inverseLocalTransformDirty = true;
 #endif
 	}
 
@@ -416,6 +431,36 @@ namespace RN
 #endif
 	}
 
+
+	RN_INLINE void SceneNode::UpdateInternalData() const
+	{
+		const uint64 transformVersion = _transformVersion;
+		if(_cachedWorldDataVersion != transformVersion)
+			RecalculateWorldData(transformVersion);
+	}
+
+	RN_INLINE void SceneNode::UpdateInternalTransformData() const
+	{
+		const uint64 transformVersion = GetTransformCacheVersion();
+		if(_cachedMatrixVersion != transformVersion)
+			RecalculateWorldTransform(transformVersion);
+	}
+
+	RN_INLINE void SceneNode::UpdateInternalInverseTransformData() const
+	{
+		const uint64 transformVersion = GetTransformCacheVersion();
+		if(_cachedInverseMatrixVersion != transformVersion)
+			RecalculateInverseWorldTransform(transformVersion);
+	}
+
+	RN_INLINE void SceneNode::UpdateInternalBoundsData(uint8 requestedBounds) const
+	{
+		UpdateInternalData();
+
+		const uint64 transformVersion = GetTransformCacheVersion();
+		if((_boundsDirty & requestedBounds) || _cachedBoundsVersion != transformVersion)
+			RecalculateBounds(transformVersion, requestedBounds);
+	}
 
 	RN_INLINE Vector3 SceneNode::GetForward() const
 	{
@@ -490,7 +535,7 @@ namespace RN
 
 	RN_INLINE AABB SceneNode::GetBoundingBox() const
 	{
-		UpdateInternalBoundsData();
+		UpdateInternalBoundsData(BoundingBoxDirty);
 
 		AABB result(_transformedBoundingBox);
 		result.position = _worldPosition;
@@ -499,7 +544,7 @@ namespace RN
 
 	RN_INLINE Sphere SceneNode::GetBoundingSphere() const
 	{
-		UpdateInternalBoundsData();
+		UpdateInternalBoundsData(BoundingSphereDirty);
 
 		Sphere result(_transformedBoundingSphere);
 		result.position = _worldPosition;
