@@ -1305,6 +1305,40 @@ namespace RN
 		_uniformBufferPool->Update(this); //This will also reset all reference offsets into the buffer
 	}
 
+	template<class Submit>
+	void MetalRenderer::ForEachDrawablePass(MetalFrameSubmission &frameSubmission, Drawable *drawable, uint16 renderGroup, const Submit &submit)
+	{
+		const bool allowsPostProcessing = drawable && drawable == _defaultPostProcessingDrawable;
+		for(size_t pi = frameSubmission.activeRenderPassIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
+		{
+			MetalRenderPass &pass = frameSubmission.renderPasses[pi];
+			if(!pass.UsesDrawItems())
+				continue;
+
+			if(!allowsPostProcessing && (pass.type == MetalRenderPass::Type::Convert || pass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())))
+				continue;
+
+			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(pass.renderFramePassIndex);
+			if(renderGroup & framePass.GetDrawSnapshot().GetRenderGroupMask())
+				submit(framePass);
+		}
+	}
+
+	void MetalRenderer::SubmitDrawables(const Drawable::PreparedDrawList &drawables, const SceneNode &node)
+	{
+		RN_PROFILE_SCOPE();
+		MetalFrameSubmission &submission = GetActiveFrameSubmission();
+		size_t firstDrawItemIndex = RenderFrame::InvalidDrawItemIndex;
+		const size_t drawItemCount = drawables.GetCount();
+
+		ForEachDrawablePass(submission, nullptr, node.GetRenderGroup(), [&](RenderFrame::Pass &pass) {
+			if(firstDrawItemIndex == RenderFrame::InvalidDrawItemIndex)
+				firstDrawItemIndex = submission.renderFrame.AddPreparedDrawItems(drawables, node, pass);
+
+			pass.AddDrawItemIndices(firstDrawItemIndex, drawItemCount);
+		});
+	}
+
 	void MetalRenderer::SubmitDrawable(Drawable *drawable, const SceneNode *node)
 	{
 		SubmitDrawable(GetActiveFrameSubmission(), drawable, node);
@@ -1318,48 +1352,23 @@ namespace RN
 	void MetalRenderer::SubmitDrawable(MetalFrameSubmission &frameSubmission, Drawable *sourceDrawable, const SceneNode *node)
 	{
 		RN_PROFILE_SCOPE();
-		MetalDrawable *drawable = static_cast<MetalDrawable *>(sourceDrawable);
-		uint16 renderGroup = node ? node->GetRenderGroup() : 0xffff;
 		size_t drawItemIndex = RenderFrame::InvalidDrawItemIndex;
-
-		size_t startIndex = frameSubmission.activeRenderPassIndex;
-		for(size_t pi = startIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
-		{
-			MetalRenderPass &pass = frameSubmission.renderPasses[pi];
-			if(!pass.UsesDrawItems()) continue;
-			if((pass.type == MetalRenderPass::Type::Convert || pass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())) && drawable != _defaultPostProcessingDrawable) continue;
-
-			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(pass.renderFramePassIndex);
-			const RenderPass::DrawSnapshot &passDrawSnapshot = framePass.GetDrawSnapshot();
-			if((renderGroup & passDrawSnapshot.GetRenderGroupMask()) == 0) continue;
-
+		ForEachDrawablePass(frameSubmission, sourceDrawable, node ? node->GetRenderGroup() : 0xffff, [&](RenderFrame::Pass &pass) {
 			if(drawItemIndex == RenderFrame::InvalidDrawItemIndex)
-				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(drawable, node, framePass);
-			framePass.AddDrawItemIndex(drawItemIndex);
-		}
+				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(sourceDrawable, node, pass);
+			pass.AddDrawItemIndex(drawItemIndex);
+		});
 	}
 
 	void MetalRenderer::SubmitDrawable(MetalFrameSubmission &frameSubmission, Drawable *sourceDrawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint16 renderGroup, uint64 sourceNodeUID, int32 renderPriority)
 	{
 		RN_PROFILE_SCOPE();
-		MetalDrawable *drawable = static_cast<MetalDrawable *>(sourceDrawable);
 		size_t drawItemIndex = RenderFrame::InvalidDrawItemIndex;
-
-		size_t startIndex = frameSubmission.activeRenderPassIndex;
-		for(size_t pi = startIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
-		{
-			MetalRenderPass &pass = frameSubmission.renderPasses[pi];
-			if(!pass.UsesDrawItems()) continue;
-			if((pass.type == MetalRenderPass::Type::Convert || pass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())) && drawable != _defaultPostProcessingDrawable) continue;
-
-			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(pass.renderFramePassIndex);
-			const RenderPass::DrawSnapshot &passDrawSnapshot = framePass.GetDrawSnapshot();
-			if((renderGroup & passDrawSnapshot.GetRenderGroupMask()) == 0) continue;
-
+		ForEachDrawablePass(frameSubmission, sourceDrawable, renderGroup, [&](RenderFrame::Pass &pass) {
 			if(drawItemIndex == RenderFrame::InvalidDrawItemIndex)
-				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(drawable, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
-			framePass.AddDrawItemIndex(drawItemIndex);
-		}
+				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(sourceDrawable, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			pass.AddDrawItemIndex(drawItemIndex);
+		});
 	}
 
 	void MetalRenderer::RenderDrawable(const MetalPreparedDrawItem &preparedDrawItem, uint32 instanceCount, const MetalRenderPass &renderPass, const RenderFrame &renderFrame, const RenderFrame::Pass &framePass)

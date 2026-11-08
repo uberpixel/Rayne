@@ -21,6 +21,7 @@
 
 namespace RN
 {
+	struct Drawable;
 	enum class DepthMode
 	{
 		Never,
@@ -302,11 +303,9 @@ namespace RN
 		RNAPI const std::shared_ptr<const DrawSnapshot> &GetSharedDrawSnapshot() const;
 
 	private:
-		void MarkDrawSnapshotDirty()
-		{
-			_drawSnapshotVersion += 1;
-			_sharedDrawSnapshot.reset();
-		}
+		friend struct Drawable;
+
+		void MarkDrawSnapshotDirty();
 		void MarkResourcesDirty()
 		{
 			_sharedSnapshotResources.reset();
@@ -321,6 +320,9 @@ namespace RN
 		static void MergeProperties(const Properties &properties, uint32 override, const Properties *overrideProperties, uint32 overrideMaterialOverride, Properties &result);
 		static void MergePipelineProperties(const PipelineProperties &properties, uint32 override, const PipelineProperties *overridePipelineProperties, uint32 overrideMaterialOverride, PipelineProperties &result);
 
+		// Source mutation and snapshot capture remain serialized on the submission side.
+		// The object lock protects subscriber registration and notification iteration.
+		std::vector<Drawable *> _drawables;
 		Override _override;
 
 		Shader *_fragmentShader[static_cast<uint8>(Shader::UsageHint::COUNT)];

@@ -7,6 +7,7 @@
 //
 
 #include "RNSkeleton.h"
+#include "RNDrawable.h"
 #include "../Assets/RNAssetManager.h"
 #include "../Debug/RNLogger.h"
 #include "../Objects/RNDictionary.h"
@@ -533,6 +534,19 @@ namespace RN
 	void Skeleton::DrawSnapshot::Reset()
 	{
 		_matrices.clear();
+	}
+
+	void Skeleton::MarkDrawSnapshotDirty()
+	{
+		_drawSnapshotVersion += 1;
+
+		// Subscribers are already dirty until a shared snapshot is captured.
+		if(!_sharedDrawSnapshot)
+			return;
+
+		_sharedDrawSnapshot.reset();
+		LockGuard<Skeleton> lock(*this);
+		Drawable::MarkDrawSnapshotsDirty(_drawables, Drawable::SkeletonSnapshotDirty);
 	}
 
 	const std::shared_ptr<const Skeleton::DrawSnapshot> &Skeleton::GetSharedDrawSnapshot() const

@@ -70,6 +70,7 @@ namespace RN
 
 		MTLAPI Drawable *CreateDrawable() final;
 		MTLAPI void DeleteDrawable(Drawable *drawable) final;
+		MTLAPI void SubmitDrawables(const Drawable::PreparedDrawList &drawables, const SceneNode &node) final;
 		MTLAPI void SubmitDrawable(Drawable *drawable, const SceneNode *node) final;
 		MTLAPI void SubmitDrawable(Drawable *drawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint16 renderGroup, uint64 sourceNodeUID = RenderFrame::InvalidSourceNodeUID, int32 renderPriority = SceneNode::RenderNormal) final;
 		MTLAPI void SubmitLight(const Light *light) final;
@@ -100,6 +101,8 @@ namespace RN
 		void SubmitFramePass(MetalFrameSubmission &submission, Camera *camera, FramePass *framePass, MetalRenderPass &previousRenderPass);
 		void SubmitRenderPass(MetalFrameSubmission &submission, Camera *camera, RenderPass *renderPass, MetalRenderPass &previousRenderPass);
 		void SubmitComputePass(MetalFrameSubmission &submission, ComputePass *computePass, MetalRenderPass *previousRenderPass, Camera *camera);
+		template<class Submit>
+		void ForEachDrawablePass(MetalFrameSubmission &frameSubmission, Drawable *drawable, uint16 renderGroup, const Submit &submit);
 		void SubmitDrawable(MetalFrameSubmission &submission, Drawable *drawable, const SceneNode *node);
 		void SubmitDrawable(MetalFrameSubmission &submission, Drawable *drawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint16 renderGroup, uint64 sourceNodeUID, int32 renderPriority);
 		void PrepareRenderFrame(MetalFrameSubmission &submission);

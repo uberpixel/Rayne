@@ -11,10 +11,16 @@
 
 namespace RN
 {
+	Lockable Drawable::_preparedDrawLock;
+
 	Drawable::Drawable()
 	{}
 
-	Drawable::~Drawable() = default;
+	Drawable::~Drawable()
+	{
+		RN_DEBUG_ASSERT(!_preparedDrawList, "Drawable is still attached to a prepared draw list");
+		SetSources(nullptr, nullptr, nullptr);
+	}
 
 	bool Drawable::PipelineKey::operator==(const PipelineKey &other) const
 	{
@@ -55,34 +61,124 @@ namespace RN
 		_isValid = true;
 	}
 
+	Drawable::PreparedDrawList::~PreparedDrawList()
+	{
+		Clear();
+	}
+
+	void Drawable::PreparedDrawList::Add(Drawable *drawable)
+	{
+		LockGuard<Lockable> lock(_preparedDrawLock);
+		RN_DEBUG_ASSERT(!drawable->_preparedDrawList, "Drawable already has a prepared draw list");
+		_entries.emplace_back(drawable);
+		drawable->_preparedDrawList = this;
+		_dirty.store(true, std::memory_order_release);
+	}
+
+	void Drawable::PreparedDrawList::Clear()
+	{
+		if(_entries.empty())
+			return;
+
+		LockGuard<Lockable> lock(_preparedDrawLock);
+		for(const Entry &entry : _entries)
+			entry.drawable->_preparedDrawList = nullptr;
+
+		_entries.clear();
+		_dirty.store(false, std::memory_order_relaxed);
+	}
+
+	void Drawable::PreparedDrawList::Refresh(uint64 frameID) const
+	{
+		LockGuard<Lockable> lock(_preparedDrawLock);
+		for(Entry &entry : _entries)
+		{
+			Drawable *drawable = entry.drawable;
+			drawable->UpdateDrawSnapshots(frameID);
+			entry.snapshot = drawable->MakeDrawSnapshotBundle();
+			entry.hasStaticMeshBuffers = entry.snapshot.GetMesh().GetStaticBuffersForDraw(entry.meshBuffers, entry.meshInstancingHash);
+			entry.indirectDraw = drawable->_indirectDrawSnapshot.IsValid() ? &drawable->_indirectDrawSnapshot : nullptr;
+		}
+
+		_dirty.store(false, std::memory_order_release);
+	}
+
+	void Drawable::MarkDrawSnapshotsDirty(const std::vector<Drawable *> &drawables, uint8 mask)
+	{
+		if(drawables.empty())
+			return;
+
+		LockGuard<Lockable> lock(_preparedDrawLock);
+		for(Drawable *drawable : drawables)
+			drawable->SetDrawSnapshotsDirty(mask);
+	}
+
+	void Drawable::SetDrawSnapshotsDirty(uint8 mask)
+	{
+		const uint8 dirtyMask = _drawSnapshotDirtyMask.load(std::memory_order_relaxed);
+		_drawSnapshotDirtyMask.store(dirtyMask | mask, std::memory_order_release);
+
+		if(_preparedDrawList)
+			_preparedDrawList->_dirty.store(true, std::memory_order_release);
+	}
+
+	template<class Source>
+	void Drawable::SetSource(StrongRef<Source> &current, Source *source)
+	{
+		StrongRef<Source> replacement(source);
+
+		if(source)
+		{
+			LockGuard<Source> lock(*source);
+			source->_drawables.push_back(this);
+		}
+
+		if(Source *previous = current.Get())
+		{
+			LockGuard<Source> lock(*previous);
+			auto &drawables = previous->_drawables;
+			drawables.erase(std::find(drawables.begin(), drawables.end(), this));
+		}
+
+		current = std::move(replacement);
+	}
+
 	void Drawable::SetSources(Mesh *mesh, Material *material, Skeleton *skeleton)
 	{
-		if(_sourceMesh.Get() != mesh)
+		const uint8 mask = (_sourceMesh.Get() != mesh ? MeshSnapshotDirty : 0) |
+			(_sourceMaterial.Get() != material ? MaterialSnapshotDirty : 0) |
+			(_sourceSkeleton.Get() != skeleton ? SkeletonSnapshotDirty : 0);
+		if(mask == 0)
+			return;
+
+		// Rebinding and submission use the same thread. Invalidate first so a partial rebind can be retried.
 		{
-			_sourceMesh = mesh;
-			_drawSnapshotDirtyMask |= MeshSnapshotDirty;
+			LockGuard<Lockable> lock(_preparedDrawLock);
+			SetDrawSnapshotsDirty(mask);
 		}
-		if(_sourceMaterial.Get() != material)
-		{
-			_sourceMaterial = material;
-			_drawSnapshotDirtyMask |= MaterialSnapshotDirty;
-		}
-		if(_sourceSkeleton.Get() != skeleton)
-		{
-			_sourceSkeleton = skeleton;
-			_drawSnapshotDirtyMask |= SkeletonSnapshotDirty;
-		}
+
+		if(mask & MeshSnapshotDirty)
+			SetSource(_sourceMesh, mesh);
+		if(mask & MaterialSnapshotDirty)
+			SetSource(_sourceMaterial, material);
+		if(mask & SkeletonSnapshotDirty)
+			SetSource(_sourceSkeleton, skeleton);
 	}
 
 	void Drawable::SetIndirectDrawBuffer(GPUBuffer *argumentBuffer, IndirectDrawType type, size_t argumentBufferOffset, uint32 drawCount, size_t stride)
 	{
 		RN_ASSERT(!argumentBuffer || drawCount > 0, "Indirect draw count must be greater than zero");
 
-		_indirectDrawSnapshot._argumentBuffer = argumentBuffer;
+		StrongRef<GPUBuffer> previousBuffer(argumentBuffer);
+		LockGuard<Lockable> lock(_preparedDrawLock);
+		swap(_indirectDrawSnapshot._argumentBuffer, previousBuffer);
 		_indirectDrawSnapshot._argumentBufferOffset = argumentBufferOffset;
 		_indirectDrawSnapshot._drawCount = drawCount;
 		_indirectDrawSnapshot._stride = stride;
 		_indirectDrawSnapshot._type = type;
+
+		if(_preparedDrawList)
+			_preparedDrawList->_dirty.store(true, std::memory_order_release);
 	}
 
 	void Drawable::ClearIndirectDrawBuffer()
@@ -92,8 +188,17 @@ namespace RN
 
 	Drawable::DrawSnapshotBundle Drawable::GetDrawSnapshotBundleForFrame(uint64 frameID)
 	{
-		UpdateDrawSnapshots(frameID);
+		if(_drawSnapshotDirtyMask.load(std::memory_order_acquire) != 0)
+		{
+			LockGuard<Lockable> lock(_preparedDrawLock);
+			UpdateDrawSnapshots(frameID);
+		}
 
+		return MakeDrawSnapshotBundle();
+	}
+
+	Drawable::DrawSnapshotBundle Drawable::MakeDrawSnapshotBundle() const
+	{
 		RN_DEBUG_ASSERT(_meshSnapshot && _materialSnapshot && _skeletonSnapshot, "Drawable has no draw snapshots");
 
 		return DrawSnapshotBundle(_meshSnapshot.get(), _materialSnapshot.get(), _skeletonSnapshot.get(), _materialSnapshotVersion);
@@ -101,51 +206,33 @@ namespace RN
 
 	void Drawable::UpdateDrawSnapshots(uint64 frameID)
 	{
-		Mesh *mesh = _sourceMesh.Get();
-		uint64 meshPipelineVersion = mesh ? mesh->GetPipelineVersion() : 0;
-		if(_meshPipelineVersion != meshPipelineVersion)
-			_drawSnapshotDirtyMask |= MeshSnapshotDirty;
+		const uint8 dirtyMask = _drawSnapshotDirtyMask.load(std::memory_order_relaxed);
+		if(dirtyMask == 0)
+			return;
 
-		Material *material = _sourceMaterial.Get();
-		uint64 materialDrawSnapshotVersion = material ? material->GetDrawSnapshotVersion() : 0;
-		if(_materialDrawSnapshotVersion != materialDrawSnapshotVersion)
-			_drawSnapshotDirtyMask |= MaterialSnapshotDirty;
+		auto meshSnapshot = (dirtyMask & MeshSnapshotDirty) ? CaptureSourceSnapshot(_sourceMesh.Get()) : nullptr;
+		auto materialSnapshot = (dirtyMask & MaterialSnapshotDirty) ? CaptureSourceSnapshot(_sourceMaterial.Get()) : nullptr;
+		auto skeletonSnapshot = (dirtyMask & SkeletonSnapshotDirty) ? CaptureSourceSnapshot(_sourceSkeleton.Get()) : nullptr;
 
-		Skeleton *skeleton = _sourceSkeleton.Get();
-		uint64 skeletonDrawSnapshotVersion = skeleton ? skeleton->GetDrawSnapshotVersion() : 0;
-		if(_skeletonDrawSnapshotVersion != skeletonDrawSnapshotVersion)
-			_drawSnapshotDirtyMask |= SkeletonSnapshotDirty;
-
-		if(_drawSnapshotDirtyMask == 0) return;
-
-		std::shared_ptr<const void> retiredMesh;
-		std::shared_ptr<const void> retiredMaterial;
-		std::shared_ptr<const void> retiredSkeleton;
-
-		if((_drawSnapshotDirtyMask & MeshSnapshotDirty) != 0)
+		// Keep the current bundle owned until capture and retirement both succeed.
+		if(((meshSnapshot && _meshSnapshot) || (materialSnapshot && _materialSnapshot) || (skeletonSnapshot && _skeletonSnapshot)) && !Renderer::IsHeadless())
 		{
-			retiredMesh = std::move(_meshSnapshot);
-			_meshSnapshot = CaptureSourceSnapshot(mesh);
-			_meshPipelineVersion = meshPipelineVersion;
+			Renderer::GetActiveRenderer()->RetireDrawSnapshots(frameID,
+				meshSnapshot ? _meshSnapshot : nullptr,
+				materialSnapshot ? _materialSnapshot : nullptr,
+				skeletonSnapshot ? _skeletonSnapshot : nullptr);
 		}
 
-		if((_drawSnapshotDirtyMask & MaterialSnapshotDirty) != 0)
+		if(meshSnapshot)
+			_meshSnapshot = std::move(meshSnapshot);
+		if(materialSnapshot)
 		{
-			retiredMaterial = std::move(_materialSnapshot);
-			_materialSnapshot = CaptureSourceSnapshot(material);
-			_materialDrawSnapshotVersion = materialDrawSnapshotVersion;
+			_materialSnapshot = std::move(materialSnapshot);
 			_materialSnapshotVersion += 1;
 		}
+		if(skeletonSnapshot)
+			_skeletonSnapshot = std::move(skeletonSnapshot);
 
-		if((_drawSnapshotDirtyMask & SkeletonSnapshotDirty) != 0)
-		{
-			retiredSkeleton = std::move(_skeletonSnapshot);
-			_skeletonSnapshot = CaptureSourceSnapshot(skeleton);
-			_skeletonDrawSnapshotVersion = skeletonDrawSnapshotVersion;
-		}
-
-		_drawSnapshotDirtyMask = 0;
-		if((retiredMesh || retiredMaterial || retiredSkeleton) && !Renderer::IsHeadless())
-			Renderer::GetActiveRenderer()->RetireDrawSnapshots(frameID, std::move(retiredMesh), std::move(retiredMaterial), std::move(retiredSkeleton));
+		_drawSnapshotDirtyMask.store(0, std::memory_order_relaxed);
 	}
 } // namespace RN

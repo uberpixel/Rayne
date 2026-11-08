@@ -18,6 +18,8 @@
 
 namespace RN
 {
+	struct Drawable;
+
 	class AnimationBone
 	{
 	public:
@@ -142,11 +144,13 @@ namespace RN
 		std::vector<Matrix> _matrices;
 
 	private:
-		void MarkDrawSnapshotDirty()
-		{
-			_drawSnapshotVersion += 1;
-			_sharedDrawSnapshot.reset();
-		}
+		friend struct Drawable;
+
+		void MarkDrawSnapshotDirty();
+
+		// Source mutation and snapshot capture remain serialized on the submission side.
+		// The object lock protects subscriber registration and notification iteration.
+		std::vector<Drawable *> _drawables;
 
 		uint64 _drawSnapshotVersion;
 		mutable std::shared_ptr<const DrawSnapshot> _sharedDrawSnapshot;

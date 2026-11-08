@@ -43,10 +43,10 @@ namespace RN
 		std::vector<uint8> _drawableRenderingEnabled;
 #if RN_MODEL_LOD_DISABLED
 		std::vector<Drawable *> _drawables;
-		std::vector<Drawable *> _renderableDrawables;
+		Drawable::PreparedDrawList _renderableDrawables;
 #else
 		std::vector<std::vector<Drawable *>> _drawables;
-		std::vector<std::vector<Drawable *>> _renderableDrawables;
+		std::deque<Drawable::PreparedDrawList> _renderableDrawables;
 #endif
 
 		__RNDeclareMetaInternal(Entity)

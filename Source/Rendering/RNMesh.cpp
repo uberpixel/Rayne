@@ -7,6 +7,7 @@
 //
 
 #include "RNMesh.h"
+#include "RNDrawable.h"
 #include "../Assets/RNAssetManager.h"
 #include "../Math/RNHalfVector.h"
 #include "RNRenderer.h"
@@ -412,6 +413,19 @@ namespace RN
 		}
 
 		return nullptr;
+	}
+
+	void Mesh::MarkPipelineDirty()
+	{
+		_pipelineVersion += 1;
+
+		// Subscribers are already dirty until a shared snapshot is captured.
+		if(!_sharedDrawSnapshot)
+			return;
+
+		_sharedDrawSnapshot.reset();
+		LockGuard<Mesh> lock(*this);
+		Drawable::MarkDrawSnapshotsDirty(_drawables, Drawable::MeshSnapshotDirty);
 	}
 
 	const std::shared_ptr<const Mesh::DrawSnapshot> &Mesh::GetSharedDrawSnapshot() const

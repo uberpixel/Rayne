@@ -2113,6 +2113,54 @@ namespace RN
 		UpdateDescriptorSets(submission);
 	}
 
+	template<class Submit>
+	void VulkanRenderer::ForEachDrawablePass(VulkanFrameSubmission &frameSubmission, Drawable *drawable, uint16 renderGroup, const Submit &submit)
+	{
+		const bool allowsPostProcessing = drawable && drawable == _defaultPostProcessingDrawable;
+		auto submitPass = [&](VulkanRenderPass &pass) {
+			if(!allowsPostProcessing && (pass.type == VulkanRenderPass::Type::Convert || pass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())))
+				return;
+
+			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(pass.renderFramePassIndex);
+			if(renderGroup & framePass.GetDrawSnapshot().GetRenderGroupMask())
+				submit(framePass);
+		};
+
+		for(size_t pi = frameSubmission.activeRenderPassIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
+		{
+			VulkanRenderPass &pass = frameSubmission.renderPasses[pi];
+			if(!pass.UsesDrawItems())
+				continue;
+
+			if(pass.subpasses.empty())
+			{
+				submitPass(pass);
+			}
+			else
+			{
+				for(VulkanRenderPass &subpass : pass.subpasses)
+				{
+					if(subpass.UsesDrawItems())
+						submitPass(subpass);
+				}
+			}
+		}
+	}
+
+	void VulkanRenderer::SubmitDrawables(const Drawable::PreparedDrawList &drawables, const SceneNode &node)
+	{
+		VulkanFrameSubmission &submission = GetActiveFrameSubmission();
+		size_t firstDrawItemIndex = RenderFrame::InvalidDrawItemIndex;
+		const size_t drawItemCount = drawables.GetCount();
+
+		ForEachDrawablePass(submission, nullptr, node.GetRenderGroup(), [&](RenderFrame::Pass &pass) {
+			if(firstDrawItemIndex == RenderFrame::InvalidDrawItemIndex)
+				firstDrawItemIndex = submission.renderFrame.AddPreparedDrawItems(drawables, node, pass);
+
+			pass.AddDrawItemIndices(firstDrawItemIndex, drawItemCount);
+		});
+	}
+
 	void VulkanRenderer::SubmitDrawable(Drawable *drawable, const SceneNode *node)
 	{
 		SubmitDrawable(GetActiveFrameSubmission(), drawable, node);
@@ -2125,89 +2173,22 @@ namespace RN
 
 	void VulkanRenderer::SubmitDrawable(VulkanFrameSubmission &frameSubmission, Drawable *sourceDrawable, const SceneNode *node)
 	{
-		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(sourceDrawable);
-		uint16 renderGroup = node ? node->GetRenderGroup() : 0xffff;
 		size_t drawItemIndex = RenderFrame::InvalidDrawItemIndex;
-
-		auto submitDrawable = [&](VulkanRenderPass &renderSubPass) {
-			if(!renderSubPass.UsesDrawItems())
-				return;
-
-			if((renderSubPass.type == VulkanRenderPass::Type::Convert || renderSubPass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())) && drawable != _defaultPostProcessingDrawable)
-				return;
-
-			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(renderSubPass.renderFramePassIndex);
-			const RenderPass::DrawSnapshot &renderSubPassDrawSnapshot = framePass.GetDrawSnapshot();
-			if((renderGroup & renderSubPassDrawSnapshot.GetRenderGroupMask()) == 0)
-				return;
-
+		ForEachDrawablePass(frameSubmission, sourceDrawable, node ? node->GetRenderGroup() : 0xffff, [&](RenderFrame::Pass &pass) {
 			if(drawItemIndex == RenderFrame::InvalidDrawItemIndex)
-				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(drawable, node, framePass);
-			framePass.AddDrawItemIndex(drawItemIndex);
-		};
-
-		for(size_t pi = frameSubmission.activeRenderPassIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
-		{
-			VulkanRenderPass &renderPass = frameSubmission.renderPasses[pi];
-			if(!renderPass.UsesDrawItems())
-			{
-				continue;
-			}
-			else if(renderPass.subpasses.size() > 0)
-			{
-				for(VulkanRenderPass &renderSubPass : renderPass.subpasses)
-				{
-					submitDrawable(renderSubPass);
-				}
-			}
-			else
-			{
-				submitDrawable(renderPass);
-			}
-		}
+				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(sourceDrawable, node, pass);
+			pass.AddDrawItemIndex(drawItemIndex);
+		});
 	}
 
 	void VulkanRenderer::SubmitDrawable(VulkanFrameSubmission &frameSubmission, Drawable *sourceDrawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint16 renderGroup, uint64 sourceNodeUID, int32 renderPriority)
 	{
-		VulkanDrawable *drawable = static_cast<VulkanDrawable *>(sourceDrawable);
 		size_t drawItemIndex = RenderFrame::InvalidDrawItemIndex;
-
-		auto submitDrawable = [&](VulkanRenderPass &renderSubPass) {
-			if(!renderSubPass.UsesDrawItems())
-				return;
-
-			if((renderSubPass.type == VulkanRenderPass::Type::Convert || renderSubPass.renderPass->IsKindOfClass(PostProcessingStage::GetMetaClass())) && drawable != _defaultPostProcessingDrawable)
-				return;
-
-			RenderFrame::Pass &framePass = frameSubmission.renderFrame.GetPass(renderSubPass.renderFramePassIndex);
-			const RenderPass::DrawSnapshot &renderSubPassDrawSnapshot = framePass.GetDrawSnapshot();
-			if((renderGroup & renderSubPassDrawSnapshot.GetRenderGroupMask()) == 0)
-				return;
-
+		ForEachDrawablePass(frameSubmission, sourceDrawable, renderGroup, [&](RenderFrame::Pass &pass) {
 			if(drawItemIndex == RenderFrame::InvalidDrawItemIndex)
-				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(drawable, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
-			framePass.AddDrawItemIndex(drawItemIndex);
-		};
-
-		for(size_t pi = frameSubmission.activeRenderPassIndex; pi < frameSubmission.renderPasses.size(); pi += 1)
-		{
-			VulkanRenderPass &renderPass = frameSubmission.renderPasses[pi];
-			if(!renderPass.UsesDrawItems())
-			{
-				continue;
-			}
-			else if(renderPass.subpasses.size() > 0)
-			{
-				for(VulkanRenderPass &renderSubPass : renderPass.subpasses)
-				{
-					submitDrawable(renderSubPass);
-				}
-			}
-			else
-			{
-				submitDrawable(renderPass);
-			}
-		}
+				drawItemIndex = frameSubmission.renderFrame.AddDrawItem(sourceDrawable, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			pass.AddDrawItemIndex(drawItemIndex);
+		});
 	}
 
 	void VulkanRenderer::UpdateDescriptorSets(VulkanFrameSubmission &submission)

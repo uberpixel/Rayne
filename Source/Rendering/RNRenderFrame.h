@@ -224,17 +224,21 @@ namespace RN
 		class DrawItem
 		{
 		public:
-			DrawItem(GPUBuffer::SnapshotReferences &bufferReferences, Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
+			DrawItem(GPUBuffer::SnapshotReferences &bufferReferences, Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Mesh::BufferSnapshot *staticMeshBuffers, size_t staticMeshInstancingHash, const Drawable::IndirectDrawSnapshot *indirectDraw, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
 				_sourceDrawable(sourceDrawable),
 				_drawSnapshot(drawSnapshot),
+				_meshBuffers(staticMeshBuffers ? *staticMeshBuffers : Mesh::BufferSnapshot()),
 				_modelMatrix(modelMatrix),
 				_inverseModelMatrix(inverseModelMatrix),
 				_sourceNodeUID(sourceNodeUID),
 				_renderPriority(renderPriority),
-				_meshInstancingHash(GetMesh().CaptureBuffersForDraw(_meshBuffers, bufferReferences))
+				_meshInstancingHash(staticMeshBuffers ? staticMeshInstancingHash : GetMesh().CaptureBuffersForDraw(_meshBuffers, bufferReferences))
 			{
-				_indirectDrawSnapshot = sourceDrawable->GetIndirectDrawSnapshot();
-				_indirectDrawSnapshot.CaptureArgumentBuffer(bufferReferences);
+				if(indirectDraw)
+				{
+					_indirectDrawSnapshot = *indirectDraw;
+					_indirectDrawSnapshot.CaptureArgumentBuffer(bufferReferences);
+				}
 			}
 
 			Drawable *GetSourceDrawableForPreparation() const { return _sourceDrawable; }
@@ -280,6 +284,12 @@ namespace RN
 			void AddDrawItemIndex(size_t drawItemIndex)
 			{
 				_drawItemIndices.push_back(drawItemIndex);
+			}
+
+			void AddDrawItemIndices(size_t first, size_t count)
+			{
+				for(size_t offset = 0; offset < count; offset += 1)
+					_drawItemIndices.push_back(first + offset);
 			}
 
 			void SetCameraSnapshot(const CameraSnapshot &cameraSnapshot) { _cameraSnapshot = cameraSnapshot; }
@@ -445,6 +455,7 @@ namespace RN
 			_presentationStates.clear();
 			_passes.clear();
 			_drawItems.clear();
+			_untrackedDrawSnapshots.clear();
 			_cameraStatistics.clear();
 			_attachmentSnapshots.clear();
 			_globalTextures.clear();
@@ -579,15 +590,41 @@ namespace RN
 
 		size_t AddDrawItem(Drawable *sourceDrawable, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID = InvalidSourceNodeUID, int32 renderPriority = SceneNode::RenderNormal)
 		{
-			if(_drawItems.size() == _drawItems.capacity())
+			ReserveAdditionalDrawItems(1);
+			const Drawable::DrawSnapshotBundle drawSnapshot = sourceDrawable->GetDrawSnapshotBundleForFrame(_frameID);
+			const Drawable::IndirectDrawSnapshot &indirectDraw = sourceDrawable->GetIndirectDrawSnapshot();
+
+			if(_frameID == 0)
+				RetainUntrackedDrawSnapshots(*sourceDrawable);
+
+			_drawItems.emplace_back(*_bufferReferences, sourceDrawable, drawSnapshot, nullptr, 0, indirectDraw.IsValid() ? &indirectDraw : nullptr, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			return _drawItems.size() - 1;
+		}
+
+		size_t AddPreparedDrawItems(const Drawable::PreparedDrawList &drawables, const SceneNode &node, const Pass &pass)
+		{
+			const auto &entries = drawables.GetEntriesForFrame(_frameID);
+			const size_t firstDrawItemIndex = _drawItems.size();
+			ReserveAdditionalDrawItems(entries.size());
+
+			const PositionType &renderOrigin = pass.GetCameraSnapshot().GetRenderOrigin();
+			const Matrix modelMatrix = node.GetWorldTransform(renderOrigin);
+			const Matrix inverseModelMatrix = node.GetInverseWorldTransform(renderOrigin);
+			const uint64 sourceNodeUID = node.GetUID();
+			const int32 renderPriority = node.GetRenderPriority();
+
+			if(_frameID == 0)
 			{
-				size_t capacity = _drawItems.capacity();
-				_drawItems.reserve(capacity + (capacity > 0 ? capacity : RN_RENDERING_DRAW_ITEM_RESERVE_BLOCK_SIZE));
+				for(const auto &entry : entries)
+					RetainUntrackedDrawSnapshots(*entry.drawable);
 			}
 
-			Drawable::DrawSnapshotBundle drawSnapshot = sourceDrawable->GetDrawSnapshotBundleForFrame(_frameID);
-			_drawItems.emplace_back(*_bufferReferences, sourceDrawable, drawSnapshot, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
-			return _drawItems.size() - 1;
+			for(const auto &entry : entries)
+			{
+				_drawItems.emplace_back(*_bufferReferences, entry.drawable, entry.snapshot, entry.hasStaticMeshBuffers ? &entry.meshBuffers : nullptr, entry.meshInstancingHash, entry.indirectDraw, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			}
+
+			return firstDrawItemIndex;
 		}
 
 		void ReserveDrawItems(size_t count)
@@ -657,11 +694,25 @@ namespace RN
 		}
 #endif
 
+		void ReserveAdditionalDrawItems(size_t count)
+		{
+			const size_t capacity = _drawItems.capacity();
+			const size_t required = _drawItems.size() + count;
+			if(required > capacity)
+			{
+				const size_t growth = capacity > 0 ? capacity : RN_RENDERING_DRAW_ITEM_RESERVE_BLOCK_SIZE;
+				_drawItems.reserve(std::max(required, capacity + growth));
+			}
+		}
+
+		RNAPI void RetainUntrackedDrawSnapshots(const Drawable &drawable);
+
 		std::shared_ptr<GPUBuffer::SnapshotReferences> _bufferReferences = std::make_shared<GPUBuffer::SnapshotReferences>();
 		uint64 _frameID = 0;
 		std::vector<StrongRef<RenderFramePresentationState>> _presentationStates;
 		std::deque<Pass> _passes;
 		std::vector<DrawItem> _drawItems;
+		std::vector<std::shared_ptr<const void>> _untrackedDrawSnapshots;
 		std::vector<CameraStatistics> _cameraStatistics;
 		std::unordered_map<MetaClass *, StrongRef<Object>> _attachmentSnapshots;
 		std::unordered_map<size_t, StrongRef<Texture>> _globalTextures;

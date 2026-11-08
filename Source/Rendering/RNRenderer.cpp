@@ -1081,12 +1081,31 @@ namespace RN
 
 	void Renderer::QueueDrawableDeletion(Drawable *drawable)
 	{
+		// Detach on the submission side; render-thread destruction must not touch source subscriptions.
+		// Captured snapshots remain alive until the deferred drawable deletion.
+		drawable->SetSources(nullptr, nullptr, nullptr);
 		LockGuard<Lockable> lock(_frameLifecycleLock);
 		_pendingDeletedDrawables.push_back({ drawable, _lastStartedRenderFrameID });
 	}
 
+	void Renderer::SubmitDrawables(const Drawable::PreparedDrawList &drawables, const SceneNode &node)
+	{
+		for(const auto &entry : drawables._entries)
+			SubmitDrawable(entry.drawable, &node);
+	}
+
+	void RenderFrame::RetainUntrackedDrawSnapshots(const Drawable &drawable)
+	{
+		_untrackedDrawSnapshots.push_back(drawable._meshSnapshot);
+		_untrackedDrawSnapshots.push_back(drawable._materialSnapshot);
+		_untrackedDrawSnapshots.push_back(drawable._skeletonSnapshot);
+	}
+
 	void Renderer::RetireDrawSnapshots(uint64 frameID, std::shared_ptr<const void> mesh, std::shared_ptr<const void> material, std::shared_ptr<const void> skeleton)
 	{
+		// An unnumbered frame owns its own references, but may also replace snapshots used by a numbered frame.
+		if(frameID == 0) frameID = _lastStartedRenderFrameID;
+
 		// Keep replaced snapshots until every submission that could reference them has completed.
 		if(_retiredDrawSnapshots.empty() || _retiredDrawSnapshots.back().frameID != frameID)
 			_retiredDrawSnapshots.push_back({frameID, {}});

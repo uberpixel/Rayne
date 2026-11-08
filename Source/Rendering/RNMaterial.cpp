@@ -7,6 +7,7 @@
 //
 
 #include "RNMaterial.h"
+#include "RNDrawable.h"
 #include "RNFramebuffer.h"
 
 namespace RN
@@ -240,6 +241,19 @@ namespace RN
 	{
 		Material *copyMaterial = new Material(material);
 		return copyMaterial->Autorelease();
+	}
+
+	void Material::MarkDrawSnapshotDirty()
+	{
+		_drawSnapshotVersion += 1;
+
+		// Subscribers are already dirty until a shared snapshot is captured.
+		if(!_sharedDrawSnapshot)
+			return;
+
+		_sharedDrawSnapshot.reset();
+		LockGuard<Material> lock(*this);
+		Drawable::MarkDrawSnapshotsDirty(_drawables, Drawable::MaterialSnapshotDirty);
 	}
 
 	void Material::SetTextures(const Array *textures)

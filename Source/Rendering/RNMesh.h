@@ -22,6 +22,8 @@
 
 namespace RN
 {
+	struct Drawable;
+
 	class Mesh : public Asset
 	{
 	public:
@@ -571,11 +573,13 @@ namespace RN
 		bool changedIndices;
 
 	private:
-		void MarkPipelineDirty()
-		{
-			_pipelineVersion += 1;
-			_sharedDrawSnapshot.reset();
-		}
+		friend struct Drawable;
+
+		void MarkPipelineDirty();
+
+		// Source mutation and snapshot capture remain serialized on the submission side.
+		// The object lock protects subscriber registration and notification iteration.
+		std::vector<Drawable *> _drawables;
 
 		void ParseAttributes();
 		void SubmitIndices(const Range &range);

@@ -39,9 +39,11 @@ namespace RN
 
 		Renderer *renderer = Renderer::GetActiveRenderer();
 #if RN_MODEL_LOD_DISABLED
+		_renderableDrawables.Clear();
 		for(Drawable *drawable : _drawables)
 			renderer->DeleteDrawable(drawable);
 #else
+		_renderableDrawables.clear();
 		for(const std::vector<Drawable *> &drawables : _drawables)
 		{
 			for(Drawable *drawable : drawables)
@@ -50,7 +52,6 @@ namespace RN
 #endif
 
 		_drawables.clear();
-		_renderableDrawables.clear();
 	}
 
 	void Entity::SetModel(Model *model)
@@ -120,7 +121,7 @@ namespace RN
 			return;
 
 #if RN_MODEL_LOD_DISABLED
-		const std::vector<Drawable *> &drawables = _renderableDrawables;
+		const Drawable::PreparedDrawList &drawables = _renderableDrawables;
 #else
 		Camera *distanceCamera = camera->GetLODCamera();
 
@@ -130,13 +131,11 @@ namespace RN
 		const Model::LODStage *stage = _model->GetLODStageForDistance(lodDistance);
 
 		size_t index = stage->_index;
-		const std::vector<Drawable *> &drawables = _renderableDrawables[index];
+		const Drawable::PreparedDrawList &drawables = _renderableDrawables[index];
 #endif
 
-		for(Drawable *drawable : drawables)
-		{
-			renderer->SubmitDrawable(drawable, this);
-		}
+		if(drawables.GetCount() > 0)
+			renderer->SubmitDrawables(drawables, *this);
 	}
 
 	void Entity::RefreshDrawableSources()
@@ -184,27 +183,27 @@ namespace RN
 	void Entity::RebuildRenderableDrawables()
 	{
 #if RN_MODEL_LOD_DISABLED
-		_renderableDrawables.clear();
-		_renderableDrawables.reserve(_drawables.size());
+		_renderableDrawables.Clear();
+		_renderableDrawables.Reserve(_drawables.size());
 		for(size_t i = 0; i < _drawables.size(); i += 1)
 		{
 			if(IsDrawableRenderingEnabled(i))
 			{
-				_renderableDrawables.push_back(_drawables[i]);
+				_renderableDrawables.Add(_drawables[i]);
 			}
 		}
 #else
 		for(size_t lodStage = 0; lodStage < _drawables.size(); lodStage += 1)
 		{
 			const std::vector<Drawable *> &drawables = _drawables[lodStage];
-			std::vector<Drawable *> &renderableDrawables = _renderableDrawables[lodStage];
-			renderableDrawables.clear();
-			renderableDrawables.reserve(drawables.size());
+			Drawable::PreparedDrawList &renderableDrawables = _renderableDrawables[lodStage];
+			renderableDrawables.Clear();
+			renderableDrawables.Reserve(drawables.size());
 			for(size_t i = 0; i < drawables.size(); i += 1)
 			{
 				if(IsDrawableRenderingEnabled(i))
 				{
-					renderableDrawables.push_back(drawables[i]);
+					renderableDrawables.Add(drawables[i]);
 				}
 			}
 		}
