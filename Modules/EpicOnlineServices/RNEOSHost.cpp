@@ -333,12 +333,25 @@ namespace RN
 		size_t queueLimit = _limitAggregateSending ? EOSMeshScheduledBytesPerPeer / (reliable ? 1 : 2) : EOSMaxScheduledBytesPerPeer;
 		if(channel == _backgroundChannel)
 		{
-			// One logical repair packet preserves queue space for foreground traffic.
+			// Allow a small lead of background packets, or one larger packet in an empty queue.
+			constexpr size_t backgroundQueueLead = 16 * 1024;
+			constexpr size_t backgroundQueuePackets = 16;
 			auto queued = peer->second._scheduledPackets.find(channel);
 			if(queued != peer->second._scheduledPackets.end() && !queued->second.empty())
 			{
-				Unlock();
-				return SendResult::QueueFull;
+				size_t pendingBytes = 0;
+				constexpr size_t payloadBytes = MaximumPacketSize - sizeof(ProtocolPayloadHeaderMultipart) - sizeof(ProtocolPacketEnvelope);
+				for(const auto &packet : queued->second)
+				{
+					const size_t sentBytes = static_cast<size_t>(packet.multipartNextPart) * payloadBytes;
+					pendingBytes += packet.data->GetLength() - std::min(packet.data->GetLength(), sentBytes);
+					if(pendingBytes >= backgroundQueueLead) break;
+				}
+				if(queued->second.size() >= backgroundQueuePackets || pendingBytes >= backgroundQueueLead || packetLength > backgroundQueueLead - pendingBytes)
+				{
+					Unlock();
+					return SendResult::QueueFull;
+				}
 			}
 			queueLimit /= 2;
 		}
