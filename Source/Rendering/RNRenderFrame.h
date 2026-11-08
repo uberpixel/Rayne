@@ -224,7 +224,7 @@ namespace RN
 		class DrawItem
 		{
 		public:
-			DrawItem(GPUBuffer::SnapshotReferences &bufferReferences, Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Mesh::BufferSnapshot *staticMeshBuffers, size_t staticMeshInstancingHash, const Drawable::IndirectDrawSnapshot *indirectDraw, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
+			DrawItem(RenderFrame &frame, Drawable *sourceDrawable, const Drawable::DrawSnapshotBundle &drawSnapshot, const Mesh::BufferSnapshot *staticMeshBuffers, size_t staticMeshInstancingHash, const Drawable::IndirectDrawSnapshot *indirectDraw, const Matrix &modelMatrix, const Matrix &inverseModelMatrix, uint64 sourceNodeUID, int32 renderPriority) :
 				_sourceDrawable(sourceDrawable),
 				_drawSnapshot(drawSnapshot),
 				_meshBuffers(staticMeshBuffers ? *staticMeshBuffers : Mesh::BufferSnapshot()),
@@ -232,14 +232,9 @@ namespace RN
 				_inverseModelMatrix(inverseModelMatrix),
 				_sourceNodeUID(sourceNodeUID),
 				_renderPriority(renderPriority),
-				_meshInstancingHash(staticMeshBuffers ? staticMeshInstancingHash : GetMesh().CaptureBuffersForDraw(_meshBuffers, bufferReferences))
-			{
-				if(indirectDraw)
-				{
-					_indirectDrawSnapshot = *indirectDraw;
-					_indirectDrawSnapshot.CaptureArgumentBuffer(bufferReferences);
-				}
-			}
+				_meshInstancingHash(staticMeshBuffers ? staticMeshInstancingHash : GetMesh().CaptureBuffersForDraw(_meshBuffers, *frame._bufferReferences)),
+				_indirectDrawSnapshot(indirectDraw ? frame.CaptureIndirectDrawSnapshot(*indirectDraw) : nullptr)
+			{}
 
 			Drawable *GetSourceDrawableForPreparation() const { return _sourceDrawable; }
 			const Mesh::DrawSnapshot &GetMesh() const { return _drawSnapshot.GetMesh(); }
@@ -252,19 +247,19 @@ namespace RN
 			int32 GetRenderPriority() const { return _renderPriority; }
 			size_t GetMeshInstancingHash() const { return _meshInstancingHash; }
 			uint64 GetMaterialSnapshotVersion() const { return _drawSnapshot.GetMaterialSnapshotVersion(); }
-			const Drawable::IndirectDrawSnapshot &GetIndirectDrawSnapshot() const { return _indirectDrawSnapshot; }
-			bool HasIndirectDraw() const { return _indirectDrawSnapshot.IsValid(); }
+			const Drawable::IndirectDrawSnapshot *GetIndirectDrawSnapshot() const { return _indirectDrawSnapshot; }
+			bool HasIndirectDraw() const { return _indirectDrawSnapshot != nullptr; }
 
 		private:
 			Drawable *_sourceDrawable;
 			Drawable::DrawSnapshotBundle _drawSnapshot;
 			Mesh::BufferSnapshot _meshBuffers;
-			Drawable::IndirectDrawSnapshot _indirectDrawSnapshot;
 			Matrix _modelMatrix;
 			Matrix _inverseModelMatrix;
 			uint64 _sourceNodeUID;
 			int32 _renderPriority;
 			size_t _meshInstancingHash;
+			const Drawable::IndirectDrawSnapshot *_indirectDrawSnapshot;
 		};
 
 		class Pass
@@ -455,6 +450,7 @@ namespace RN
 			_presentationStates.clear();
 			_passes.clear();
 			_drawItems.clear();
+			_indirectDrawSnapshots.reset();
 			_untrackedDrawSnapshots.clear();
 			_cameraStatistics.clear();
 			_attachmentSnapshots.clear();
@@ -597,7 +593,7 @@ namespace RN
 			if(_frameID == 0)
 				RetainUntrackedDrawSnapshots(*sourceDrawable);
 
-			_drawItems.emplace_back(*_bufferReferences, sourceDrawable, drawSnapshot, nullptr, 0, indirectDraw.IsValid() ? &indirectDraw : nullptr, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+			_drawItems.emplace_back(*this, sourceDrawable, drawSnapshot, nullptr, 0, indirectDraw.IsValid() ? &indirectDraw : nullptr, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
 			return _drawItems.size() - 1;
 		}
 
@@ -621,7 +617,7 @@ namespace RN
 
 			for(const auto &entry : entries)
 			{
-				_drawItems.emplace_back(*_bufferReferences, entry.drawable, entry.snapshot, entry.hasStaticMeshBuffers ? &entry.meshBuffers : nullptr, entry.meshInstancingHash, entry.indirectDraw, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
+				_drawItems.emplace_back(*this, entry.drawable, entry.snapshot, entry.hasStaticMeshBuffers ? &entry.meshBuffers : nullptr, entry.meshInstancingHash, entry.indirectDraw, modelMatrix, inverseModelMatrix, sourceNodeUID, renderPriority);
 			}
 
 			return firstDrawItemIndex;
@@ -705,12 +701,20 @@ namespace RN
 			}
 		}
 
+		const Drawable::IndirectDrawSnapshot *CaptureIndirectDrawSnapshot(const Drawable::IndirectDrawSnapshot &source)
+		{
+			if(!_indirectDrawSnapshots)
+				_indirectDrawSnapshots = std::make_shared<std::deque<Drawable::IndirectDrawSnapshot>>();
+			return &_indirectDrawSnapshots->emplace_back(source, *_bufferReferences);
+		}
+
 		RNAPI void RetainUntrackedDrawSnapshots(const Drawable &drawable);
 
 		std::shared_ptr<GPUBuffer::SnapshotReferences> _bufferReferences = std::make_shared<GPUBuffer::SnapshotReferences>();
 		uint64 _frameID = 0;
 		std::vector<StrongRef<RenderFramePresentationState>> _presentationStates;
 		std::deque<Pass> _passes;
+		std::shared_ptr<std::deque<Drawable::IndirectDrawSnapshot>> _indirectDrawSnapshots;
 		std::vector<DrawItem> _drawItems;
 		std::vector<std::shared_ptr<const void>> _untrackedDrawSnapshots;
 		std::vector<CameraStatistics> _cameraStatistics;

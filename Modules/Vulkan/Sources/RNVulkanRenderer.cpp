@@ -2893,26 +2893,25 @@ namespace RN
 		const VulkanRootSignature *rootSignature = pipelineState->rootSignature;
 		const Mesh::DrawSnapshot &mesh = drawItem.GetMesh();
 		const Mesh::BufferSnapshot &meshBuffers = drawItem.GetMeshBuffers();
-		const Drawable::IndirectDrawSnapshot &indirectDrawSnapshot = drawItem.GetIndirectDrawSnapshot();
-		const bool hasIndirectDraw = indirectDrawSnapshot.IsValid();
-		const bool usesIndexedDraw = hasIndirectDraw ? indirectDrawSnapshot.GetType() == Drawable::IndirectDrawType::DrawIndexed : mesh.GetIndicesCount() > 0;
+		const Drawable::IndirectDrawSnapshot *indirectDrawSnapshot = drawItem.GetIndirectDrawSnapshot();
+		const bool usesIndexedDraw = indirectDrawSnapshot ? indirectDrawSnapshot->GetType() == Drawable::IndirectDrawType::DrawIndexed : mesh.GetIndicesCount() > 0;
 		VulkanGPUBuffer *indirectBuffer = nullptr;
 		size_t indirectCommandStride = 0;
-		if(hasIndirectDraw)
+		if(indirectDrawSnapshot)
 		{
-			RN_ASSERT(indirectDrawSnapshot.GetType() != Drawable::IndirectDrawType::DrawIndexed || mesh.GetIndicesCount() > 0, "Indexed indirect draw requires an indexed mesh");
-			RN_ASSERT(indirectDrawSnapshot.GetType() != Drawable::IndirectDrawType::Draw || mesh.GetIndicesCount() == 0, "Non-indexed indirect draw requires a non-indexed mesh");
+			RN_ASSERT(indirectDrawSnapshot->GetType() != Drawable::IndirectDrawType::DrawIndexed || mesh.GetIndicesCount() > 0, "Indexed indirect draw requires an indexed mesh");
+			RN_ASSERT(indirectDrawSnapshot->GetType() != Drawable::IndirectDrawType::Draw || mesh.GetIndicesCount() == 0, "Non-indexed indirect draw requires a non-indexed mesh");
 
 			const size_t indirectCommandSize = usesIndexedDraw ? sizeof(DrawIndexedIndirectArguments) : sizeof(DrawIndirectArguments);
-			indirectCommandStride = indirectDrawSnapshot.GetStride() > 0 ? indirectDrawSnapshot.GetStride() : indirectCommandSize;
-			const size_t indirectCommandRange = indirectCommandStride * (indirectDrawSnapshot.GetDrawCount() - 1) + indirectCommandSize;
-			RN_DEBUG_ASSERT(indirectDrawSnapshot.GetArgumentBufferOffset() % 4 == 0, "Indirect draw argument buffer offset must be 4-byte aligned");
+			indirectCommandStride = indirectDrawSnapshot->GetStride() > 0 ? indirectDrawSnapshot->GetStride() : indirectCommandSize;
+			const size_t indirectCommandRange = indirectCommandStride * (indirectDrawSnapshot->GetDrawCount() - 1) + indirectCommandSize;
+			RN_DEBUG_ASSERT(indirectDrawSnapshot->GetArgumentBufferOffset() % 4 == 0, "Indirect draw argument buffer offset must be 4-byte aligned");
 			RN_DEBUG_ASSERT(indirectCommandStride % 4 == 0, "Indirect draw command stride must be 4-byte aligned");
 			RN_DEBUG_ASSERT(indirectCommandStride >= indirectCommandSize, "Indirect draw command stride must fit the command type");
 			RN_DEBUG_ASSERT(indirectCommandStride <= 0xffffffffu, "Indirect draw command stride exceeds Vulkan limits");
-			RN_DEBUG_ASSERT(indirectDrawSnapshot.GetArgumentBufferOffset() + indirectCommandRange <= indirectDrawSnapshot.GetArgumentBuffer()->GetLength(), "Indirect draw argument buffer range is out of bounds");
+			RN_DEBUG_ASSERT(indirectDrawSnapshot->GetArgumentBufferOffset() + indirectCommandRange <= indirectDrawSnapshot->GetArgumentBuffer()->GetLength(), "Indirect draw argument buffer range is out of bounds");
 
-			GPUBuffer *activeBuffer = indirectDrawSnapshot.GetArgumentBuffer()->GetActiveBuffer();
+			GPUBuffer *activeBuffer = indirectDrawSnapshot->GetArgumentBuffer()->GetActiveBuffer();
 			indirectBuffer = activeBuffer ? activeBuffer->Downcast<VulkanGPUBuffer>() : nullptr;
 			RN_DEBUG_ASSERT(indirectBuffer, "Indirect draw argument buffer must be a Vulkan buffer");
 		}
@@ -2982,21 +2981,21 @@ namespace RN
 				_internals->drawBindStateCache.indexType = indexType;
 			}
 
-			if(hasIndirectDraw)
+			if(indirectDrawSnapshot)
 			{
 				if(indirectBuffer)
 				{
-					const uint32 indirectDrawCount = indirectDrawSnapshot.GetDrawCount();
+					const uint32 indirectDrawCount = indirectDrawSnapshot->GetDrawCount();
 					const uint32 indirectStride = static_cast<uint32>(indirectCommandStride);
 					if(indirectDrawCount == 1 || GetVulkanDevice()->GetSupportsMultiDrawIndirect())
 					{
-						vk::CmdDrawIndexedIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot.GetArgumentBufferOffset(), indirectDrawCount, indirectStride);
+						vk::CmdDrawIndexedIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot->GetArgumentBufferOffset(), indirectDrawCount, indirectStride);
 					}
 					else
 					{
 						for(uint32 drawIndex = 0; drawIndex < indirectDrawCount; drawIndex++)
 						{
-							vk::CmdDrawIndexedIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot.GetArgumentBufferOffset() + indirectCommandStride * drawIndex, 1, indirectStride);
+							vk::CmdDrawIndexedIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot->GetArgumentBufferOffset() + indirectCommandStride * drawIndex, 1, indirectStride);
 						}
 					}
 				}
@@ -3009,21 +3008,21 @@ namespace RN
 		}
 		else
 		{
-			if(hasIndirectDraw)
+			if(indirectDrawSnapshot)
 			{
 				if(indirectBuffer)
 				{
-					const uint32 indirectDrawCount = indirectDrawSnapshot.GetDrawCount();
+					const uint32 indirectDrawCount = indirectDrawSnapshot->GetDrawCount();
 					const uint32 indirectStride = static_cast<uint32>(indirectCommandStride);
 					if(indirectDrawCount == 1 || GetVulkanDevice()->GetSupportsMultiDrawIndirect())
 					{
-						vk::CmdDrawIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot.GetArgumentBufferOffset(), indirectDrawCount, indirectStride);
+						vk::CmdDrawIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot->GetArgumentBufferOffset(), indirectDrawCount, indirectStride);
 					}
 					else
 					{
 						for(uint32 drawIndex = 0; drawIndex < indirectDrawCount; drawIndex++)
 						{
-							vk::CmdDrawIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot.GetArgumentBufferOffset() + indirectCommandStride * drawIndex, 1, indirectStride);
+							vk::CmdDrawIndirect(commandBuffer, indirectBuffer->GetVulkanBuffer(), indirectDrawSnapshot->GetArgumentBufferOffset() + indirectCommandStride * drawIndex, 1, indirectStride);
 						}
 					}
 				}
