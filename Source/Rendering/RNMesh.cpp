@@ -90,6 +90,11 @@ namespace RN
 			free(_indicesBufferCPU);
 	}
 
+	Mesh::DrawSnapshot::DrawSnapshot()
+	{
+		UpdateInstancingHash();
+	}
+
 	Mesh::DrawSnapshot::DrawSnapshot(const DrawSnapshot &snapshot)
 	{
 		*this = snapshot;
@@ -107,6 +112,8 @@ namespace RN
 		_verticesCount = snapshot._verticesCount;
 		_indicesCount = snapshot._indicesCount;
 		_pipelineHash = snapshot._pipelineHash;
+		_instancingHash = snapshot._instancingHash;
+		_isStreamed = snapshot._isStreamed;
 		_drawMode = snapshot._drawMode;
 		_indexType = snapshot._indexType;
 
@@ -127,6 +134,28 @@ namespace RN
 		_pipelineHash = 0;
 		_drawMode = DrawMode::Triangle;
 		_indexType = PrimitiveType::Invalid;
+		_isStreamed = false;
+		UpdateInstancingHash();
+	}
+
+	void Mesh::DrawSnapshot::UpdateInstancingHash()
+	{
+		_instancingHash = 0;
+		HashCombine(_instancingHash, _verticesCount);
+		HashCombine(_instancingHash, _indicesCount);
+		HashCombine(_instancingHash, _pipelineHash);
+		HashCombine(_instancingHash, static_cast<uint32>(_indexType));
+		if(!_isStreamed)
+		{
+			HashCombine(_instancingHash, _vertexBuffer.Get());
+			HashCombine(_instancingHash, _indicesBuffer.Get());
+		}
+	}
+
+	void Mesh::DrawSnapshot::GetBufferSnapshot(BufferSnapshot &snapshot) const
+	{
+		snapshot._vertexBuffer = _vertexBuffer.Get() ? _vertexBuffer->GetActiveBuffer() : nullptr;
+		snapshot._indicesBuffer = _indicesBuffer.Get() ? _indicesBuffer->GetActiveBuffer() : nullptr;
 	}
 
 	void Mesh::ParseAttributes()
@@ -418,12 +447,8 @@ namespace RN
 		HashCombine(pipelineHash, snapshot._stride);
 		HashCombine(pipelineHash, static_cast<uint32>(snapshot._drawMode));
 		snapshot._pipelineHash = pipelineHash;
-	}
-
-	void Mesh::GetBufferSnapshot(BufferSnapshot &snapshot) const
-	{
-		snapshot._vertexBuffer = _vertexBuffer ? _vertexBuffer->GetActiveBuffer() : nullptr;
-		snapshot._indicesBuffer = _indicesBuffer ? _indicesBuffer->GetActiveBuffer() : nullptr;
+		snapshot._isStreamed = _isStreamed;
+		snapshot.UpdateInstancingHash();
 	}
 
 	void Mesh::CalculateBoundingVolumes()

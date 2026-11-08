@@ -153,7 +153,6 @@ namespace RN
 		RNAPI void SetSources(Mesh *mesh, Material *material, Skeleton *skeleton);
 		RNAPI void SetIndirectDrawBuffer(GPUBuffer *argumentBuffer, IndirectDrawType type, size_t argumentBufferOffset = 0, uint32 drawCount = 1, size_t stride = 0);
 		RNAPI void ClearIndirectDrawBuffer();
-		RNAPI void GetMeshBufferSnapshot(Mesh::BufferSnapshot &snapshot) const;
 		RNAPI DrawSnapshotBundle GetDrawSnapshotBundleForFrame(uint64 frameID);
 		const IndirectDrawSnapshot &GetIndirectDrawSnapshot() const { return _indirectDrawSnapshot; }
 

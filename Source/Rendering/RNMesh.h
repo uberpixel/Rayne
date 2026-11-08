@@ -192,44 +192,7 @@ namespace RN
 		class Chunk;
 		friend class Chunk;
 
-		class DrawSnapshot
-		{
-		public:
-			DrawSnapshot() = default;
-			RNAPI DrawSnapshot(const DrawSnapshot &snapshot);
-
-			RNAPI DrawSnapshot &operator=(const DrawSnapshot &snapshot);
-
-			RNAPI void Reset();
-
-			size_t GetVerticesCount() const { return _verticesCount; }
-			size_t GetIndicesCount() const { return _indicesCount; }
-			size_t GetVertexPositionsSeparatedSize() const { return _vertexPositionsSeparatedSize; }
-			size_t GetVertexPositionsSeparatedStride() const { return _vertexPositionsSeparatedStride; }
-			size_t GetStride() const { return _stride; }
-			const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
-			const std::vector<VertexAttribute> &GetVertexAttributes() const { return _descriptor.GetAttributes(); }
-			size_t GetPipelineHash() const { return _pipelineHash; }
-			DrawMode GetDrawMode() const { return _drawMode; }
-			PrimitiveType GetIndexType() const { return _indexType; }
-
-		private:
-			friend class Mesh;
-
-			VertexDescriptor _descriptor;
-			StrongRef<GPUBuffer> _vertexBuffer;
-			StrongRef<GPUBuffer> _indicesBuffer;
-
-			size_t _vertexPositionsSeparatedSize = 0;
-			size_t _vertexPositionsSeparatedStride = 0;
-			size_t _stride = 0;
-			size_t _verticesCount = 0;
-			size_t _indicesCount = 0;
-			size_t _pipelineHash = 0;
-
-			DrawMode _drawMode = DrawMode::Triangle;
-			PrimitiveType _indexType = PrimitiveType::Invalid;
-		};
+		class DrawSnapshot;
 
 		class BufferSnapshot
 		{
@@ -246,10 +209,78 @@ namespace RN
 			GPUBuffer *GetIndicesBuffer() const { return _indicesBuffer; }
 
 		private:
-			friend class Mesh;
+			friend class DrawSnapshot;
 
 			GPUBuffer *_vertexBuffer = nullptr;
 			GPUBuffer *_indicesBuffer = nullptr;
+		};
+
+		class DrawSnapshot
+		{
+		public:
+			RNAPI DrawSnapshot();
+			RNAPI DrawSnapshot(const DrawSnapshot &snapshot);
+
+			RNAPI DrawSnapshot &operator=(const DrawSnapshot &snapshot);
+
+			RNAPI void Reset();
+			RNAPI void GetBufferSnapshot(BufferSnapshot &snapshot) const;
+
+			bool GetStaticBuffersForDraw(BufferSnapshot &snapshot, size_t &instancingHash) const
+			{
+				if(_isStreamed) return false;
+
+				snapshot._vertexBuffer = _vertexBuffer.Get();
+				snapshot._indicesBuffer = _indicesBuffer.Get();
+				instancingHash = _instancingHash;
+				return true;
+			}
+
+			size_t CaptureBuffersForDraw(BufferSnapshot &snapshot, GPUBuffer::SnapshotReferences &bufferReferences) const
+			{
+				size_t instancingHash;
+				if(GetStaticBuffersForDraw(snapshot, instancingHash)) return instancingHash;
+
+				GetBufferSnapshot(snapshot);
+				bufferReferences.CaptureBuffer(snapshot.GetVertexBuffer());
+				bufferReferences.CaptureBuffer(snapshot.GetIndicesBuffer());
+				instancingHash = _instancingHash;
+				HashCombine(instancingHash, snapshot.GetVertexBuffer());
+				HashCombine(instancingHash, snapshot.GetIndicesBuffer());
+				return instancingHash;
+			}
+
+			size_t GetVerticesCount() const { return _verticesCount; }
+			size_t GetIndicesCount() const { return _indicesCount; }
+			size_t GetVertexPositionsSeparatedSize() const { return _vertexPositionsSeparatedSize; }
+			size_t GetVertexPositionsSeparatedStride() const { return _vertexPositionsSeparatedStride; }
+			size_t GetStride() const { return _stride; }
+			const VertexDescriptor &GetVertexDescriptor() const { return _descriptor; }
+			const std::vector<VertexAttribute> &GetVertexAttributes() const { return _descriptor.GetAttributes(); }
+			size_t GetPipelineHash() const { return _pipelineHash; }
+			DrawMode GetDrawMode() const { return _drawMode; }
+			PrimitiveType GetIndexType() const { return _indexType; }
+
+		private:
+			friend class Mesh;
+
+			void UpdateInstancingHash();
+
+			VertexDescriptor _descriptor;
+			StrongRef<GPUBuffer> _vertexBuffer;
+			StrongRef<GPUBuffer> _indicesBuffer;
+
+			size_t _vertexPositionsSeparatedSize = 0;
+			size_t _vertexPositionsSeparatedStride = 0;
+			size_t _stride = 0;
+			size_t _verticesCount = 0;
+			size_t _indicesCount = 0;
+			size_t _pipelineHash = 0;
+			size_t _instancingHash = 0;
+			bool _isStreamed = false;
+
+			DrawMode _drawMode = DrawMode::Triangle;
+			PrimitiveType _indexType = PrimitiveType::Invalid;
 		};
 
 		class __ChunkFriend
@@ -511,7 +542,6 @@ namespace RN
 		RNAPI void GetDrawSnapshot(DrawSnapshot &snapshot) const;
 		// Submission-thread cache. Published snapshots remain immutable while frames use them.
 		RNAPI const std::shared_ptr<const DrawSnapshot> &GetSharedDrawSnapshot() const;
-		RNAPI void GetBufferSnapshot(BufferSnapshot &snapshot) const;
 
 		//TODO: Having the two types is a bit confusing since they result in different iterator behaviour
 		Chunk GetChunk() { return Chunk(this, false); }

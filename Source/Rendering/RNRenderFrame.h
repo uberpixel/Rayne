@@ -231,19 +231,10 @@ namespace RN
 				_inverseModelMatrix(inverseModelMatrix),
 				_sourceNodeUID(sourceNodeUID),
 				_renderPriority(renderPriority),
-				_meshInstancingHash(0)
+				_meshInstancingHash(GetMesh().CaptureBuffersForDraw(_meshBuffers, bufferReferences))
 			{
-				sourceDrawable->GetMeshBufferSnapshot(_meshBuffers);
 				_indirectDrawSnapshot = sourceDrawable->GetIndirectDrawSnapshot();
-				bufferReferences.CaptureBuffer(_meshBuffers.GetVertexBuffer());
-				bufferReferences.CaptureBuffer(_meshBuffers.GetIndicesBuffer());
 				_indirectDrawSnapshot.CaptureArgumentBuffer(bufferReferences);
-				HashCombine(_meshInstancingHash, GetMesh().GetVerticesCount());
-				HashCombine(_meshInstancingHash, GetMesh().GetIndicesCount());
-				HashCombine(_meshInstancingHash, GetMesh().GetPipelineHash());
-				HashCombine(_meshInstancingHash, static_cast<uint32>(GetMesh().GetIndexType()));
-				HashCombine(_meshInstancingHash, _meshBuffers.GetVertexBuffer());
-				HashCombine(_meshInstancingHash, _meshBuffers.GetIndicesBuffer());
 			}
 
 			Drawable *GetSourceDrawableForPreparation() const { return _sourceDrawable; }

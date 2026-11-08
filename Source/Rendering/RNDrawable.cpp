@@ -90,15 +90,6 @@ namespace RN
 		SetIndirectDrawBuffer(nullptr, IndirectDrawType::Draw, 0, 1, 0);
 	}
 
-	void Drawable::GetMeshBufferSnapshot(Mesh::BufferSnapshot &snapshot) const
-	{
-		Mesh *mesh = _sourceMesh.Get();
-		if(mesh)
-			mesh->GetBufferSnapshot(snapshot);
-		else
-			snapshot.Reset();
-	}
-
 	Drawable::DrawSnapshotBundle Drawable::GetDrawSnapshotBundleForFrame(uint64 frameID)
 	{
 		UpdateDrawSnapshots(frameID);
