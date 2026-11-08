@@ -460,11 +460,16 @@ private:
 		return true;
 	}
 
-	static bool GetDirectionForPosition(Vec3Arg position, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double &x, double &y, double &z)
+	static void GetPositionRelativeToPlanetCenter(Vec3Arg position, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double &x, double &y, double &z)
 	{
 		x = static_cast<double>(position.GetX()) + localBase.x + localOrigin.x;
 		y = static_cast<double>(position.GetY()) + localBase.y + localOrigin.y;
 		z = static_cast<double>(position.GetZ()) + localBase.z + localOrigin.z;
+	}
+
+	static bool GetDirectionForPosition(Vec3Arg position, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double &x, double &y, double &z)
+	{
+		GetPositionRelativeToPlanetCenter(position, localBase, localOrigin, x, y, z);
 		return Normalize(x, y, z);
 	}
 
@@ -677,27 +682,6 @@ private:
 		if(gridU > range.maxU) range.maxU = gridU;
 		if(gridV < range.minV) range.minV = gridV;
 		if(gridV > range.maxV) range.maxV = gridV;
-	}
-
-	static bool DoesTriangleOverlapBox(const Triangle &triangle, const AABox &box)
-	{
-		Vec3 minimum = triangle.vertices[0];
-		Vec3 maximum = triangle.vertices[0];
-		for(uint i = 1; i < 3; i += 1)
-		{
-			const Vec3 vertex = triangle.vertices[i];
-			minimum = Vec3(vertex.GetX() < minimum.GetX() ? vertex.GetX() : minimum.GetX(),
-						   vertex.GetY() < minimum.GetY() ? vertex.GetY() : minimum.GetY(),
-						   vertex.GetZ() < minimum.GetZ() ? vertex.GetZ() : minimum.GetZ());
-			maximum = Vec3(vertex.GetX() > maximum.GetX() ? vertex.GetX() : maximum.GetX(),
-						   vertex.GetY() > maximum.GetY() ? vertex.GetY() : maximum.GetY(),
-						   vertex.GetZ() > maximum.GetZ() ? vertex.GetZ() : maximum.GetZ());
-		}
-
-		if(maximum.GetX() < box.mMin.GetX() || minimum.GetX() > box.mMax.GetX()) return false;
-		if(maximum.GetY() < box.mMin.GetY() || minimum.GetY() > box.mMax.GetY()) return false;
-		if(maximum.GetZ() < box.mMin.GetZ() || minimum.GetZ() > box.mMax.GetZ()) return false;
-		return true;
 	}
 
 	PrecisionBase GetLocalOrigin() const
@@ -1667,7 +1651,7 @@ private:
 		}
 	}
 
-	bool BuildSampledGridTriangleFromVertices(const SampledGridKey &key, const Vec3 &p00, const Vec3 &p10, const Vec3 &p01, const Vec3 &p11, int originU, int originV, Triangle &triangle, Vec3 &normal, const AABox *queryBox = nullptr) const
+	bool BuildSampledGridTriangleFromVertices(const SampledGridKey &key, const Vec3 &p00, const Vec3 &p10, const Vec3 &p01, const Vec3 &p11, int originU, int originV, Triangle &triangle, Vec3 &normal) const
 	{
 		if(key.diagonal == 0)
 		{
@@ -1682,9 +1666,6 @@ private:
 			triangle.vertices[2] = p01;
 		}
 
-		// Most padded grid triangles miss the query; reject them before computing
-		// IDs and normalized face normals.
-		if(queryBox && !DoesTriangleOverlapBox(triangle, *queryBox)) return false;
 		if(!MakeSampledTriangleID(key.face, key.diagonal, key.gridU, key.gridV, originU, originV, triangle.id)) return false;
 		// All cube-sphere faces use the same outward u/v winding, which positive radial terrain samples preserve.
 		normal = (triangle.vertices[1] - triangle.vertices[0]).Cross(triangle.vertices[2] - triangle.vertices[0]);
@@ -1719,8 +1700,16 @@ private:
 		double z = 0.0;
 		if(!GetDirectionForPosition(point, localBase, localOrigin, x, y, z)) return;
 
-		for(uint8 face = 0; face < 6; face += 1)
+		const double components[] = {x, y, z};
+		// A face needs at least 4/5 of the largest component to pass the
+		// 1.25 projection limit. Leave margin and keep the original ratios.
+		const double cutoff = 0.75 * max(GetAbsoluteValue(x), max(GetAbsoluteValue(y), GetAbsoluteValue(z)));
+		for(uint8 axis = 0; axis < 3; axis += 1)
 		{
+			const double component = components[axis];
+			if(GetAbsoluteValue(component) < cutoff) continue;
+
+			const uint8 face = static_cast<uint8>(axis * 2 + (component < 0.0));
 			double u = 0.0;
 			double v = 0.0;
 			if(!GetFaceCoordinatesOnFace(x, y, z, face, u, v)) continue;
@@ -1728,6 +1717,80 @@ private:
 			const int gridU = GetGridCoordinate(u * referenceRadius);
 			const int gridV = GetGridCoordinate(v * referenceRadius);
 			IncludeSampledGridCoordinate(ranges[face], gridU, gridV);
+		}
+	}
+
+	static bool TryGetSingleFaceGridRange(const AABox &box, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, SampledGridFaceRange ranges[6])
+	{
+		// Keep the float center between the corners and the grid indices well within int range.
+		const Vec3 centerLimit = Vec3::sReplicate(FLT_MAX * 0.5f);
+		if(!Vec3::sLessOrEqual(box.mMin, box.mMax).TestAllXYZTrue() ||
+		   !Vec3::sLess(-centerLimit, box.mMin).TestAllXYZTrue() ||
+		   !Vec3::sLess(box.mMax, centerLimit).TestAllXYZTrue() ||
+		   !(referenceRadius >= 1.0 && referenceRadius < std::numeric_limits<int>::max() * 0.5)) return false;
+
+		double lower[3], upper[3];
+		GetPositionRelativeToPlanetCenter(box.mMin, localBase, localOrigin, lower[0], lower[1], lower[2]);
+		GetPositionRelativeToPlanetCenter(box.mMax, localBase, localOrigin, upper[0], upper[1], upper[2]);
+		const uint8 face = GetDominantCubeSphereFace(lower[0], lower[1], lower[2]);
+		const uint8 axis = face / 2;
+		const bool negativeFace = (face & 1u) != 0;
+		const double minDenominator = negativeFace ? -upper[axis] : lower[axis];
+		const double maxDenominator = negativeFace ? -lower[axis] : upper[axis];
+		// Keep the length computation in the original projection finite and above its cutoff.
+		if(!(minDenominator > 1.0e-8 && maxDenominator < 1.0e150)) return false;
+
+		// Below this limit, all other faces fail the original 1.25 projection limit.
+		const uint8 uAxis = axis == 0 ? 2 : 0;
+		const uint8 vAxis = axis == 1 ? 2 : 1;
+		const double otherAxisLimit = minDenominator * 0.75;
+		if(!(lower[uAxis] > -otherAxisLimit && upper[uAxis] < otherAxisLimit &&
+			 lower[vAxis] > -otherAxisLimit && upper[vAxis] < otherAxisLimit)) return false;
+
+		const double nearScale = referenceRadius / minDenominator;
+		const double farScale = referenceRadius / maxDenominator;
+		// A common normalization factor cancels from u/v. Allow for rounding in both projections.
+		const double boundaryMargin = 16.0 * DBL_EPSILON * referenceRadius / CollisionGridCellSize;
+		const auto getGridInterval = [&](uint8 coordinateAxis, bool flipped, int &minGrid, int &maxGrid)
+		{
+			const double minNumerator = flipped ? -upper[coordinateAxis] : lower[coordinateAxis];
+			const double maxNumerator = flipped ? -lower[coordinateAxis] : upper[coordinateAxis];
+			// Each endpoint is attained at a corner. The sign selects the near or far denominator.
+			const double minMeters = minNumerator * (minNumerator < 0.0 ? nearScale : farScale);
+			const double maxMeters = maxNumerator * (maxNumerator < 0.0 ? farScale : nearScale);
+			minGrid = GetGridCoordinate(minMeters);
+			maxGrid = GetGridCoordinate(maxMeters);
+			const double minFraction = minMeters / CollisionGridCellSize - minGrid;
+			const double maxFraction = maxMeters / CollisionGridCellSize - maxGrid;
+			return minFraction > boundaryMargin && minFraction < 1.0 - boundaryMargin &&
+				   maxFraction > boundaryMargin && maxFraction < 1.0 - boundaryMargin;
+		};
+
+		SampledGridFaceRange range;
+		if(!getGridInterval(uAxis, face == 0 || face == 5, range.minU, range.maxU) ||
+		   !getGridInterval(vAxis, face == 2, range.minV, range.maxV)) return false;
+		range.valid = true;
+		ranges[face] = range;
+		return true;
+	}
+
+	void GetSampledGridRanges(const AABox &box, const PrecisionBase &localBase, const PrecisionBase &localOrigin, double referenceRadius, SampledGridFaceRange ranges[6]) const
+	{
+		if(TryGetSingleFaceGridRange(box, localBase, localOrigin, referenceRadius, ranges)) return;
+
+		IncludeSampledGridPoint(box.GetCenter(), localBase, localOrigin, referenceRadius, ranges);
+		for(uint x = 0; x < 2; x += 1)
+		{
+			for(uint y = 0; y < 2; y += 1)
+			{
+				for(uint z = 0; z < 2; z += 1)
+				{
+					const Vec3 point(x == 0 ? box.mMin.GetX() : box.mMax.GetX(),
+									 y == 0 ? box.mMin.GetY() : box.mMax.GetY(),
+									 z == 0 ? box.mMin.GetZ() : box.mMax.GetZ());
+					IncludeSampledGridPoint(point, localBase, localOrigin, referenceRadius, ranges);
+				}
+			}
 		}
 	}
 
@@ -1806,21 +1869,7 @@ private:
 		if(maximumTriangleCount == 0) return 0;
 
 		SampledGridFaceRange ranges[6];
-
-		IncludeSampledGridPoint(box.GetCenter(), localBase, localOrigin, referenceRadius, ranges);
-		for(uint x = 0; x < 2; x += 1)
-		{
-			for(uint y = 0; y < 2; y += 1)
-			{
-				for(uint z = 0; z < 2; z += 1)
-				{
-					const Vec3 point(x == 0 ? box.mMin.GetX() : box.mMax.GetX(),
-									 y == 0 ? box.mMin.GetY() : box.mMax.GetY(),
-									 z == 0 ? box.mMin.GetZ() : box.mMax.GetZ());
-					IncludeSampledGridPoint(point, localBase, localOrigin, referenceRadius, ranges);
-				}
-			}
-		}
+		GetSampledGridRanges(box, localBase, localOrigin, referenceRadius, ranges);
 
 		uint triangleCount = 0;
 		SampledGridRowScratch &scratch = GetSampledGridRowScratch();
@@ -1862,20 +1911,20 @@ private:
 					const Vec3 &p10 = vertexRows[lowerRowIndex][column + 1];
 					const Vec3 &p01 = vertexRows[upperRowIndex][column];
 					const Vec3 &p11 = vertexRows[upperRowIndex][column + 1];
+					const AABox diagonalBounds = AABox::sFromTwoPoints(p10, p01);
 
 					for(uint8 diagonal = 0; diagonal < 2; diagonal += 1)
 					{
 						if(triangleCount >= maximumTriangleCount || visitor.ShouldAbort()) return triangleCount;
 
-						SampledGridKey key;
-						key.face = face;
-						key.diagonal = diagonal;
-						key.gridU = gridU;
-						key.gridV = gridV;
+						AABox triangleBounds = diagonalBounds;
+						triangleBounds.Encapsulate(diagonal == 0 ? p00 : p11);
+						if(!triangleBounds.Overlaps(box)) continue;
 
+						const SampledGridKey key {face, diagonal, gridU, gridV};
 						Triangle triangle;
 						Vec3 normal;
-						if(!BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, originU, originV, triangle, normal, &box)) continue;
+						if(!BuildSampledGridTriangleFromVertices(key, p00, p10, p01, p11, originU, originV, triangle, normal)) continue;
 
 						visitor.VisitTriangle(triangle, normal);
 						triangleCount += 1;
