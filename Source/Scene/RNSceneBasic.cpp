@@ -25,6 +25,28 @@ namespace RN
 	RNDefineMeta(SceneBasic, Scene)
 	RNDefineMeta(SceneBasicInfo, SceneInfo)
 
+	// Keep distance sort keys consistent when the compiler can otherwise reassociate or fuse arithmetic.
+#if RN_COMPILER_CLANG || RN_COMPILER_MSVC
+	#pragma float_control(precise, on, push)
+#endif
+#if RN_COMPILER_MSVC && !RN_COMPILER_CLANG
+	#pragma fp_contract(off)
+#endif
+	RN_INLINE auto GetSceneSortSquaredDistance(const PositionType &position, const PositionType &cameraPosition)
+	{
+#if RN_COMPILER_CLANG
+		#pragma clang fp contract(off)
+#endif
+		const auto x = position.x - cameraPosition.x;
+		const auto y = position.y - cameraPosition.y;
+		const auto z = position.z - cameraPosition.z;
+		const auto distance = x * x + y * y + z * z;
+		return distance == distance ? distance : 0; // Give NaNs an ordered sort key.
+	}
+#if RN_COMPILER_CLANG || RN_COMPILER_MSVC
+	#pragma float_control(pop)
+#endif
+
 	SceneBasic::OcclusionCullingParameters::OcclusionCullingParameters(uint16 textureWidth, uint16 textureHeight, size_t maxOccluders, uint16 frameCount, float jitter) :
 		textureWidth(textureWidth > 0 ? textureWidth : 1),
 		textureHeight(textureHeight > 0 ? textureHeight : 1),
@@ -569,7 +591,7 @@ namespace RN
 					std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [cameraWorldPosition](SceneNode *a, SceneNode *b) {
 						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
 						{
-							return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) < b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
+							return GetSceneSortSquaredDistance(a->GetWorldPosition(), cameraWorldPosition) < GetSceneSortSquaredDistance(b->GetWorldPosition(), cameraWorldPosition);
 						}
 						return a->GetRenderPriority() < b->GetRenderPriority();
 					});
@@ -580,7 +602,7 @@ namespace RN
 					RN_PROFILE_SCOPE_N("Sort Transparent");
 					const PositionType cameraWorldPosition = camera->GetWorldPosition();
 					std::sort(sceneNodesToRender.begin() + firstTransparentIndex, sceneNodesToRender.begin() + lastTransparentIndex + 1, [cameraWorldPosition](SceneNode *a, SceneNode *b) {
-						return a->GetWorldPosition().GetSquaredDistance(cameraWorldPosition) > b->GetWorldPosition().GetSquaredDistance(cameraWorldPosition);
+						return GetSceneSortSquaredDistance(a->GetWorldPosition(), cameraWorldPosition) > GetSceneSortSquaredDistance(b->GetWorldPosition(), cameraWorldPosition);
 					});
 				}
 
