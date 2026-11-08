@@ -9,6 +9,7 @@
 #include "RNSceneNode.h"
 #include "RNScene.h"
 #include "RNSceneNodeAttachment.h"
+#include "RNSceneQuadtree.h"
 
 namespace RN
 {
@@ -472,7 +473,26 @@ namespace RN
 
 	void SceneNode::AddChild(SceneNode *child)
 	{
-		child->RemoveFromParent();
+		SceneNode *oldParent = child->_parent;
+		Scene *scene = child->_sceneInfo ? child->_sceneInfo->GetScene() : nullptr;
+		// The quadtree refreshes spatial bounds when a node is removed and reinserted.
+		bool keepInScene = oldParent != this && scene && _sceneInfo && _sceneInfo->GetScene() == scene &&
+			!child->_scheduledForRemovalFromScene && !scene->IsKindOfClass(SceneQuadtree::GetMetaClass());
+		if(keepInScene)
+		{
+			for(const SceneNode *ancestor = this; ancestor; ancestor = ancestor->_parent)
+			{
+				if(ancestor == child || ancestor->_scheduledForRemovalFromScene)
+				{
+					keepInScene = false;
+					break;
+				}
+			}
+		}
+
+		StrongRef<SceneNode> keepAlive(oldParent ? child : nullptr);
+		if(oldParent)
+			oldParent->__RemoveChild(child, !keepInScene);
 
 		WillAddChild(child);
 		child->WillUpdate(ChangeSet::Parent);
@@ -481,12 +501,18 @@ namespace RN
 
 		child->_parent = this;
 		child->DidUpdate(ChangeSet::Parent);
-		child->__CompleteAttachmentWithScene(_sceneInfo);
+		if(!keepInScene)
+			child->__CompleteAttachmentWithScene(_sceneInfo);
 
 		DidAddChild(child);
 	}
 
 	void SceneNode::RemoveChild(SceneNode *child)
+	{
+		__RemoveChild(child, true);
+	}
+
+	void SceneNode::__RemoveChild(SceneNode *child, bool updateSceneInfo)
 	{
 		if(child->_parent == this)
 		{
@@ -499,7 +525,8 @@ namespace RN
 			_children->RemoveObject(child);
 
 			child->DidUpdate(ChangeSet::Parent);
-			child->__CompleteAttachmentWithScene(nullptr);
+			if(updateSceneInfo)
+				child->__CompleteAttachmentWithScene(nullptr);
 
 			DidRemoveChild(child);
 
@@ -507,11 +534,18 @@ namespace RN
 		}
 	}
 
-	void SceneNode::RemoveFromParent()
+	void SceneNode::RemoveFromParent(bool keepInScene)
 	{
-		SceneNode *parent = GetParent();
-		if(parent)
-			parent->RemoveChild(this);
+		SceneNode *parent = _parent;
+		if(!parent)
+			return;
+
+		Scene *scene = keepInScene && _sceneInfo ? _sceneInfo->GetScene() : nullptr;
+		const bool readdToScene = scene && (_scheduledForRemovalFromScene || scene->IsKindOfClass(SceneQuadtree::GetMetaClass()));
+		StrongRef<SceneNode> keepAlive(readdToScene ? this : nullptr);
+		parent->__RemoveChild(this, !scene || readdToScene);
+		if(readdToScene)
+			scene->AddNode(this);
 	}
 
 	void SceneNode::AddAttachment(SceneNodeAttachment *attachment)

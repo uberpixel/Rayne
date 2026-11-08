@@ -153,7 +153,7 @@ namespace RN
 
 		RNAPI void AddChild(SceneNode *child);
 		RNAPI void RemoveChild(SceneNode *child);
-		RNAPI void RemoveFromParent();
+		RNAPI void RemoveFromParent(bool keepInScene = false);
 
 		RNAPI void AddAttachment(SceneNodeAttachment *attachment);
 		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
@@ -236,6 +236,7 @@ namespace RN
 		RNAPI void RecalculateBounds(uint64 transformVersion, uint8 requestedBounds) const;
 
 		void __CompleteAttachmentWithScene(SceneInfo *sceneInfo);
+		void __RemoveChild(SceneNode *child, bool updateSceneInfo);
 
 		AABB _boundingBox;
 		Sphere _boundingSphere;
