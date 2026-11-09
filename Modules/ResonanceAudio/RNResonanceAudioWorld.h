@@ -87,6 +87,8 @@ namespace RN
 		std::atomic<uint32> _audioSourcesSnapshotPending {1};
 		uint32 _audioSourcesSnapshotBack = 2;
 
+		std::atomic<bool> _hasRetiredAudioAssets {false};
+
 		std::atomic<float> _worldMasterVolume;
 
 		std::function<void(PositionType, Vector3, float &)> _raycastCallback;

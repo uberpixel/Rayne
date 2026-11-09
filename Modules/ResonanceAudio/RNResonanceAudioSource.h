@@ -87,6 +87,8 @@ namespace RN
 		static AudioAsset *GetNullAssetSentinel() { return reinterpret_cast<AudioAsset *>(static_cast<uintptr_t>(1)); }
 		void ConsumePendingState();
 		bool ProcessPendingActions();
+		void RetireAudioAsset(AudioAsset *asset);
+		void ReleaseRetiredAudioAssets();
 
 		ResonanceAudioWorld *_world; // The world is not retained and clears this pointer after callbacks stop.
 		bool _isRegisteredInWorld;
@@ -130,6 +132,12 @@ namespace RN
 		PendingAction _finalAction;
 		double _nextSeekTime;
 		AudioAsset *_nextAsset;
+
+		// Output owns writes. The world update drains every source, including those outside the scene.
+		static constexpr uint32 kAudioAssetRetirementCapacity = 8;
+		AudioAsset *_retiredAudioAssets[kAudioAssetRetirementCapacity];
+		std::atomic<uint32> _retiredAudioAssetWrite {0};
+		std::atomic<uint32> _retiredAudioAssetRead {0};
 
 		//Used to sync between threads
 		std::atomic<uint32> _spatialSequence;

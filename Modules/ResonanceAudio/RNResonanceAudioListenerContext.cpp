@@ -259,8 +259,6 @@ namespace RN
 
 	void ResonanceAudioListenerContext::RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 sampleRate, uint32 channelCount, uint32 frameCount, uint32 status)
 	{
-		AutoreleasePool pool;
-
 		// The world stops both devices before detaching contexts. Callbacks must not retain it during destruction.
 		ResonanceAudioWorld *world = _world;
 		if(!world)
@@ -275,6 +273,7 @@ namespace RN
 		// Capture microphone samples if requested
 		if(inputBuffer)
 		{
+			AutoreleasePool pool;
 			LockGuard<RecursiveLockable> lock(_inputSamplesCallbackLock);
 			// Keep the callback alive if it replaces itself.
 			auto inputSamplesCallback = _inputSamplesCallback;
@@ -291,9 +290,11 @@ namespace RN
 
 		Array *sourcesSnapshot = world->AcquireAudioSourcesSnapshot();
 
-		sourcesSnapshot->Enumerate<ResonanceAudioSource>([&](ResonanceAudioSource *source, size_t index, bool &stop){
-			source->Update();
-		});
+		const size_t sourceCount = sourcesSnapshot->GetCount();
+		for(size_t i = 0; i < sourceCount; i++)
+		{
+			static_cast<ResonanceAudioSource *>(sourcesSnapshot->GetObjectAtIndex(i))->Update();
+		}
 
 		const uint32 outputSampleCount = frameCount * channelCount;
 		const float worldMasterVolume = world->_worldMasterVolume.load(std::memory_order_relaxed);
@@ -308,8 +309,10 @@ namespace RN
 		}
 
 		const float outputSampleRate = static_cast<float>(sampleRate);
-		sourcesSnapshot->Enumerate<ResonanceAudioSource>([&](ResonanceAudioSource *source, size_t index, bool &stop){
-			if(source->IsPositional()) return;
+		for(size_t index = 0; index < sourceCount; index++)
+		{
+			auto *source = static_cast<ResonanceAudioSource *>(sourcesSnapshot->GetObjectAtIndex(index));
+			if(source->IsPositional()) continue;
 
 			float *frameData = _sharedFrameData;
 			if(source->Update(frameCount / outputSampleRate, frameCount, &frameData, channelCount))
@@ -319,7 +322,7 @@ namespace RN
 					floatOutputBuffer[i] += frameData[i] * dryVolume;
 				}
 			}
-		});
+		}
 
 		for(uint32 i = 0; i < outputSampleCount; i++)
 		{

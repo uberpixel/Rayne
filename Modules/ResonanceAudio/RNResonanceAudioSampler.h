@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	class ResonanceAudioWorld;
+	class ResonanceAudioSource;
 	class ResonanceAudioSampler : public Object
 	{
 	public:
@@ -29,6 +29,11 @@ namespace RN
 		//TODO: Implement an optional effects pipeline
 
 	private:
+		friend class ResonanceAudioSource;
+
+		// Transfer the new retained reference in and the old one out.
+		AudioAsset *ExchangeRetainedAsset(AudioAsset *asset);
+
 		AudioAsset *_asset;
 		double _totalTime;
 

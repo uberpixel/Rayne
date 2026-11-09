@@ -27,17 +27,22 @@ namespace RN
 
 	void ResonanceAudioSampler::SetAudioAsset(AudioAsset *asset)
 	{
-		SafeRelease(_asset);
-		if(!asset)
+		AudioAsset *oldAsset = ExchangeRetainedAsset(SafeRetain(asset));
+		SafeRelease(oldAsset);
+	}
+
+	AudioAsset *ResonanceAudioSampler::ExchangeRetainedAsset(AudioAsset *asset)
+	{
+		AudioAsset *oldAsset = std::exchange(_asset, asset);
+		_totalTime = 0.0;
+		if(asset)
 		{
-			return;
+			size_t singleSamplePerChannelSize = asset->GetBytesPerSample() / asset->GetChannels();
+			RN_ASSERT(singleSamplePerChannelSize == 1 || singleSamplePerChannelSize == 2 || singleSamplePerChannelSize == 4, "Only 8 and 16 and 32 bit audio assets are currently supported.");
+
+			_totalTime = static_cast<double>(asset->GetData()->GetLength()) / static_cast<double>(asset->GetBytesPerSample()) / static_cast<double>(asset->GetSampleRate());
 		}
-
-		size_t singleSamplePerChannelSize = asset->GetBytesPerSample() / asset->GetChannels();
-		RN_ASSERT(singleSamplePerChannelSize == 1 || singleSamplePerChannelSize == 2 || singleSamplePerChannelSize == 4, "Only 8 and 16 and 32 bit audio assets are currently supported.");
-
-		_asset = asset->Retain();
-		_totalTime = static_cast<double>(_asset->GetData()->GetLength()) / static_cast<double>(_asset->GetBytesPerSample()) / static_cast<double>(_asset->GetSampleRate());
+		return oldAsset;
 	}
 
 	double ResonanceAudioSampler::GetTotalTime() const

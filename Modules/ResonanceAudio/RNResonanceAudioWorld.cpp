@@ -70,6 +70,7 @@ namespace RN
 		vraudio::ResonanceAudioApi *audioAPI = GetAudioAPI();
 		for(ResonanceAudioSource *source : _allAudioSources)
 		{
+			source->ReleaseRetiredAudioAssets();
 			if(audioAPI && source->_isPositional) audioAPI->DestroySource(source->_sourceID);
 			source->_sourceID = vraudio::ResonanceAudioApi::kInvalidSourceId;
 			source->_world = nullptr;
@@ -177,9 +178,17 @@ namespace RN
 	{
 		SceneAttachment::Update(delta);
 
-		// Publish audio sources snapshot at most once per frame (instead of on every add/remove).
 		{
 			LockGuard<RecursiveLockable> lock(_sourceLifetimeLock);
+			if(_hasRetiredAudioAssets.exchange(false, std::memory_order_acquire))
+			{
+				for(ResonanceAudioSource *source : _allAudioSources)
+				{
+					source->ReleaseRetiredAudioAssets();
+				}
+			}
+
+			// Publish audio sources snapshot at most once per frame (instead of on every add/remove).
 			if(_audioSourcesSnapshotDirty)
 			{
 				PublishAudioSourcesSnapshot(_audioSources);

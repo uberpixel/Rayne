@@ -206,6 +206,7 @@ namespace RN
 				if(audioAPI) audioAPI->DestroySource(_sourceID);
 			}
 		}
+		ReleaseRetiredAudioAssets();
 		_sampler->Release();
 	}
 
@@ -525,6 +526,16 @@ namespace RN
 
 	void ResonanceAudioSource::ConsumePendingState()
 	{
+		if(_pendingFinalAction.load(std::memory_order_relaxed) == PendingAction::None &&
+		   _pendingSeekTime.load(std::memory_order_relaxed) < 0.0 &&
+		   !_pendingAsset.load(std::memory_order_relaxed)) return;
+
+		// Keep a slot for the swap through its fade. Replacing a staged asset can use another.
+		const uint32 slotsNeeded = _nextAsset ? 2 : 1;
+		const uint32 write = _retiredAudioAssetWrite.load(std::memory_order_relaxed);
+		const uint32 read = _retiredAudioAssetRead.load(std::memory_order_acquire);
+		if(write - read + slotsNeeded > kAudioAssetRetirementCapacity) return;
+
 		// Acquire the action first so preceding asset and seek updates from the
 		// same producer are consumed with it.
 		PendingAction finalAction = _pendingFinalAction.exchange(PendingAction::None, std::memory_order_acq_rel);
@@ -541,8 +552,7 @@ namespace RN
 		if(pendingAsset)
 		{
 			AudioAsset *nextAsset = pendingAsset == GetNullAssetSentinel() ? nullptr : pendingAsset;
-			SafeRelease(_nextAsset);
-			_nextAsset = nextAsset;
+			RetireAudioAsset(std::exchange(_nextAsset, nextAsset));
 			_controlBits |= static_cast<uint32_t>(ControlBits::kWantAssetChange);
 			if(_isPlaying && _sampler->GetAsset() != nextAsset)
 				_controlBits |= static_cast<uint32_t>(ControlBits::kWantFadeOut) | static_cast<uint32_t>(ControlBits::kWantFadeIn);
@@ -584,11 +594,11 @@ namespace RN
 
 		if(_controlBits & static_cast<uint32_t>(ControlBits::kWantAssetChange))
 		{
-			AudioAsset *pendingAsset = _nextAsset;
-			_nextAsset = nullptr;
+			AudioAsset *pendingAsset = std::exchange(_nextAsset, nullptr);
+			AudioAsset *retiredAsset = pendingAsset;
 			if(pendingAsset != _sampler->GetAsset())
 			{
-				_sampler->SetAudioAsset(pendingAsset);
+				retiredAsset = _sampler->ExchangeRetainedAsset(pendingAsset);
 				// Update cached values after asset change
 				_cachedHasAsset.store(_sampler->GetAsset() != nullptr, std::memory_order_relaxed);
 				_cachedTotalTime.store(_sampler->GetTotalTime(), std::memory_order_relaxed);
@@ -603,7 +613,7 @@ namespace RN
 				_cachedCurrentTime.store(0.0, std::memory_order_relaxed);
 				isSeeking = true;
 			}
-			SafeRelease(pendingAsset);
+			RetireAudioAsset(retiredAsset);
 			_controlBits &= ~static_cast<uint32_t>(ControlBits::kWantAssetChange);
 		}
 
@@ -649,5 +659,33 @@ namespace RN
 		}
 
 		return isSeeking;
+	}
+
+	void ResonanceAudioSource::RetireAudioAsset(AudioAsset *asset)
+	{
+		if(!asset) return;
+		if(!_world)
+		{
+			// The output device has stopped before the world detaches this source.
+			asset->Release();
+			return;
+		}
+
+		const uint32 write = _retiredAudioAssetWrite.load(std::memory_order_relaxed);
+		_retiredAudioAssets[write % kAudioAssetRetirementCapacity] = asset;
+		_retiredAudioAssetWrite.store(write + 1, std::memory_order_release);
+		_world->_hasRetiredAudioAssets.store(true, std::memory_order_release);
+	}
+
+	void ResonanceAudioSource::ReleaseRetiredAudioAssets()
+	{
+		const uint32 write = _retiredAudioAssetWrite.load(std::memory_order_acquire);
+		uint32 read = _retiredAudioAssetRead.load(std::memory_order_relaxed);
+		while(read != write)
+		{
+			AudioAsset *asset = _retiredAudioAssets[read % kAudioAssetRetirementCapacity];
+			_retiredAudioAssetRead.store(++read, std::memory_order_release);
+			asset->Release();
+		}
 	}
 } // namespace RN
