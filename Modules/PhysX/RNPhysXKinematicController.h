@@ -46,6 +46,7 @@ namespace RN
 
 		PXAPI void Jump(float force);
 
+		PXAPI physx::PxRigidActor *GetPhysXRigidActor() const override;
 		PXAPI AABB GetPhysXAABB(float inflation = 1.0f) const override;
 
 		/*	PXAPI void SetFallSpeed(float speed);

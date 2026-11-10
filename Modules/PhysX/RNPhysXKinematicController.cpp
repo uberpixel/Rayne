@@ -442,4 +442,9 @@ namespace RN
 		return AABB(Vector3(bounds.minimum.x, bounds.minimum.y, bounds.minimum.z),
 					Vector3(bounds.maximum.x, bounds.maximum.y, bounds.maximum.z));
 	}
+
+	physx::PxRigidActor *PhysXKinematicController::GetPhysXRigidActor() const
+	{
+		return _controller ? _controller->getActor() : nullptr;
+	}
 } // namespace RN
