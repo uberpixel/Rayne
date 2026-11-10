@@ -529,4 +529,9 @@ namespace RN
 			rotation = Quaternion();
 		}
 	}
+
+	physx::PxRigidActor *PhysXDynamicBody::GetPhysXRigidActor() const
+	{
+		return _actor;
+	}
 } // namespace RN

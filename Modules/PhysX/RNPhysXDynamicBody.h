@@ -86,6 +86,8 @@ namespace RN
 		PXAPI Quaternion RotationSweepTest(std::vector<PhysXContactInfo> &contactInfo, const Quaternion &targetRoation, float stepSize, float sweepSize, const Vector3 &offsetPosition = Vector3(), const Quaternion &offsetRotation = Quaternion()) const;
 
 		PXAPI physx::PxRigidDynamic *GetPhysXActor() const { return _actor; }
+		PXAPI physx::PxRigidActor *GetPhysXRigidActor() const override;
+
 		PXAPI AABB GetPhysXAABB(float inflation = 1.0f) const override;
 		PXAPI PhysXShape *GetShape() const { return _shape; }
 

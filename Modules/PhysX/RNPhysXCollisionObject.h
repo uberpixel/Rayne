@@ -11,6 +11,11 @@
 
 #include "RNPhysX.h"
 
+namespace physx
+{
+	class PxRigidActor;
+}
+
 namespace RN
 {
 	class PhysXWorld;
@@ -59,6 +64,8 @@ namespace RN
 
 		PXAPI virtual AABB GetPhysXAABB(float inflation = 1.0f) const;
 		PXAPI virtual void GetPhysXTransform(Vector3 &position, Quaternion &rotation) const;
+
+		PXAPI virtual physx::PxRigidActor *GetPhysXRigidActor() const = 0;
 
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;

@@ -79,11 +79,11 @@ namespace RN
 		return (_constraint->getConstraintFlags() & physx::PxConstraintFlag::eBROKEN);
 	}
 
-	PhysXFixedConstraint::PhysXFixedConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXFixedConstraint::PhysXFixedConstraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		physx::PxFixedJoint *joint = physx::PxFixedJointCreate(*PhysXWorld::GetSharedInstance()->GetPhysXInstance(),
-															   body1 ? body1->GetPhysXActor() : nullptr, physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
-															   body2 ? body2->GetPhysXActor() : nullptr, physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
+															   body1 ? body1->GetPhysXRigidActor() : nullptr, physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
+															   body2 ? body2->GetPhysXRigidActor() : nullptr, physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
 
 		//		joint->setConstraintFlag(physx::PxConstraintFlag::Enum::ePROJECTION, true);
 
@@ -91,35 +91,35 @@ namespace RN
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");
 	}
 
-	PhysXFixedConstraint *PhysXFixedConstraint::WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXFixedConstraint *PhysXFixedConstraint::WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		PhysXFixedConstraint *constraint = new PhysXFixedConstraint(body1, offset1, rotation1, body2, offset2, rotation2);
 		return constraint->Autorelease();
 	}
 
 
-	PhysXRevoluteConstraint::PhysXRevoluteConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXRevoluteConstraint::PhysXRevoluteConstraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		physx::PxRevoluteJoint *joint = physx::PxRevoluteJointCreate(*PhysXWorld::GetSharedInstance()->GetPhysXInstance(),
-																	 body1->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
-																	 body2->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
+																	 body1->GetPhysXRigidActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
+																	 body2->GetPhysXRigidActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
 
 		_constraint = joint;
 		RN_ASSERT(_constraint, "Probably missconfigured constraint");
 	}
 
-	PhysXRevoluteConstraint *PhysXRevoluteConstraint::WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXRevoluteConstraint *PhysXRevoluteConstraint::WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		PhysXRevoluteConstraint *constraint = new PhysXRevoluteConstraint(body1, offset1, rotation1, body2, offset2, rotation2);
 		return constraint->Autorelease();
 	}
 
 
-	PhysXD6Constraint::PhysXD6Constraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXD6Constraint::PhysXD6Constraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		physx::PxD6Joint *joint = physx::PxD6JointCreate(*PhysXWorld::GetSharedInstance()->GetPhysXInstance(),
-														 body1->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
-														 body2->GetPhysXActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
+														 body1->GetPhysXRigidActor(), physx::PxTransform(physx::PxVec3(offset1.x, offset1.y, offset1.z), physx::PxQuat(rotation1.x, rotation1.y, rotation1.z, rotation1.w)),
+														 body2->GetPhysXRigidActor(), physx::PxTransform(physx::PxVec3(offset2.x, offset2.y, offset2.z), physx::PxQuat(rotation2.x, rotation2.y, rotation2.z, rotation2.w)));
 
 		for(int i = 0; i < 6; i++)
 		{
@@ -163,7 +163,7 @@ namespace RN
 		joint->setPyramidSwingLimit(physx::PxJointLimitPyramid(lowerLimit.y, upperLimit.y, lowerLimit.z, upperLimit.z, physx::PxSpring(stiffness, damping)));
 	}
 
-	PhysXD6Constraint *PhysXD6Constraint::WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2)
+	PhysXD6Constraint *PhysXD6Constraint::WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2)
 	{
 		PhysXD6Constraint *constraint = new PhysXD6Constraint(body1, offset1, rotation1, body2, offset2, rotation2);
 		return constraint->Autorelease();

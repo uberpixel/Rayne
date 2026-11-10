@@ -10,7 +10,7 @@
 #define __RAYNE_PHYSXCONSTRAINT_H_
 
 #include "RNPhysX.h"
-#include "RNPhysXDynamicBody.h"
+#include "RNPhysXCollisionObject.h"
 
 namespace physx
 {
@@ -48,9 +48,9 @@ namespace RN
 	class PhysXFixedConstraint : public PhysXConstraint
 	{
 	public:
-		PXAPI PhysXFixedConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI PhysXFixedConstraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 
-		PXAPI static PhysXFixedConstraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI static PhysXFixedConstraint *WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 
 		RNDeclareMetaAPI(PhysXFixedConstraint, PXAPI)
 	};
@@ -58,9 +58,9 @@ namespace RN
 	class PhysXRevoluteConstraint : public PhysXConstraint
 	{
 	public:
-		PXAPI PhysXRevoluteConstraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI PhysXRevoluteConstraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 
-		PXAPI static PhysXRevoluteConstraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI static PhysXRevoluteConstraint *WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 
 		RNDeclareMetaAPI(PhysXRevoluteConstraint, PXAPI)
 	};
@@ -111,7 +111,7 @@ namespace RN
 			Free
 		};
 
-		PXAPI PhysXD6Constraint(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI PhysXD6Constraint(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 		PXAPI ~PhysXD6Constraint();
 
 		PXAPI void SetMotion(MotionAxis axis, MotionType type);
@@ -121,7 +121,7 @@ namespace RN
 		PXAPI void SetDrivePosition(Vector3 position, Quaternion rotation);
 		PXAPI void SetDriveVelocity(Vector3 linear, Vector3 angular);
 
-		PXAPI static PhysXD6Constraint *WithBodiesAndOffsets(PhysXDynamicBody *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXDynamicBody *body2, const Vector3 &offset2, const Quaternion &rotation2);
+		PXAPI static PhysXD6Constraint *WithBodiesAndOffsets(PhysXCollisionObject *body1, const Vector3 &offset1, const Quaternion &rotation1, PhysXCollisionObject *body2, const Vector3 &offset2, const Quaternion &rotation2);
 
 	private:
 		PhysXD6Drive *_drive[6];

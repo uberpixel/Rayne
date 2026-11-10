@@ -32,6 +32,8 @@ namespace RN
 		PXAPI void SetCollisionFilter(uint32 group, uint32 mask) override;
 
 		PXAPI physx::PxRigidStatic *GetPhysXActor() const { return _actor; }
+		PXAPI physx::PxRigidActor *GetPhysXRigidActor() const override;
+
 		PXAPI AABB GetPhysXAABB(float inflation = 1.0f) const override;
 		PXAPI PhysXShape *GetShape() const { return _shape; }
 
