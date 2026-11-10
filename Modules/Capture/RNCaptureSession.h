@@ -73,7 +73,7 @@ namespace RN
 		// Push source accepts interleaved stereo float samples at 48 kHz
 		// Missing and overwritten samples become silence without shortening the timeline
 		// After underrun resumed samples follow the emitted silence
-		// Submission never waits and returns false if the bounded queue is busy
+		// Use a single serialized producer. Submission never waits and rejects invalid input.
 		bool SubmitAudioSamples(const float *samples, size_t frames, uint32 sampleRate = 48000);
 		const std::shared_ptr<CaptureAudioSource> &GetAudioSource() const { return _audioSource; }
 
@@ -85,19 +85,18 @@ namespace RN
 	{
 	public:
 		CaptureAudioSource();
+		// Configure between sessions with the producer and consumer stopped.
 		void Configure(const CaptureSession::Configuration &configuration);
+		// One serialized producer and one serialized consumer may run concurrently.
 		bool SubmitSamples(const float *samples, size_t frames, uint32 sampleRate);
 		size_t GetFrameCount(float duration);
 		void ReadFrames(size_t frames, void *destination);
 
 	private:
 		static constexpr size_t Capacity = 48000 * 2;
-		Lockable _lock;
-		int16 _samples[Capacity * 2];
-		uint64 _sampleFrames[Capacity] = {};
-		std::atomic<uint64> _droppedFrames;
+		std::atomic<uint64> _samples[Capacity];
 		uint64 _readFrame;
-		uint64 _writeFrame;
+		std::atomic<uint64> _writeFrame;
 		double _fractionalFrames;
 		std::function<size_t(float)> _frameCountCallback;
 		std::function<void(size_t, void *)> _samplesCallback;

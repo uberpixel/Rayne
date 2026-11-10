@@ -50,7 +50,6 @@ namespace RN
 	}
 
 	CaptureAudioSource::CaptureAudioSource() :
-		_droppedFrames(0),
 		_readFrame(0),
 		_writeFrame(0),
 		_fractionalFrames(0.0)
@@ -58,41 +57,33 @@ namespace RN
 
 	void CaptureAudioSource::Configure(const CaptureSession::Configuration &configuration)
 	{
-		_lock.Lock();
 		_readFrame = 0;
 		_writeFrame = 0;
 		_fractionalFrames = 0.0;
-		_droppedFrames = 0;
-		memset(_sampleFrames, 0, sizeof(_sampleFrames));
 		_frameCountCallback = configuration.audioFrameCountCallback;
 		_samplesCallback = configuration.audioSamplesCallback;
-		_lock.Unlock();
 	}
 
 	bool CaptureAudioSource::SubmitSamples(const float *samples, size_t frames, uint32 sampleRate)
 	{
 		if(!samples || sampleRate != 48000) return false;
-		if(!_lock.TryLock())
+		const uint64 start = _writeFrame.load(std::memory_order_relaxed);
+		const size_t offset = frames > Capacity ? frames - Capacity : 0;
+		for(size_t frame = offset; frame < frames; ++frame)
 		{
-			_droppedFrames.fetch_add(frames);
-			return false;
-		}
-		_writeFrame += _droppedFrames.exchange(0);
-		size_t offset = frames > Capacity ? frames - Capacity : 0;
-		for(size_t frame = offset; frame < frames; frame++)
-		{
-			size_t index = ((_writeFrame + frame) % Capacity) * 2;
-			_sampleFrames[(_writeFrame + frame) % Capacity] = _writeFrame + frame + 1;
-			for(size_t channel = 0; channel < 2; channel++)
+			const uint64 position = start + frame;
+			// Publish the stamp and both channels together so an overwrite cannot tear a frame.
+			uint64 packed = static_cast<uint64>(static_cast<uint32>(position)) << 32;
+			for(size_t channel = 0; channel < 2; ++channel)
 			{
 				float value = samples[frame * 2 + channel];
 				if(!std::isfinite(value)) value = 0.0f;
-				value = std::max(-1.0f, std::min(1.0f, value));
-				_samples[index + channel] = static_cast<int16>(value * 32767.0f);
+				const auto pcm = static_cast<int16>(std::clamp(value, -1.0f, 1.0f) * 32767.0f);
+				packed |= static_cast<uint64>(static_cast<uint16>(pcm)) << (channel * 16);
 			}
+			_samples[position % Capacity].store(packed, std::memory_order_relaxed);
 		}
-		_writeFrame += frames;
-		_lock.Unlock();
+		_writeFrame.store(start + frames, std::memory_order_release);
 		return true;
 	}
 
@@ -112,29 +103,28 @@ namespace RN
 			_samplesCallback(frames, destination);
 			return;
 		}
-		int16 *output = static_cast<int16 *>(destination);
-		while(frames > 0)
+		const uint64 end = _writeFrame.load(std::memory_order_acquire);
+		const uint64 oldest = end > Capacity ? end - Capacity : 0;
+		// The ring cursor counts submitted frames. Silence on underrun advances only
+		// the encoder's timeline, so new input resumes after the silence.
+		const size_t count = static_cast<size_t>(std::min<uint64>(frames, end - _readFrame));
+		if(destination)
 		{
-			size_t chunkFrames = std::min(frames, static_cast<size_t>(1024));
-			_lock.Lock();
-			_writeFrame += _droppedFrames.exchange(0);
-			uint64 oldest = _writeFrame > Capacity ? _writeFrame - Capacity : 0;
-			for(size_t frame = 0; frame < chunkFrames; frame++)
+			auto *output = static_cast<int16 *>(destination);
+			for(size_t frame = 0; frame < count; ++frame)
 			{
-				uint64 position = _readFrame + frame;
-				bool available = position >= oldest && position < _writeFrame && _sampleFrames[position % Capacity] == position + 1;
-				size_t index = (position % Capacity) * 2;
-				if(output)
+				const uint64 position = _readFrame + frame;
+				uint64 packed = 0;
+				if(position >= oldest)
 				{
-					output[frame * 2] = available ? _samples[index] : 0;
-					output[frame * 2 + 1] = available ? _samples[index + 1] : 0;
+					packed = _samples[position % Capacity].load(std::memory_order_relaxed);
+					if(static_cast<uint32>(packed >> 32) != static_cast<uint32>(position)) packed = 0;
 				}
+				output[frame * 2] = static_cast<int16>(packed);
+				output[frame * 2 + 1] = static_cast<int16>(packed >> 16);
 			}
-			_readFrame += chunkFrames;
-			if(_writeFrame < _readFrame) _writeFrame = _readFrame;
-			_lock.Unlock();
-			if(output) output += chunkFrames * 2;
-			frames -= chunkFrames;
+			std::fill(output + count * 2, output + frames * 2, 0);
 		}
+		_readFrame += count;
 	}
 } // namespace RN

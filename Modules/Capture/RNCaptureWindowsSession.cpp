@@ -27,14 +27,13 @@ namespace RN
 			isWaitingToEndRecording(false),
 			isReleasingRecordingResources(false),
 			recordingSwapChain(nullptr),
-			nextVideoPresentationTimeUs(0),
+			lastVideoPresentationTimeUs(0),
 			scheduledVideoFrameCount(0),
 			recordingSession(nullptr),
 			videoFrameAccumulator(0.0),
 			audioSubmittedSamples(0),
 			audioSkippedSamples(0),
-			audioSkipWarningCount(0),
-			audioPendingDurationUs(0)
+			audioSkipWarningCount(0)
 		{}
 
 		~CaptureWindowsState() = default;
@@ -68,14 +67,14 @@ namespace RN
 			return isRecording || isReleasingRecordingResources;
 		}
 
-		void StopInternal(bool notifyCompletion)
+		void StopInternal(bool notifyCompletion, Clock::time_point stopTime = Clock::now())
 		{
 			if(Thread::GetCurrentThread() != Thread::GetMainThread())
 			{
 				WorkGroup *group = new WorkGroup();
-				group->Perform(WorkQueue::GetMainQueue(), [this, lifetime = shared_from_this(), notifyCompletion] {
+				group->Perform(WorkQueue::GetMainQueue(), [this, lifetime = shared_from_this(), notifyCompletion, stopTime] {
 					AutoreleasePool pool;
-					StopInternal(notifyCompletion);
+					StopInternal(notifyCompletion, stopTime);
 				});
 				group->Release();
 				return;
@@ -83,7 +82,10 @@ namespace RN
 
 			if(!isRecording) return;
 
-			FlushAudio();
+			if(scheduledVideoFrameCount > 0)
+			{
+				WriteAudioDuration(GetRecordingPresentationTimeUs(stopTime) - lastVideoPresentationTimeUs);
+			}
 
 			isRecording = false;
 			isWaitingToEndRecording = false;
@@ -151,7 +153,7 @@ namespace RN
 			isReleasingRecordingResources = false;
 			recordingSession = nullptr;
 			scheduledVideoFrameCount = 0;
-			nextVideoPresentationTimeUs = 0;
+			lastVideoPresentationTimeUs = 0;
 			videoFrameAccumulator = configuration.videoFramePeriod;
 			ResetAudioState();
 
@@ -204,28 +206,37 @@ namespace RN
 			if(!isRecording || isWaitingToEndRecording) return;
 
 			videoFrameAccumulator += delta;
-			if(videoFrameAccumulator < configuration.videoFramePeriod)
+			if(videoFrameAccumulator < configuration.videoFramePeriod || !recordingSwapChain || !recordingSession)
 			{
 				configuration.resolvePass->SetFramebuffer(configuration.restoreFramebuffer);
 				return;
 			}
 
-			videoFrameAccumulator -= configuration.videoFramePeriod;
-			if(!recordingSwapChain || !recordingSession)
+			const auto now = Clock::now();
+			if(scheduledVideoFrameCount == 0)
 			{
-				configuration.resolvePass->SetFramebuffer(configuration.restoreFramebuffer);
-				return;
+				recordingStartTime = now;
+				videoFrameAccumulator = 0.0;
 			}
-
-			const int64 frameDurationUs = GetVideoFrameDurationUs();
-			const int64 presentationTimeUs = nextVideoPresentationTimeUs;
-			nextVideoPresentationTimeUs += frameDurationUs;
+			else
+			{
+				// Keep the cadence phase and discard capture slots missed during a slow update.
+				videoFrameAccumulator = std::fmod(videoFrameAccumulator, configuration.videoFramePeriod);
+			}
+			const int64 presentationTimeUs = GetRecordingPresentationTimeUs(now);
+			const int64 audioDurationUs = presentationTimeUs - lastVideoPresentationTimeUs;
+			lastVideoPresentationTimeUs = presentationTimeUs;
 
 			recordingSession->AddPendingFrame();
-			recordingSwapChain->QueueFrame(presentationTimeUs, frameDurationUs);
+			recordingSwapChain->QueueFrame(presentationTimeUs, GetVideoFrameDurationUs());
 			scheduledVideoFrameCount.fetch_add(1);
-			WriteAudioDuration(frameDurationUs);
+			WriteAudioDuration(audioDurationUs);
 			configuration.resolvePass->SetFramebuffer(recordingSwapChain->GetFramebuffer());
+		}
+
+		int64 GetRecordingPresentationTimeUs(Clock::time_point now) const
+		{
+			return std::chrono::duration_cast<std::chrono::microseconds>(now - recordingStartTime).count();
 		}
 
 		int64 GetVideoFrameDurationUs() const
@@ -239,7 +250,6 @@ namespace RN
 			audioSubmittedSamples = 0;
 			audioSkippedSamples = 0;
 			audioSkipWarningCount = 0;
-			audioPendingDurationUs = 0;
 			audioBuffer.clear();
 		}
 
@@ -260,21 +270,14 @@ namespace RN
 			}
 		}
 
-		void FlushAudio()
+		void WriteAudioDuration(int64 durationUs)
 		{
-			if(audioPendingDurationUs <= 0) return;
+			if(durationUs <= 0) return;
 
 			std::shared_ptr<CaptureWindowsEncodingSession> session = recordingSession;
-			if(!session)
-			{
-				audioPendingDurationUs = 0;
-				return;
-			}
+			if(!session) return;
 
-			const int64 pendingDurationUs = audioPendingDurationUs;
-			audioPendingDurationUs = 0;
-
-			const size_t sampleCount = audioSource->GetFrameCount(static_cast<float>(static_cast<double>(pendingDurationUs) / 1000000.0));
+			const size_t sampleCount = audioSource->GetFrameCount(static_cast<float>(static_cast<double>(durationUs) / 1000000.0));
 			if(sampleCount == 0) return;
 
 			audioBuffer.resize(sampleCount * CaptureWindowsInternals::AudioFrameBytes);
@@ -291,14 +294,6 @@ namespace RN
 			}
 		}
 
-		void WriteAudioDuration(int64 durationUs)
-		{
-			if(durationUs <= 0) return;
-
-			audioPendingDurationUs += durationUs;
-			FlushAudio();
-		}
-
 		StrongRef<PostProcessingAPIStage> retainedResolvePass;
 		StrongRef<Framebuffer> retainedRestoreFramebuffer;
 		StrongRef<const String> retainedFilename;
@@ -308,14 +303,14 @@ namespace RN
 		std::atomic<bool> isWaitingToEndRecording;
 		std::atomic<bool> isReleasingRecordingResources;
 		CaptureWindowsSwapChain *recordingSwapChain;
-		int64 nextVideoPresentationTimeUs;
+		Clock::time_point recordingStartTime;
+		int64 lastVideoPresentationTimeUs;
 		std::atomic<uint64> scheduledVideoFrameCount;
 		std::shared_ptr<CaptureWindowsEncodingSession> recordingSession;
 		double videoFrameAccumulator;
 		uint64 audioSubmittedSamples;
 		uint64 audioSkippedSamples;
 		uint64 audioSkipWarningCount;
-		int64 audioPendingDurationUs;
 		std::vector<uint8> audioBuffer;
 		std::shared_ptr<CaptureAudioSource> audioSource;
 		std::shared_ptr<std::atomic<bool>> callbackEnabled = std::make_shared<std::atomic<bool>>(true);
