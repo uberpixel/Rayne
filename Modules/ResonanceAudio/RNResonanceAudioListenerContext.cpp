@@ -63,6 +63,7 @@ namespace RN
 	ResonanceAudioListenerContext::~ResonanceAudioListenerContext()
 	{
 		SafeRelease(_listener);
+		delete[] _recordingOutput;
 		delete[] _sharedFrameData;
 		_sharedFrameData = nullptr;
 		delete _audioAPI;
@@ -128,70 +129,50 @@ namespace RN
 
 	void ResonanceAudioListenerContext::SetListener(SceneNode *listener)
 	{
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		SafeRetain(listener);
 		SafeRelease(_listener);
-		_listener = SafeRetain(listener);
+		_listener = listener;
 		_oldPosition = _listener ? _listener->GetWorldPosition() : PositionType();
 		_roomDirty = true;
 
-		const uint32 currentIndex = _stateIndex.load(std::memory_order_relaxed) & 1;
-		const uint32 nextIndex = currentIndex ^ 1;
-		ResonanceAudioListenerState &dst = _stateBuffers[nextIndex];
-		if(_listener)
-		{
-			dst.position = _oldPosition;
-			dst.velocity = Vector3(0.0f, 0.0f, 0.0f);
-			dst.rotation = _listener->GetWorldRotation();
-			dst.isValid = true;
-
-			_audioAPI->SetHeadPosition(0.0f, 0.0f, 0.0f);
-			_audioAPI->SetHeadRotation(dst.rotation.x, dst.rotation.y, dst.rotation.z, dst.rotation.w);
-		}
-		else
-		{
-			dst.isValid = false;
-		}
-
-		_stateIndex.store(nextIndex, std::memory_order_release);
+		_listenerState.position = _oldPosition;
+		_listenerState.velocity = Vector3();
+		_listenerState.rotation = _listener ? _listener->GetWorldRotation() : Quaternion();
+		_listenerState.isValid = _listener != nullptr;
 	}
 
 	ResonanceAudioListenerState ResonanceAudioListenerContext::GetListenerState() const
 	{
-		const uint32 index = _stateIndex.load(std::memory_order_acquire) & 1;
-		return _stateBuffers[index];
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
+		return _listenerState;
+	}
+
+	void ResonanceAudioListenerContext::CopyMixSettings(const ResonanceAudioListenerContext &other)
+	{
+		SetWetVolume(other.GetWetVolume());
+		SetDryVolume(other.GetDryVolume());
+		SetDopplerEffect(other.GetDopplerFactor(), other.GetDopplerSpeedOfSound());
+		SetDopplerVelocitySmoothing(other.GetDopplerVelocitySmoothing());
+		SetSimpleRoom(other._roomPosition, other._roomDimensions, other._roomReflectionConstant, other._roomMaterials[0], other._roomMaterials[1], other._roomMaterials[2], other._roomMaterials[3], other._roomMaterials[4], other._roomMaterials[5]);
+		SetSimpleRoomEnabled(other._roomEnabled);
 	}
 
 	void ResonanceAudioListenerContext::Update(float delta)
 	{
 		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
-		if(!_listener)
-			return;
+		if(!_listener) return;
 
 		const PositionType position = _listener->GetWorldPosition();
-		const Quaternion rotation = _listener->GetWorldRotation();
-		const bool listenerMoved = !(position == _oldPosition);
-
-		_audioAPI->SetHeadPosition(0.0f, 0.0f, 0.0f);
-		_audioAPI->SetHeadRotation(rotation.x, rotation.y, rotation.z, rotation.w);
-
-		Vector3 velocity(0.0f, 0.0f, 0.0f);
+		const bool listenerMoved = !(position == _listenerState.position);
+		_listenerState.position = position;
+		_listenerState.rotation = _listener->GetWorldRotation();
+		_listenerState.velocity = Vector3();
 		if(delta > 0.0f)
 		{
-			velocity = Vector3(position - _oldPosition) / delta;
+			_listenerState.velocity = Vector3(position - _oldPosition) / delta;
 			_oldPosition = position;
 		}
-
-		const uint32 currentIndex = _stateIndex.load(std::memory_order_relaxed) & 1;
-		const uint32 nextIndex = currentIndex ^ 1;
-		ResonanceAudioListenerState &dst = _stateBuffers[nextIndex];
-		dst.position = position;
-		dst.velocity = velocity;
-		dst.rotation = rotation;
-		dst.isValid = true;
-		_stateIndex.store(nextIndex, std::memory_order_release);
-
-		ResonanceAudioWorld *world = _world;
-		if(!world) return;
-
 		const Vector3 roomPosition = _roomEnabled ? Vector3(_roomPosition - position) : Vector3();
 
 		// Apply room properties if they changed.
@@ -217,116 +198,37 @@ namespace RN
 
 			_roomDirty = false;
 		}
+	}
 
-		// Keep per-source room gain + occlusion up to date (main thread only).
-		vraudio::WorldPosition audioRoomPosition;
-		audioRoomPosition[0] = roomPosition.x;
-		audioRoomPosition[1] = roomPosition.y;
-		audioRoomPosition[2] = roomPosition.z;
-		vraudio::WorldRotation audioRoomRotation; // identity
-		vraudio::WorldPosition audioRoomDimensions;
-		audioRoomDimensions[0] = _roomDimensions.x;
-		audioRoomDimensions[1] = _roomDimensions.y;
-		audioRoomDimensions[2] = _roomDimensions.z;
+	void ResonanceAudioListenerContext::CaptureInput(const float *input, uint32 sampleRate, uint32 channelCount, uint32 frameCount)
+	{
+		AutoreleasePool pool;
+		LockGuard<RecursiveLockable> lock(_inputSamplesCallbackLock);
+		// Keep the callback alive if it replaces itself.
+		auto callback = _inputSamplesCallback;
+		if(callback) callback(sampleRate, channelCount, frameCount, input);
+	}
 
-		SceneNode *listener = _listener;
-		const PositionType listenerPosition = listener ? listener->GetWorldPosition() : PositionType();
+	void ResonanceAudioListenerContext::ApplyHeadRotation(const Quaternion &rotation)
+	{
+		_audioAPI->SetHeadRotation(rotation.x, rotation.y, rotation.z, rotation.w);
+	}
 
-		for(ResonanceAudioSource *source : world->_audioSources)
+	void ResonanceAudioListenerContext::MixSpatialOutput(float *output, uint32 frameCount)
+	{
+		if(!_audioAPI->FillInterleavedOutputBuffer(_channelCount, frameCount, output))
 		{
-			if(!source || !source->IsPositional()) continue;
-
-			const PositionType sourceWorldPosition = source->GetWorldPosition();
-			Vector3 sourcePosition(sourceWorldPosition - listenerPosition);
-			source->SetSpatialPosition(sourcePosition);
-			if(!_roomEnabled) continue;
-
-			vraudio::WorldPosition audioSourcePosition;
-			audioSourcePosition[0] = sourcePosition.x;
-			audioSourcePosition[1] = sourcePosition.y;
-			audioSourcePosition[2] = sourcePosition.z;
-
-			_audioAPI->SetSourceRoomEffectsGain(source->_sourceID, vraudio::ComputeRoomEffectsGain(audioSourcePosition, audioRoomPosition, audioRoomRotation, audioRoomDimensions));
-
-			if(world->_raycastCallback && listener)
-			{
-				float distance;
-				world->_raycastCallback(sourceWorldPosition, Vector3(listenerPosition - sourceWorldPosition), distance);
-				_audioAPI->SetSoundObjectOcclusionIntensity(source->_sourceID, (distance > -0.5f) ? 10.0f : 0.0f);
-			}
+			memset(output, 0, frameCount * _channelCount * sizeof(float));
 		}
 	}
 
-	void ResonanceAudioListenerContext::RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 sampleRate, uint32 channelCount, uint32 frameCount, uint32 status)
+	void ResonanceAudioListenerContext::FinishOutput(float *output, uint32 frameCount, float worldMasterVolume)
 	{
-		// The world stops both devices before detaching contexts. Callbacks must not retain it during destruction.
-		ResonanceAudioWorld *world = _world;
-		if(!world)
+		const float finalVolume = worldMasterVolume * GetMasterVolume();
+		const uint32 sampleCount = frameCount * _channelCount;
+		for(uint32 i = 0; i < sampleCount; i++)
 		{
-			if(outputBuffer)
-			{
-				memset(outputBuffer, 0, frameCount * channelCount * sizeof(float));
-			}
-			return;
-		}
-
-		// Capture microphone samples if requested
-		if(inputBuffer)
-		{
-			AutoreleasePool pool;
-			LockGuard<RecursiveLockable> lock(_inputSamplesCallbackLock);
-			// Keep the callback alive if it replaces itself.
-			auto inputSamplesCallback = _inputSamplesCallback;
-			if(inputSamplesCallback)
-			{
-				inputSamplesCallback(sampleRate, channelCount, frameCount, static_cast<const float *>(inputBuffer));
-			}
-		}
-
-		if(!outputBuffer)
-		{
-			return;
-		}
-
-		Array *sourcesSnapshot = world->AcquireAudioSourcesSnapshot();
-
-		const size_t sourceCount = sourcesSnapshot->GetCount();
-		for(size_t i = 0; i < sourceCount; i++)
-		{
-			static_cast<ResonanceAudioSource *>(sourcesSnapshot->GetObjectAtIndex(i))->Update();
-		}
-
-		const uint32 outputSampleCount = frameCount * channelCount;
-		const float worldMasterVolume = world->_worldMasterVolume.load(std::memory_order_relaxed);
-		const float listenerMasterVolume = _listenerMasterVolume.load(std::memory_order_relaxed);
-		const float dryVolume = _dryVolume.load(std::memory_order_relaxed);
-		const float finalVolume = worldMasterVolume * listenerMasterVolume;
-
-		float *floatOutputBuffer = static_cast<float *>(outputBuffer);
-		if(!GetAudioAPI()->FillInterleavedOutputBuffer(channelCount, frameCount, floatOutputBuffer))
-		{
-			memset(floatOutputBuffer, 0, outputSampleCount * sizeof(float));
-		}
-
-		const float outputSampleRate = static_cast<float>(sampleRate);
-		for(size_t index = 0; index < sourceCount; index++)
-		{
-			auto *source = static_cast<ResonanceAudioSource *>(sourcesSnapshot->GetObjectAtIndex(index));
-			if(source->IsPositional()) continue;
-
-			float *frameData = _sharedFrameData;
-			if(source->Update(frameCount / outputSampleRate, frameCount, &frameData, channelCount))
-			{
-				for(uint32 i = 0; i < outputSampleCount; i++)
-				{
-					floatOutputBuffer[i] += frameData[i] * dryVolume;
-				}
-			}
-		}
-
-		for(uint32 i = 0; i < outputSampleCount; i++)
-		{
-			floatOutputBuffer[i] = SoftClipTanhKnee(floatOutputBuffer[i] * finalVolume, 0.9f);
+			output[i] = SoftClipTanhKnee(output[i] * finalVolume, 0.9f);
 		}
 	}
 } // namespace RN

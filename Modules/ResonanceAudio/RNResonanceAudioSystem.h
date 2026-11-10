@@ -50,13 +50,23 @@ namespace RN
 		RNDeclareMetaAPI(ResonanceAudioDevice, RAAPI)
 	};
 
-	class ResonanceAudioSource;
+	// Interleaved stereo samples are borrowed until the output callback returns.
+	struct ResonanceAudioRecordingBlock
+	{
+		const float *samples;
+		uint32 frameCount;
+		uint32 sampleRate;
+		uint32 channelCount;
+		uint64 firstSampleFrame;
+		uint64 streamGeneration;
+	};
+	using ResonanceAudioRecordingCallback = std::function<void(const ResonanceAudioRecordingBlock &)>;
+
 	class ResonanceAudioWorld;
 	class ResonanceAudioListenerContext;
 	class ResonanceAudioSystem : public Object
 	{
 	public:
-		friend ResonanceAudioSource;
 		friend ResonanceAudioWorld;
 		RAAPI ~ResonanceAudioSystem();
 
@@ -67,34 +77,38 @@ namespace RN
 		RAAPI virtual void SetOutputDevice(ResonanceAudioDevice *outputDevice) = 0;
 		RAAPI virtual void SetInputDevice(ResonanceAudioDevice *inputDevice) = 0;
 
-		// Called on the output thread after mixing, so callbacks must never block
+		// Called on the output thread after mixing. Callbacks must never block or replace themselves.
 		RAAPI void SetOutputSamplesCallback(std::function<void(const float *, uint32, uint32, uint32)> callback);
 
 		RAAPI static ResonanceAudioSystem *WithInfo(uint32 sampleRate = 48000, uint32 frameSize = 960, uint8 channelCount = 2);
 
 	protected:
+		using OutputSamplesCallback = std::function<void(const float *, uint32, uint32, uint32)>;
+
 		RAAPI ResonanceAudioSystem(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
 
-		void SetOwningWorld(ResonanceAudioWorld *world) { _owningWorld = world; }
-		ResonanceAudioListenerContext *CreateListenerContext();
+		ResonanceAudioListenerContext *CreateListenerContext(ResonanceAudioWorld *world);
 		void RemoveAllListenerContexts();
-		ResonanceAudioListenerContext *GetListenerContext() const;
-		void PublishListenerContextsSnapshot();
+		ResonanceAudioListenerContext *GetListenerContext() const { return _primaryContext.load(std::memory_order_acquire); }
+		void SetRecordingContext(ResonanceAudioListenerContext *context);
+		void WaitForOutputCallback();
 
 		void RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 frameCount, uint32 sampleRate, uint32 channelCount, uint32 status);
+		void AdvanceOutputGeneration() { _outputGeneration.fetch_add(1, std::memory_order_relaxed); }
 
-		std::mutex _outputSamplesLock;
-		std::function<void(const float *, uint32, uint32, uint32)> _outputSamplesCallback;
+		std::mutex _outputSamplesLock; // Control threads only.
+		std::atomic<OutputSamplesCallback *> _outputSamplesCallback {nullptr};
+		std::atomic<ResonanceAudioListenerContext *> _recordingContext {nullptr};
+		// Odd while the output thread may dereference either published pointer.
+		std::atomic<uint32> _outputCallbackSequence {0};
+		std::atomic<uint64> _outputGeneration {0};
+		uint64 _nextOutputSampleFrame = 0;
 
 		uint32 _frameSize;
 		uint32 _sampleRate;
 		uint32 _channelCount;
 
-		std::vector<ResonanceAudioListenerContext *> _listenerContexts;
-		Array *_listenerContextSnapshots[3] = {};
-		std::atomic<uint32> _listenerContextSnapshotIndex {0};
-		std::atomic<uint32> _listenerContextSnapshotInUseIndex {0};
-		WeakRef<ResonanceAudioWorld> _owningWorld;
+		std::atomic<ResonanceAudioListenerContext *> _primaryContext {nullptr};
 
 		RNDeclareMetaAPI(ResonanceAudioSystem, RAAPI)
 	};
@@ -117,8 +131,6 @@ namespace RN
 	private:
 		RAAPI ResonanceAudioSystemMiniAudio(uint32 sampleRate, uint32 frameSize, uint8 channelCount);
 		static void AudioCallback(ma_device *pDevice, void *pOutput, const void *pInput, uint32 frameCount);
-
-		RAAPI void UpdateStreamSettings();
 
 		ResonanceAudioSystemMiniAudioInternals *_internals;
 		ResonanceAudioDevice *_outputDevice;

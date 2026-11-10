@@ -40,6 +40,12 @@ namespace RN
 		vraudio::ResonanceAudioApi *GetAudioAPI() const { ResonanceAudioListenerContext *ctx = GetListenerContext(); return ctx ? ctx->GetAudioAPI() : nullptr; }
 
 		RAAPI void SetListener(SceneNode *listener);
+		// Scene thread only. A successful start begins on an output block boundary
+		// after the next scene update publishes the listener pose.
+		// Stop waits for the last callback to return. Keep the callback nonblocking
+		// and nonthrowing, with no calls into the audio module.
+		RAAPI bool StartRecordingListener(SceneNode *listener, ResonanceAudioRecordingCallback callback);
+		RAAPI void StopRecordingListener();
 		SceneNode *GetListener() const;
 
 		RAAPI void SetMasterVolume(float volume);
@@ -48,7 +54,7 @@ namespace RN
 
 		RAAPI void SetDopplerEffect(float factor, float speedOfSound = 343.3f);
 		RAAPI void SetDopplerVelocitySmoothing(float oldVelocityWeight = 0.95f);
-		
+
 		ResonanceAudioListenerState GetListenerState() const;
 
 		RAAPI ResonanceAudioSource *PlaySound(AudioAsset *resource) const;
@@ -67,10 +73,21 @@ namespace RN
 		void Update(float delta) override;
 
 	private:
+		struct AudioSourcesSnapshot
+		{
+			Array *sources;
+			uint64 sourcesRevision = 0;
+			uint64 spatialRevision = 0;
+			Quaternion rotation[2];
+			std::vector<ResonanceAudioSource::SpatialState> sourceState[2];
+		};
+
 		void AddAudioSource(ResonanceAudioSource *source);
 		void RemoveAudioSource(ResonanceAudioSource *source);
-		void PublishAudioSourcesSnapshot(const std::vector<ResonanceAudioSource *> &sources);
-		Array *AcquireAudioSourcesSnapshot();
+		void PublishAudioSourcesSnapshot(float delta);
+		void RenderOutput(ResonanceAudioListenerContext &primary, float *output, uint32 frameCount, uint32 sampleRate, uint32 channelCount, ResonanceAudioListenerContext *recording);
+		void SetListenerMixSettings(const std::function<void(ResonanceAudioListenerContext *)> &apply);
+		const AudioSourcesSnapshot &AcquireAudioSourcesSnapshot();
 
 		static RecursiveLockable _sourceLifetimeLock;
 		static ResonanceAudioWorld *_instance;
@@ -79,8 +96,11 @@ namespace RN
 
 		std::vector<ResonanceAudioSource *> _allAudioSources; // Tracks all sources, including detached sources, without retaining them.
 		std::vector<ResonanceAudioSource *> _audioSources;
-		bool _audioSourcesSnapshotDirty = false;
-		Array *_audioSourcesSnapshots[3];
+		uint64 _audioSourcesRevision = 0;
+		AudioSourcesSnapshot _audioSourcesSnapshots[3];
+		uint64 _spatialRevision = 0;
+		ResonanceAudioListenerContext *_recordingContext = nullptr; // Scene thread only.
+		bool _recordingPending = false;
 		// SPSC ownership: output callback owns front, scene update owns back.
 		// Bit 2 marks a complete pending publication; exchange transfers ownership.
 		uint32 _audioSourcesSnapshotFront = 0;

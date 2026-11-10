@@ -16,14 +16,18 @@ namespace RN
 {
 	static constexpr uint32 kFadeSamples = 32;
 
-	static vraudio::DistanceRolloffModel MapRolloffModel(ResonanceAudioSource::DistanceRolloffModel model)
+	static inline vraudio::DistanceRolloffModel MapRolloffModel(ResonanceAudioSource::DistanceRolloffModel model)
 	{
 		switch(model)
 		{
-			case ResonanceAudioSource::DistanceRolloffModel::Logarithmic: return vraudio::DistanceRolloffModel::kLogarithmic;
-			case ResonanceAudioSource::DistanceRolloffModel::Linear: return vraudio::DistanceRolloffModel::kLinear;
-			case ResonanceAudioSource::DistanceRolloffModel::Inverse: return vraudio::DistanceRolloffModel::kInverse;
-			case ResonanceAudioSource::DistanceRolloffModel::None: return vraudio::DistanceRolloffModel::kNone;
+			case ResonanceAudioSource::DistanceRolloffModel::Logarithmic:
+				return vraudio::DistanceRolloffModel::kLogarithmic;
+			case ResonanceAudioSource::DistanceRolloffModel::Linear:
+				return vraudio::DistanceRolloffModel::kLinear;
+			case ResonanceAudioSource::DistanceRolloffModel::Inverse:
+				return vraudio::DistanceRolloffModel::kInverse;
+			case ResonanceAudioSource::DistanceRolloffModel::None:
+				return vraudio::DistanceRolloffModel::kNone;
 		}
 		return vraudio::DistanceRolloffModel::kLinear;
 	}
@@ -52,80 +56,31 @@ namespace RN
 				return;
 			}
 		}
+	}
 
-		auto ResetDoppler = [&] {
-			_dopplerPitchMultiplier.store(1.0f, std::memory_order_relaxed);
-			_dopplerInitialized = false;
-		};
-
-		if(!_isPositional)
-			return;
-
-		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
-		ResonanceAudioWorld *world = _world;
-		if(!world || delta <= 0.0f || !IsPlaying())
+	void ResonanceAudioSource::UpdateDopplerVelocity(const PositionType &position, float delta, float smoothing)
+	{
+		if(delta <= 0.0f) return;
+		if(_dopplerInitialized)
 		{
-			ResetDoppler();
-			return;
+			const Vector3 velocity = Vector3(position - _dopplerOldPosition) / delta;
+			_dopplerVelocity = _dopplerVelocity * smoothing + velocity * (1.0f - smoothing);
 		}
+		_dopplerOldPosition = position;
+		_dopplerInitialized = true;
+	}
 
-		ResonanceAudioListenerContext *listenerContext = world->GetListenerContext();
-		const ResonanceAudioListenerState listenerState = listenerContext ? listenerContext->GetListenerState() : ResonanceAudioListenerState();
-		if(!listenerContext || !listenerState.isValid)
-		{
-			ResetDoppler();
-			return;
-		}
-
-		const float dopplerFactor = listenerContext->GetDopplerFactor();
-		const float speedOfSound = listenerContext->GetDopplerSpeedOfSound();
-		if(dopplerFactor <= 0.0f || speedOfSound <= 0.0f)
-		{
-			ResetDoppler();
-			return;
-		}
-
-		const PositionType listenerPosition = listenerState.position;
-		const Vector3 listenerVelocity = listenerState.velocity;
-		const PositionType sourcePosition = GetWorldPosition();
-
-		if(!_dopplerInitialized)
-		{
-			_dopplerOldPosition = sourcePosition;
-			_dopplerVelocity = Vector3(0.0f, 0.0f, 0.0f);
-			_dopplerInitialized = true;
-			_dopplerPitchMultiplier.store(1.0f, std::memory_order_relaxed);
-			return;
-		}
-
-		const float smoothingOld = std::clamp(listenerContext->GetDopplerVelocitySmoothing(), 0.0f, 0.999f);
-		Vector3 rawVelocity = Vector3(sourcePosition - _dopplerOldPosition) / delta;
-		_dopplerOldPosition = sourcePosition;
-		_dopplerVelocity = _dopplerVelocity * smoothingOld + rawVelocity * (1.0f - smoothingOld);
-
-		Vector3 dir(listenerPosition - sourcePosition); // source -> listener
-		const float dist = dir.GetLength();
-		if(dist <= k::EpsilonFloat)
-		{
-			_dopplerPitchMultiplier.store(1.0f, std::memory_order_relaxed);
-			return;
-		}
-		dir = dir / dist;
-
-		// Project velocities onto the source->listener direction.
-		const float vls = listenerVelocity.GetDotProduct(dir);
-		const float vss = _dopplerVelocity.GetDotProduct(dir);
-
-		// OpenAL 1.1-style ratio: (c - factor*v_l) / (c - factor*v_s)
-		// Keep strictly positive to avoid negative/NaN pitch factors.
-		const float kMinDenom = 0.01f;
-		float num = std::max(kMinDenom, speedOfSound - dopplerFactor * vls);
-		float den = std::max(kMinDenom, speedOfSound - dopplerFactor * vss);
-		float shift = num / den;
-
-		// Prevent extreme pitch explosions.
-		shift = std::clamp(shift, 0.125f, 8.0f);
-		_dopplerPitchMultiplier.store(shift, std::memory_order_relaxed);
+	float ResonanceAudioSource::GetDopplerPitch(const ResonanceAudioListenerContext &context, const Vector3 &offset, const Vector3 &listenerVelocity) const
+	{
+		const float factor = context.GetDopplerFactor();
+		if(factor <= 0.0f || !_dopplerInitialized) return 1.0f;
+		const float distance = offset.GetLength();
+		if(distance <= k::EpsilonFloat) return 1.0f;
+		const Vector3 direction = -offset / distance;
+		const float speed = context.GetDopplerSpeedOfSound();
+		const float numerator = std::max(0.01f, speed - factor * listenerVelocity.GetDotProduct(direction));
+		const float denominator = std::max(0.01f, speed - factor * _dopplerVelocity.GetDotProduct(direction));
+		return std::clamp(numerator / denominator, 0.125f, 8.0f);
 	}
 
 	ResonanceAudioSource::ResonanceAudioSource(AudioAsset *asset, bool wantsIndirectSound, bool isPositional) :
@@ -134,6 +89,7 @@ namespace RN
 		_channel(0),
 		_sampler(new ResonanceAudioSampler(asset)),
 		_sourceID(vraudio::ResonanceAudioApi::kInvalidSourceId),
+		_recordingSourceID(vraudio::ResonanceAudioApi::kInvalidSourceId),
 		_wantsIndirectSound(wantsIndirectSound),
 		_isPositional(isPositional),
 		_isPlaying(false),
@@ -141,7 +97,6 @@ namespace RN
 		_isSelfdestructing(false),
 		_volume(1.0f),
 		_pitch(1.0f),
-		_dopplerPitchMultiplier(1.0f),
 		_dopplerOldPosition(PositionType()),
 		_dopplerVelocity(Vector3()),
 		_dopplerInitialized(false),
@@ -150,16 +105,11 @@ namespace RN
 		_currentTime(0.0f),
 		_currentPitch(1.0f),
 		_currentVolume(-1.0f),
-		_currentSpatialSequence(0),
 		_fadeSamples(0),
 		_controlBits(0),
 		_finalAction(PendingAction::None),
 		_nextSeekTime(0.0),
 		_nextAsset(nullptr),
-		_spatialSequence(0),
-		_spatialPositionX(0.0f),
-		_spatialPositionY(0.0f),
-		_spatialPositionZ(0.0f),
 		_pendingSeekTime(-1.0),
 		_pendingAsset(nullptr),
 		_pendingFinalAction(PendingAction::None),
@@ -183,7 +133,8 @@ namespace RN
 		if(_isPositional)
 		{
 			_sourceID = _world->GetAudioAPI()->CreateSoundObjectSource(vraudio::RenderingMode::kBinauralHighQuality);
-			_world->GetAudioAPI()->SetSourceDistanceModel(_sourceID, MapRolloffModel(_rolloffModel), _minMaxRange.x, _minMaxRange.y);
+			UpdateDistanceModel();
+			if(_world->_recordingContext) CreateRecordingSource(_world->_recordingContext);
 		}
 	}
 
@@ -204,6 +155,7 @@ namespace RN
 			{
 				vraudio::ResonanceAudioApi *audioAPI = world->GetAudioAPI();
 				if(audioAPI) audioAPI->DestroySource(_sourceID);
+				if(world->_recordingContext) RemoveRecordingSource(world->_recordingContext);
 			}
 		}
 		ReleaseRetiredAudioAssets();
@@ -228,13 +180,18 @@ namespace RN
 		_channel.store(channel, std::memory_order_relaxed);
 	}
 
-	void ResonanceAudioSource::SetCurrentDistanceAttenuationValue(float attentuation)
+	void ResonanceAudioSource::SetCurrentDistanceAttenuationValue(float attenuation)
 	{
 		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		if(!_isPositional || !_world || !_world->GetAudioAPI()) return;
 		RN_DEBUG_ASSERT(_rolloffModel == DistanceRolloffModel::None, "Distance attenuation value is only supported for none rolloff model");
 
-		_world->GetAudioAPI()->SetSourceDistanceAttenuation(_sourceID, attentuation);
+		_manualDistanceAttenuation = attenuation;
+		_world->GetAudioAPI()->SetSourceDistanceAttenuation(_sourceID, attenuation);
+		if(_world->_recordingContext)
+		{
+			_world->_recordingContext->GetAudioAPI()->SetSourceDistanceAttenuation(_recordingSourceID, attenuation);
+		}
 	}
 
 	void ResonanceAudioSource::SetPitch(float pitch)
@@ -249,30 +206,62 @@ namespace RN
 		_volume.store(volume, std::memory_order_relaxed);
 	}
 
-	void ResonanceAudioSource::UpdateDistanceModel()
+	void ResonanceAudioSource::SetRecordingSpatialVolume(float volume)
 	{
-		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
-		if(!_world || !_world->GetAudioAPI()) return;
-		const float minimumDistance = std::max(0.001f, _minMaxRange.x);
-		const float maximumDistanceOrRolloff = _rolloffModel == DistanceRolloffModel::Inverse ?
-			std::max(0.0f, _minMaxRange.y) : std::max(minimumDistance, _minMaxRange.y);
-
-		_world->GetAudioAPI()->SetSourceDistanceModel(
-			_sourceID, MapRolloffModel(_rolloffModel), minimumDistance, maximumDistanceOrRolloff);
+		if(!_isPositional || !std::isfinite(volume)) return;
+		_recordingSpatialVolume.store(volume, std::memory_order_relaxed);
 	}
 
-	void ResonanceAudioSource::SetSpatialPosition(const Vector3 &position)
+	float ResonanceAudioSource::GetRecordingSpatialVolume(float sharedVolume) const
 	{
-		_spatialSequence.fetch_add(1, std::memory_order_acq_rel);
-		_spatialPositionX.store(position.x, std::memory_order_relaxed);
-		_spatialPositionY.store(position.y, std::memory_order_relaxed);
-		_spatialPositionZ.store(position.z, std::memory_order_relaxed);
-		_spatialSequence.fetch_add(1, std::memory_order_release);
+		const float volume = _recordingSpatialVolume.load(std::memory_order_relaxed);
+		return volume < 0.0f ? sharedVolume : volume;
+	}
+
+	void ResonanceAudioSource::UpdateDistanceModel()
+	{
+		auto *context = _world ? _world->GetListenerContext() : nullptr;
+		if(!context) return;
+
+		ApplyDistanceModel(*context, _sourceID);
+		if(_recordingSourceID != vraudio::ResonanceAudioApi::kInvalidSourceId)
+		{
+			ApplyDistanceModel(*_world->_recordingContext, _recordingSourceID);
+		}
+	}
+
+	void ResonanceAudioSource::ApplyDistanceModel(ResonanceAudioListenerContext &context, int sourceID) const
+	{
+		const float minimumDistance = std::max(0.001f, _minMaxRange.x);
+		const float maximumDistanceOrRolloff = _rolloffModel == DistanceRolloffModel::Inverse ? std::max(0.0f, _minMaxRange.y) : std::max(minimumDistance, _minMaxRange.y);
+		context.GetAudioAPI()->SetSourceDistanceModel(sourceID, MapRolloffModel(_rolloffModel), minimumDistance, maximumDistanceOrRolloff);
+	}
+
+	void ResonanceAudioSource::CreateRecordingSource(ResonanceAudioListenerContext *context)
+	{
+		if(!_isPositional) return;
+		auto *api = context->GetAudioAPI();
+		_recordingSourceID = api->CreateSoundObjectSource(vraudio::RenderingMode::kBinauralHighQuality);
+		ApplyDistanceModel(*context, _recordingSourceID);
+		if(_rolloffModel == DistanceRolloffModel::None) api->SetSourceDistanceAttenuation(_recordingSourceID, _manualDistanceAttenuation);
+		_recordingVolume = GetRecordingSpatialVolume(GetVolume());
+		api->SetSourceVolume(_recordingSourceID, _recordingVolume);
+		_recordingPlayback = {};
+		_recordingRoomWasEnabled = false;
+	}
+
+	void ResonanceAudioSource::RemoveRecordingSource(ResonanceAudioListenerContext *context)
+	{
+		if(_recordingSourceID == vraudio::ResonanceAudioApi::kInvalidSourceId) return;
+		if(context) context->GetAudioAPI()->DestroySource(_recordingSourceID);
+		_recordingSourceID = vraudio::ResonanceAudioApi::kInvalidSourceId;
+		_cachedIsRecordingPlaying.store(false, std::memory_order_relaxed);
 	}
 
 	void ResonanceAudioSource::SetRange(RN::Vector2 minMaxRange)
 	{
 		if(!_isPositional) return;
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		minMaxRange.x = std::max(0.001f, minMaxRange.x);
 		minMaxRange.y = std::max(0.0f, minMaxRange.y);
 		if(_minMaxRange == minMaxRange) return;
@@ -289,6 +278,7 @@ namespace RN
 	void ResonanceAudioSource::SetRolloffModel(DistanceRolloffModel rolloffModel)
 	{
 		if(!_isPositional) return;
+		LockGuard<RecursiveLockable> lock(ResonanceAudioWorld::_sourceLifetimeLock);
 		if(_rolloffModel == rolloffModel) return;
 
 		_rolloffModel = rolloffModel;
@@ -326,25 +316,35 @@ namespace RN
 		if(!cachedHasAsset) return true;
 		if(_isRepeating.load(std::memory_order_relaxed)) return false;
 		double cachedTotalTime = _cachedTotalTime.load(std::memory_order_relaxed);
-		double cachedCurrentTime = _cachedCurrentTime.load(std::memory_order_relaxed);
+		double cachedCurrentTime = _cachedCurrentTime.load(std::memory_order_acquire);
 		return (cachedCurrentTime >= cachedTotalTime);
 	}
 
 	bool ResonanceAudioSource::Update(double frameLength, uint32 sampleCount, float **outputBuffer, uint8 channelCount)
 	{
-		ConsumePendingState(); //Only needs to happen once per frame
-		ProcessPendingActions(); //Needs to happen once per sample, but also here to actually be able to change assets while playing
+		if(!outputBuffer || !*outputBuffer) return false;
+		if(RenderSamples(frameLength, sampleCount, *outputBuffer, channelCount).primary) return true;
+		*outputBuffer = nullptr;
+		return false;
+	}
+
+	ResonanceAudioSource::RenderedSamples ResonanceAudioSource::RenderSamples(double frameLength, uint32 sampleCount, float *output, uint8 channelCount, float primaryDoppler, float *recordingOutput, float recordingDoppler)
+	{
+		RecordingPlayback *recording = recordingOutput ? &_recordingPlayback : nullptr;
+		if(recording && !recording->initialized)
+		{
+			*recording = {_currentTime, _currentPitch, true, _isPlaying};
+		}
+
+		ConsumePendingState(recording && recording->playing);
+		ProcessPendingActions(recording);
 
 		AudioAsset *asset = _sampler->GetAsset();
-		if(!asset || !_isPlaying)
+		RenderedSamples rendered {_isPlaying, recording && recording->playing};
+		if(!asset || !(rendered.primary || rendered.recording) || sampleCount == 0)
 		{
-			*outputBuffer = nullptr;
-			return false;
-		}
-		
-		if(!outputBuffer || !*outputBuffer)
-		{
-			return false;
+			if(recording) _cachedIsRecordingPlaying.store(asset && recording->playing, std::memory_order_relaxed);
+			return {};
 		}
 
 		const bool isRingbuffer = asset->GetType() == AudioAsset::Type::Ringbuffer;
@@ -357,39 +357,41 @@ namespace RN
 			if(bufferedSize < ringBytes)
 			{
 				_ringUnderruns.fetch_add(1, std::memory_order_relaxed);
-				*outputBuffer = nullptr;
-				return false;
+				if(_fadeSamples < 0)
+				{
+					// An empty stream has no PCM to fade before stopping or swapping.
+					_fadeSamples = 0;
+					ProcessPendingActions(recording);
+				}
+				if(recording) _cachedIsRecordingPlaying.store(recording->playing, std::memory_order_relaxed);
+				return {};
 			}
 			// Catch up to the newest frame when the producer runs too far ahead.
 			if(bufferedSize > ringBytes * 20) asset->PopData(nullptr, bufferedSize - ringBytes);
-			// A new source may attach to an already consumed stream. The unread
-			// ring position, rather than source lifetime, defines its next sample.
 			_currentTime = asset->GetReadPosition() / static_cast<double>(bytesPerSecond);
 		}
 
-		double sampleLength = frameLength / static_cast<double>(sampleCount);
-		double localTime = _currentTime;
+		const double sampleLength = frameLength / static_cast<double>(sampleCount);
 		bool isRepeating = _isRepeating.load(std::memory_order_relaxed);
-		uint8 channel = _channel.load(std::memory_order_relaxed);
-		float targetPitch = _pitch.load(std::memory_order_relaxed);
-		// Do not apply Doppler to ringbuffer-backed sources (typically streaming/voice).
-		if(_isPositional && asset && asset->GetType() != AudioAsset::Type::Ringbuffer)
-		{
-			targetPitch *= _dopplerPitchMultiplier.load(std::memory_order_relaxed);
-		}
+		const uint8 channel = _channel.load(std::memory_order_relaxed);
+		const float sourcePitch = _pitch.load(std::memory_order_relaxed);
+		float targetPitch = sourcePitch * (isRingbuffer ? 1.0f : primaryDoppler);
 		if(!std::isfinite(targetPitch)) targetPitch = 1.0f;
 		float pitch = _currentPitch;
-		float pitchStep = sampleCount > 0 ? (targetPitch - pitch) / static_cast<float>(sampleCount) : 0.0f;
-		float volume = _isPositional ? 1.0f : _volume.load(std::memory_order_relaxed);
-		bool isMonoAsset = _sampler->GetAsset()->GetChannels() == 1;
-		
-		const bool ringFadeOut = isRingbuffer && _fadeSamples < 0;
-		float *targetBuffer = *outputBuffer;
+		const float pitchStep = (targetPitch - pitch) / static_cast<float>(sampleCount);
+		float recordingPitch = recording ? recording->pitch : 1.0f;
+		float recordingTargetPitch = recording ? sourcePitch * recordingDoppler : 1.0f;
+		if(!std::isfinite(recordingTargetPitch)) recordingTargetPitch = 1.0f;
+		const float recordingPitchStep = (recordingTargetPitch - recordingPitch) / static_cast<float>(sampleCount);
+		const float volume = _isPositional ? 1.0f : _volume.load(std::memory_order_relaxed);
+		bool isMonoAsset = asset->GetChannels() == 1;
 
-		for(int i = 0; i < sampleCount; i++)
+		for(uint32 i = 0; i < sampleCount; i++)
 		{
-			float gain = ringFadeOut && _fadeSamples == 0 ? 0.0f : volume;
-
+			const bool hasPendingAction = _finalAction != PendingAction::None || _controlBits;
+			const bool waitingForRing = (_controlBits & static_cast<uint32_t>(ControlBits::kWantAssetChange)) && (_nextAsset && _nextAsset->GetType() == AudioAsset::Type::Ringbuffer);
+			float gain = volume;
+			if(_fadeSamples == 0 && ((isRingbuffer && hasPendingAction) || waitingForRing)) gain = 0.0f;
 			if(_fadeSamples > 0)
 			{
 				gain *= 1.0f - (static_cast<float>(_fadeSamples - 1) / static_cast<float>(kFadeSamples));
@@ -401,103 +403,128 @@ namespace RN
 				_fadeSamples += 1;
 			}
 
-			for(int j = 0; j < channelCount; j++)
+			for(uint32 j = 0; j < channelCount; j++)
 			{
-				int sampleChannel = isMonoAsset ? 0 : j;
-				const float sample = (_isPlaying ? _sampler->GetSample(localTime, sampleChannel + channel, isRepeating) : 0.0f) * gain;
+				const uint8 sampleChannel = (isMonoAsset ? 0 : j) + channel;
+				const float sample = (_isPlaying ? _sampler->GetSample(_currentTime, sampleChannel, isRepeating) : 0.0f) * gain;
 				// Keep corrupt stream samples out of Resonance's persistent filters.
-				targetBuffer[i * channelCount + j] = std::isfinite(sample) ? sample : 0.0f;
+				output[i * channelCount + j] = std::isfinite(sample) ? sample : 0.0f;
 			}
-			if(_isPlaying) localTime += sampleLength * pitch;
+			if(recording)
+			{
+				if(isRingbuffer)
+				{
+					recordingOutput[i] = output[i];
+				}
+				else
+				{
+					const float sample = (recording->playing ? _sampler->GetSample(recording->time, channel, isRepeating) : 0.0f) * gain;
+					recordingOutput[i] = std::isfinite(sample) ? sample : 0.0f;
+					if(recording->playing)
+					{
+						rendered.recording = true;
+						recording->time += sampleLength * recordingPitch;
+					}
+					recordingPitch += recordingPitchStep;
+				}
+			}
+			if(_isPlaying) _currentTime += sampleLength * pitch;
 			pitch += pitchStep;
 
-			// Keep the ring asset and its unread bytes owned until sampling completes.
-			// Pending stream changes take effect at the next frame boundary.
-			if(_fadeSamples == 0 && !isRingbuffer)
+			// The ring asset and unread bytes stay owned until the single pop.
+			if(_fadeSamples == 0 && !isRingbuffer && !waitingForRing && hasPendingAction)
 			{
-				if(ProcessPendingActions())
-				{
-					localTime = _currentTime;
-				}
+				ProcessPendingActions(recording, false);
+				asset = _sampler->GetAsset();
+				isMonoAsset = !asset || asset->GetChannels() == 1;
+				isRepeating = _isRepeating.load(std::memory_order_relaxed);
 			}
 		}
 
-		if(isRepeating)
-		{
-			const double totalTime = _sampler->GetTotalTime();
-			if(totalTime > 0.0 && localTime >= totalTime)
-			{
-				localTime = fmod(localTime, totalTime);
-			}
-		}
+		const double totalTime = _sampler->GetTotalTime();
+		if(isRepeating && totalTime > 0.0 && _currentTime >= totalTime) _currentTime = fmod(_currentTime, totalTime);
 		if(isRingbuffer) asset->PopData(nullptr, ringBytes);
-		_currentPitch = targetPitch;
-		_currentTime = localTime;
-		_cachedCurrentTime.store(_currentTime, std::memory_order_relaxed);
+		if(recording)
+		{
+			if(isRingbuffer)
+			{
+				recording->time = _currentTime;
+				recording->pitch = targetPitch;
+			}
+			else
+			{
+				recording->pitch = recordingTargetPitch;
+				if(isRepeating && totalTime > 0.0 && recording->time >= totalTime) recording->time = fmod(recording->time, totalTime);
+				if(!isRepeating && recording->time >= totalTime) recording->playing = false;
+			}
+			_cachedIsRecordingPlaying.store(recording->playing, std::memory_order_relaxed);
+		}
 
-		*outputBuffer = targetBuffer;
-		return true;
+		if(rendered.primary) _currentPitch = targetPitch;
+		// Make the recording playback state visible before HasEnded can report the primary cursor's end.
+		_cachedCurrentTime.store(_currentTime, std::memory_order_release);
+		return rendered;
 	}
 
-	void ResonanceAudioSource::Update()
+	void ResonanceAudioSource::ApplySpatialState(ResonanceAudioListenerContext &context, int sourceID, const SpatialState &state, bool &roomWasEnabled)
 	{
-		if(!_world || !_world->GetAudioAPI()) return;
+		if(!state.valid) return;
+		auto *api = context.GetAudioAPI();
+		api->SetSourcePosition(sourceID, state.position.x, state.position.y, state.position.z);
+		if(state.roomEnabled || roomWasEnabled)
+		{
+			api->SetSourceRoomEffectsGain(sourceID, state.roomGain);
+			api->SetSoundObjectOcclusionIntensity(sourceID, state.occlusion);
+		}
+		roomWasEnabled = state.roomEnabled;
+	}
+
+	void ResonanceAudioSource::RenderPositional(ResonanceAudioListenerContext &primary, ResonanceAudioListenerContext *recording, const SpatialState &primaryState, const SpatialState *recordingState, bool primarySpatialChanged, bool recordingSpatialChanged, double frameLength, uint32 sampleCount)
+	{
 		const uint64 playbackRevision = _playbackRevision.load(std::memory_order_acquire);
-		if(_isPositional)
+		const float volume = _volume.load(std::memory_order_relaxed);
+		auto *primaryAPI = primary.GetAudioAPI();
+		if(primarySpatialChanged) ApplySpatialState(primary, _sourceID, primaryState, _primaryRoomWasEnabled);
+		if(volume != _currentVolume)
 		{
-			const uint32 spatialSequence = _spatialSequence.load(std::memory_order_acquire);
-			if(!(spatialSequence & 1U) && spatialSequence != _currentSpatialSequence)
-			{
-				const float positionX = _spatialPositionX.load(std::memory_order_relaxed);
-				const float positionY = _spatialPositionY.load(std::memory_order_relaxed);
-				const float positionZ = _spatialPositionZ.load(std::memory_order_relaxed);
-				if(_spatialSequence.load(std::memory_order_acquire) == spatialSequence)
-				{
-					_world->GetAudioAPI()->SetSourcePosition(_sourceID, positionX, positionY, positionZ);
-					_currentSpatialSequence = spatialSequence;
-				}
-			}
+			primaryAPI->SetSourceVolume(_sourceID, volume);
+			_currentVolume = volume;
+		}
 
-			float volume = _volume.load(std::memory_order_relaxed);
-			if(volume != _currentVolume)
+		if(recording)
+		{
+			if(recordingSpatialChanged) ApplySpatialState(*recording, _recordingSourceID, *recordingState, _recordingRoomWasEnabled);
+			const float recordingVolume = GetRecordingSpatialVolume(volume);
+			if(recordingVolume != _recordingVolume)
 			{
-				_world->GetAudioAPI()->SetSourceVolume(_sourceID, volume);
-				_currentVolume = volume;
+				recording->GetAudioAPI()->SetSourceVolume(_recordingSourceID, recordingVolume);
+				_recordingVolume = recordingVolume;
 			}
 		}
 
-		if(!_isPlaying)
-		{
-			ConsumePendingState();
-			ProcessPendingActions();
-		}
-		
-		if(_isPositional && _isPlaying)
-		{
-			const uint32 frameSize = _world->_audioSystem->_frameSize;
-			const uint32 sampleRate = _world->_audioSystem->_sampleRate;
+		float *primaryPCM = primary.GetSharedFrameData();
+		float *recordingPCM = recording ? recording->GetSharedFrameData() : nullptr;
+		const RenderedSamples rendered = RenderSamples(frameLength, sampleCount, primaryPCM, 1, primaryState.doppler, recordingPCM, recordingState ? recordingState->doppler : 1.0f);
+		if(rendered.primary) primaryAPI->SetInterleavedBuffer(_sourceID, primaryPCM, 1, sampleCount);
+		if(rendered.recording) recording->GetAudioAPI()->SetInterleavedBuffer(_recordingSourceID, recordingPCM, 1, sampleCount);
+		FinishRender(playbackRevision, recording != nullptr);
+	}
 
-			//For none positional sources this happens in the audio handling callback
-			ResonanceAudioListenerContext *listenerContext = _world->GetListenerContext();
-			float *newBuffer = listenerContext ? listenerContext->GetSharedFrameData() : nullptr;
-			if(newBuffer && Update(static_cast<double>(frameSize) / static_cast<double>(sampleRate), frameSize, &newBuffer, 1))
-			{
-				_world->GetAudioAPI()->SetInterleavedBuffer(_sourceID, newBuffer, 1, frameSize);
-			}
-		}
+	void ResonanceAudioSource::FinishRender(uint64 playbackRevision, bool recording)
+	{
+		if(!HasEnded()) return;
+		_isPlaying = false;
+		_cachedIsPlaying.store(false, std::memory_order_relaxed);
 
-		if(HasEnded())
+		// Public playback state follows the primary cursor. A slower recording
+		// cursor can still finish the one-shot before automatic node removal.
+		if(recording && _recordingPlayback.playing) return;
+		if(_isSelfdestructing.load(std::memory_order_relaxed) && !_controlBits &&
+		   !_pendingAsset.load(std::memory_order_acquire) &&
+		   _pendingFinalAction.load(std::memory_order_acquire) != PendingAction::Play &&
+		   _pendingSeekTime.load(std::memory_order_acquire) < 0.0)
 		{
-			_isPlaying = false;
-			_cachedIsPlaying.store(false, std::memory_order_relaxed);
-
-			if(_isSelfdestructing.load(std::memory_order_relaxed) && !_controlBits &&
-			   !_pendingAsset.load(std::memory_order_acquire) &&
-			   _pendingFinalAction.load(std::memory_order_acquire) != PendingAction::Play &&
-			   _pendingSeekTime.load(std::memory_order_acquire) < 0.0)
-			{
-				_selfdestructRequest.store(playbackRevision, std::memory_order_release);
-			}
+			_selfdestructRequest.store(playbackRevision, std::memory_order_release);
 		}
 	}
 
@@ -524,7 +551,7 @@ namespace RN
 
 	}
 
-	void ResonanceAudioSource::ConsumePendingState()
+	void ResonanceAudioSource::ConsumePendingState(bool recordingPlaying)
 	{
 		if(_pendingFinalAction.load(std::memory_order_relaxed) == PendingAction::None &&
 		   _pendingSeekTime.load(std::memory_order_relaxed) < 0.0 &&
@@ -562,10 +589,10 @@ namespace RN
 		{
 			case PendingAction::Stop:
 			case PendingAction::Pause:
-				if(_isPlaying)
+				if(_isPlaying || recordingPlaying)
 				{
 					_finalAction = finalAction;
-					_controlBits |= static_cast<uint32_t>(ControlBits::kWantFadeOut);
+					if(_isPlaying) _controlBits |= static_cast<uint32_t>(ControlBits::kWantFadeOut);
 				}
 				_controlBits &= ~static_cast<uint32_t>(ControlBits::kWantFadeIn);
 				break;
@@ -580,20 +607,28 @@ namespace RN
 		}
 	}
 
-	bool ResonanceAudioSource::ProcessPendingActions()
+	void ResonanceAudioSource::ProcessPendingActions(RecordingPlayback *recording, bool blockBoundary)
 	{
-		// Now process the control bits as before
 		bool isSeeking = false;
 
-		if(_controlBits & static_cast<uint32_t>(ControlBits::kWantFadeOut) && _isPlaying)
+		if(_controlBits & static_cast<uint32_t>(ControlBits::kWantFadeOut))
 		{
-			_fadeSamples = -static_cast<int32>(kFadeSamples);
 			_controlBits &= ~static_cast<uint32_t>(ControlBits::kWantFadeOut);
-			return isSeeking;
+			if(_isPlaying)
+			{
+				_fadeSamples = -static_cast<int32>(kFadeSamples);
+				return;
+			}
 		}
 
+		if(_fadeSamples < 0)
+		{
+			if(_isPlaying) return;
+			_fadeSamples = 0;
+		}
 		if(_controlBits & static_cast<uint32_t>(ControlBits::kWantAssetChange))
 		{
+			if(!blockBoundary && _nextAsset && _nextAsset->GetType() == AudioAsset::Type::Ringbuffer) return;
 			AudioAsset *pendingAsset = std::exchange(_nextAsset, nullptr);
 			AudioAsset *retiredAsset = pendingAsset;
 			if(pendingAsset != _sampler->GetAsset())
@@ -631,15 +666,23 @@ namespace RN
 			case PendingAction::Pause:
 				_isPlaying = false;
 				_cachedIsPlaying.store(false, std::memory_order_relaxed);
+				if(recording) recording->playing = false;
 				break;
 
 			case PendingAction::Play:
 				if(_sampler->GetAsset() && _currentTime >= _sampler->GetTotalTime())
 				{
 					_currentTime = 0.0f;
+					isSeeking = true;
 					_cachedCurrentTime.store(0.0, std::memory_order_relaxed);
 				}
 				_isPlaying = true;
+				if(recording)
+				{
+					// Resume at this listener's cursor. A one-shot that already
+					// finished here restarts only when the shared transport does.
+					recording->playing = !_sampler->GetAsset() || IsRepeating() || recording->time < _sampler->GetTotalTime();
+				}
 				_cachedIsPlaying.store(true, std::memory_order_relaxed);
 				break;
 
@@ -647,6 +690,11 @@ namespace RN
 				break;
 		}
 		_finalAction = PendingAction::None;
+		if(recording && isSeeking)
+		{
+			recording->time = _currentTime;
+			recording->playing = _isPlaying;
+		}
 
 		if(_controlBits & static_cast<uint32_t>(ControlBits::kWantFadeIn))
 		{
@@ -657,8 +705,6 @@ namespace RN
 
 			_controlBits &= ~static_cast<uint32_t>(ControlBits::kWantFadeIn);
 		}
-
-		return isSeeking;
 	}
 
 	void ResonanceAudioSource::RetireAudioAsset(AudioAsset *asset)

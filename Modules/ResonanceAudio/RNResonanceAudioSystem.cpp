@@ -28,100 +28,97 @@ namespace RN
 	RNDefineMeta(ResonanceAudioDevice, Object)
 	RNDefineMeta(ResonanceAudioSystem, Object)
 
-	//TODO: Allow to initialize with preferred device names and fall back to defaults
 	ResonanceAudioSystem::ResonanceAudioSystem(uint32 sampleRate, uint32 frameSize, uint8 channelCount) :
 		_frameSize(frameSize), _sampleRate(sampleRate), _channelCount(channelCount)
-	{
-		for(int i = 0; i < 3; i++)
-		{
-			_listenerContextSnapshots[i] = new Array();
-		}
-	}
+	{}
 
 	ResonanceAudioSystem::~ResonanceAudioSystem()
 	{
+		SetOutputSamplesCallback(nullptr);
 		RemoveAllListenerContexts();
-		for(int i = 0; i < 3; i++)
+	}
+
+	void ResonanceAudioSystem::WaitForOutputCallback()
+	{
+		// Publication and entry use the same sequentially consistent order. A
+		// later entrant can only see the new pointers. Wait for at most the
+		// render already in progress, even if the device keeps calling back.
+		const uint32 sequence = _outputCallbackSequence.load();
+		while((sequence & 1U) && _outputCallbackSequence.load() == sequence)
 		{
-			SafeRelease(_listenerContextSnapshots[i]);
+			std::this_thread::yield();
 		}
 	}
 
-	void ResonanceAudioSystem::SetOutputSamplesCallback(std::function<void(const float *, uint32, uint32, uint32)> callback)
+	void ResonanceAudioSystem::SetOutputSamplesCallback(OutputSamplesCallback callback)
 	{
-		// Removal waits for an in-flight callback before its captured owner is released
+		auto *replacement = callback ? new OutputSamplesCallback(std::move(callback)) : nullptr;
 		std::lock_guard<std::mutex> lock(_outputSamplesLock);
-		_outputSamplesCallback = std::move(callback);
+		auto *previous = _outputSamplesCallback.exchange(replacement);
+		if(previous) WaitForOutputCallback();
+		delete previous;
+	}
+
+	void ResonanceAudioSystem::SetRecordingContext(ResonanceAudioListenerContext *context)
+	{
+		if(_recordingContext.exchange(context)) WaitForOutputCallback();
 	}
 
 	void ResonanceAudioSystem::RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 frameCount, uint32 sampleRate, uint32 channelCount, uint32 status)
 	{
-		const uint32 snapshotIndex = _listenerContextSnapshotIndex.load(std::memory_order_acquire) % 3;
-		_listenerContextSnapshotInUseIndex.store(snapshotIndex, std::memory_order_relaxed);
-		Array *snapshot = _listenerContextSnapshots[snapshotIndex];
-		ResonanceAudioListenerContext *listenerContext = snapshot && snapshot->GetCount() ? snapshot->GetObjectAtIndex<ResonanceAudioListenerContext>(0) : nullptr;
-		if(listenerContext) listenerContext->RenderAudio(outputBuffer, inputBuffer, sampleRate, channelCount, frameCount, status);
-		else if(outputBuffer) memset(outputBuffer, 0, frameCount * channelCount * sizeof(float));
-
-		// A busy control thread skips a tap block rather than delaying device output
-		if(outputBuffer && _outputSamplesLock.try_lock())
+		if(inputBuffer)
 		{
-			std::lock_guard<std::mutex> lock(_outputSamplesLock, std::adopt_lock);
-			if(_outputSamplesCallback) _outputSamplesCallback(static_cast<const float *>(outputBuffer), frameCount, sampleRate, channelCount);
+			if(auto *primary = GetListenerContext())
+			{
+				primary->CaptureInput(static_cast<const float *>(inputBuffer), sampleRate, channelCount, frameCount);
+			}
 		}
+		if(!outputBuffer) return;
+
+		const uint64 generation = _outputGeneration.load(std::memory_order_relaxed);
+		const uint64 firstSampleFrame = _nextOutputSampleFrame;
+		_nextOutputSampleFrame += frameCount;
+
+		const bool hasTap = _recordingContext.load() || _outputSamplesCallback.load();
+		if(hasTap) _outputCallbackSequence.fetch_add(1);
+		ResonanceAudioListenerContext *recording = hasTap ? _recordingContext.load() : nullptr;
+		OutputSamplesCallback *tap = hasTap ? _outputSamplesCallback.load() : nullptr;
+
+		auto *output = static_cast<float *>(outputBuffer);
+		if(auto *primary = GetListenerContext())
+		{
+			primary->_world->RenderOutput(*primary, output, frameCount, sampleRate, channelCount, recording);
+		}
+		else
+		{
+			memset(output, 0, frameCount * channelCount * sizeof(float));
+		}
+
+		if(recording)
+		{
+			recording->_recordingCallback({recording->_recordingOutput, frameCount, sampleRate, 2, firstSampleFrame, generation});
+		}
+		if(tap) (*tap)(output, frameCount, sampleRate, channelCount);
+		if(hasTap) _outputCallbackSequence.fetch_add(1);
 	}
 
-	ResonanceAudioListenerContext *ResonanceAudioSystem::CreateListenerContext()
+	ResonanceAudioListenerContext *ResonanceAudioSystem::CreateListenerContext(ResonanceAudioWorld *world)
 	{
-		ResonanceAudioWorld *world = _owningWorld;
-		RN_ASSERT(world, "Owning world must be set before creating listener contexts!");
-
-		ResonanceAudioListenerContext *context = new ResonanceAudioListenerContext(world, _channelCount, _frameSize, _sampleRate);
-		_listenerContexts.push_back(context);
-		PublishListenerContextsSnapshot();
-
+		RN_ASSERT(world && !GetListenerContext(), "Expected an owning world with no listener context");
+		auto *context = new ResonanceAudioListenerContext(world, _channelCount, _frameSize, _sampleRate);
+		_primaryContext.store(context, std::memory_order_release);
 		return context;
 	}
 
 	void ResonanceAudioSystem::RemoveAllListenerContexts()
 	{
-		// Devices are stopped before detachment, so every snapshot can be cleared.
-		for(Array *snapshot : _listenerContextSnapshots)
-		{
-			if(snapshot) snapshot->RemoveAllObjects();
-		}
-		for(ResonanceAudioListenerContext *context : _listenerContexts)
-		{
-			if(!context) continue;
-			context->_world = nullptr;
-			context->SetInputSamplesCallback(nullptr);
-			context->SetListener(nullptr);
-			context->Release();
-		}
-		_listenerContexts.clear();
-	}
-
-	ResonanceAudioListenerContext *ResonanceAudioSystem::GetListenerContext() const
-	{
-		if(_listenerContexts.empty()) return nullptr;
-		return _listenerContexts.front();
-	}
-
-	void ResonanceAudioSystem::PublishListenerContextsSnapshot()
-	{
-		const uint32 inUse = _listenerContextSnapshotInUseIndex.load(std::memory_order_relaxed) % 3;
-		const uint32 published = _listenerContextSnapshotIndex.load(std::memory_order_relaxed) % 3;
-		uint32 writeIndex = (published + 1) % 3;
-		if(writeIndex == inUse) writeIndex = (writeIndex + 1) % 3;
-
-		Array *fresh = _listenerContextSnapshots[writeIndex];
-		fresh->RemoveAllObjects();
-		for(ResonanceAudioListenerContext *context : _listenerContexts)
-		{
-			if(!context) continue;
-			fresh->AddObject(context); // retain for audio thread
-		}
-		_listenerContextSnapshotIndex.store(writeIndex, std::memory_order_release);
+		// The world stops both devices before detaching the primary context.
+		auto *context = _primaryContext.exchange(nullptr, std::memory_order_acq_rel);
+		if(!context) return;
+		context->_world = nullptr;
+		context->SetInputSamplesCallback(nullptr);
+		context->SetListener(nullptr);
+		context->Release();
 	}
 
 	ResonanceAudioSystem *ResonanceAudioSystem::WithInfo(uint32 sampleRate, uint32 frameSize, uint8 channelCount)
@@ -205,7 +202,21 @@ namespace RN
 		config.playback.format = ma_format_f32; // Set to ma_format_unknown to use the device's native format.
 		config.playback.channels = _channelCount; // Set to 0 to use the device's native channel count.
 		config.sampleRate = _sampleRate; // Set to 0 to use the device's native sample rate.
+		// Resonance consumes one fixed DSP block. Miniaudio slices or gathers
+		// native device buffers to this period before calling AudioCallback.
 		config.periodSizeInFrames = _frameSize;
+		config.noFixedSizedCallback = MA_FALSE;
+		config.notificationCallback = [](const ma_device_notification *notification) {
+			switch(notification->type)
+			{
+				case ma_device_notification_type_rerouted:
+				case ma_device_notification_type_interruption_ended:
+					static_cast<ResonanceAudioSystemMiniAudio *>(notification->pDevice->pUserData)->AdvanceOutputGeneration();
+					break;
+				default:
+					break;
+			}
+		};
 		config.dataCallback = &AudioCallback; // This function will be called when miniaudio needs more data.
 		config.pUserData = this; // Can be accessed from the device object (device.pUserData).
 
@@ -215,6 +226,7 @@ namespace RN
 			return; // Failed to initialize the device.
 		}
 
+		AdvanceOutputGeneration(); // Some backends request output while starting.
 		if(ma_device_start(&_internals->outputDevice) != MA_SUCCESS)
 		{
 			ma_device_uninit(&_internals->outputDevice);

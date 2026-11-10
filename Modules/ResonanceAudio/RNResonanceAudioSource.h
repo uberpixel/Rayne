@@ -15,6 +15,7 @@ namespace RN
 {
 	class ResonanceAudioSampler;
 	class ResonanceAudioWorld;
+	class ResonanceAudioListenerContext;
 	struct ResonanceAudioSourceInternals;
 	class ResonanceAudioSource : public SceneNode
 	{
@@ -60,6 +61,8 @@ namespace RN
 		RAAPI void SetCurrentDistanceAttenuationValue(float attentuation);
 		RAAPI void SetPitch(float pitch);
 		RAAPI void SetVolume(float volume);
+		// Overrides the recording listener's volume for positional sources. A negative value uses SetVolume again.
+		RAAPI void SetRecordingSpatialVolume(float volume);
 		RAAPI void SetRange(RN::Vector2 minMaxRange);
 		RAAPI void SetSelfdestruct(bool selfdestruct);
 		RAAPI void SetRolloffModel(DistanceRolloffModel rolloffModel);
@@ -67,12 +70,13 @@ namespace RN
 
 		void Update(float delta) override;
 		RAAPI bool Update(double frameLength, uint32 sampleCount, float **outputBuffer, uint8 channelCount = 1);
-		void Update();
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 
 		bool IsPositional() const { return _isPositional; }
 
 		bool IsPlaying() const { return _cachedIsPlaying.load(std::memory_order_relaxed); }
+		// Reports the recording cursor's latest playback state for a positional source.
+		bool IsRecordingPlaying() const { return _cachedIsRecordingPlaying.load(std::memory_order_relaxed); }
 		bool IsRepeating() const { return _isRepeating.load(std::memory_order_relaxed); }
 		RAAPI bool HasEnded() const;
 
@@ -82,11 +86,44 @@ namespace RN
 		ResonanceAudioSampler *GetSampler() const { return _sampler; }
 
 	private:
-		void UpdateDistanceModel();
-		void SetSpatialPosition(const Vector3 &position);
+		struct SpatialState
+		{
+			Vector3 position;
+			float doppler = 1.0f;
+			float roomGain = 0.0f;
+			float occlusion = 0.0f;
+			bool valid = false;
+			bool roomEnabled = false;
+		};
+
+		struct RecordingPlayback
+		{
+			double time = 0.0;
+			float pitch = 1.0f;
+			bool initialized = false;
+			bool playing = false;
+		};
+
+		struct RenderedSamples
+		{
+			bool primary = false;
+			bool recording = false;
+		};
+
+		void UpdateDistanceModel(); // Called with the source lifetime lock held.
+		void ApplyDistanceModel(ResonanceAudioListenerContext &context, int sourceID) const;
+		void CreateRecordingSource(ResonanceAudioListenerContext *context);
+		void RemoveRecordingSource(ResonanceAudioListenerContext *context);
+		float GetRecordingSpatialVolume(float sharedVolume) const;
+		void UpdateDopplerVelocity(const PositionType &position, float delta, float smoothing);
+		float GetDopplerPitch(const ResonanceAudioListenerContext &context, const Vector3 &offset, const Vector3 &listenerVelocity) const;
+		void ApplySpatialState(ResonanceAudioListenerContext &context, int sourceID, const SpatialState &state, bool &roomWasEnabled);
+		void RenderPositional(ResonanceAudioListenerContext &primary, ResonanceAudioListenerContext *recording, const SpatialState &primaryState, const SpatialState *recordingState, bool primarySpatialChanged, bool recordingSpatialChanged, double frameLength, uint32 sampleCount);
+		RenderedSamples RenderSamples(double frameLength, uint32 sampleCount, float *output, uint8 channelCount, float primaryDoppler = 1.0f, float *recordingOutput = nullptr, float recordingDoppler = 1.0f);
+		void FinishRender(uint64 playbackRevision, bool recording);
 		static AudioAsset *GetNullAssetSentinel() { return reinterpret_cast<AudioAsset *>(static_cast<uintptr_t>(1)); }
-		void ConsumePendingState();
-		bool ProcessPendingActions();
+		void ConsumePendingState(bool recordingPlaying);
+		void ProcessPendingActions(RecordingPlayback *recording, bool blockBoundary = true);
 		void RetireAudioAsset(AudioAsset *asset);
 		void ReleaseRetiredAudioAssets();
 
@@ -101,6 +138,12 @@ namespace RN
 		ResonanceAudioSampler *_sampler;
 
 		int _sourceID;
+		int _recordingSourceID;
+		RecordingPlayback _recordingPlayback;
+		float _recordingVolume = -1.0f;
+		bool _primaryRoomWasEnabled = false;
+		bool _recordingRoomWasEnabled = false;
+		float _manualDistanceAttenuation = 1.0f;
 
 		bool _wantsIndirectSound;
 		bool _isPositional;
@@ -109,11 +152,10 @@ namespace RN
 		std::atomic<bool> _isRepeating;
 
 		std::atomic<float> _volume;
+		std::atomic<float> _recordingSpatialVolume {-1.0f};
 		std::atomic<float> _pitch;
 
-		// Updated from ResonanceAudioWorld on the main thread; consumed on the audio thread.
-		// This mirrors OpenAL's Doppler behaviour by modulating the sampler pitch.
-		std::atomic<float> _dopplerPitchMultiplier;
+		// The scene thread estimates velocity once for both listeners.
 		PositionType _dopplerOldPosition;
 		Vector3 _dopplerVelocity; // smoothed
 		bool _dopplerInitialized;
@@ -126,7 +168,6 @@ namespace RN
 		double _currentTime;
 		float _currentPitch;
 		float _currentVolume;
-		uint32 _currentSpatialSequence;
 		int32 _fadeSamples; // >0 fade-in, <0 fade-out, 0 none
 		uint32_t _controlBits;
 		PendingAction _finalAction;
@@ -140,10 +181,6 @@ namespace RN
 		std::atomic<uint32> _retiredAudioAssetRead {0};
 
 		//Used to sync between threads
-		std::atomic<uint32> _spatialSequence;
-		std::atomic<float> _spatialPositionX;
-		std::atomic<float> _spatialPositionY;
-		std::atomic<float> _spatialPositionZ;
 		std::atomic<double> _pendingSeekTime;
 		std::atomic<AudioAsset*> _pendingAsset;
 		std::atomic<PendingAction> _pendingFinalAction;
@@ -152,6 +189,7 @@ namespace RN
 		std::atomic<bool> _cachedHasAsset;
 		std::atomic<double> _cachedTotalTime;
 		std::atomic<bool> _cachedIsPlaying;
+		std::atomic<bool> _cachedIsRecordingPlaying {false};
 		std::atomic<double> _cachedCurrentTime;
 
 		RNDeclareMetaAPI(ResonanceAudioSource, RAAPI)

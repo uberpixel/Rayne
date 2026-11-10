@@ -9,7 +9,7 @@
 #ifndef __RAYNE_RESONANCEAUDIO_LISTENERCONTEXT_H_
 #define __RAYNE_RESONANCEAUDIO_LISTENERCONTEXT_H_
 
-#include "RNResonanceAudio.h"
+#include "RNResonanceAudioSystem.h"
 
 namespace vraudio
 {
@@ -32,6 +32,7 @@ namespace RN
 	class ResonanceAudioListenerContext : public Object
 	{
 		friend class ResonanceAudioSystem;
+		friend class ResonanceAudioWorld;
 
 	public:
 		RAAPI ResonanceAudioListenerContext(ResonanceAudioWorld *world, uint32 channelCount, uint32 frameSize, uint32 sampleRate);
@@ -62,12 +63,16 @@ namespace RN
 
 		RAAPI void Update(float delta);
 
-		void RenderAudio(void *outputBuffer, const void *inputBuffer, uint32 sampleRate, uint32 channelCount, uint32 frameCount, uint32 status);
-
 		vraudio::ResonanceAudioApi *GetAudioAPI() const { return _audioAPI; }
 		float *GetSharedFrameData() const { return _sharedFrameData; }
 
 	private:
+		void CopyMixSettings(const ResonanceAudioListenerContext &other);
+		void CaptureInput(const float *input, uint32 sampleRate, uint32 channelCount, uint32 frameCount);
+		void ApplyHeadRotation(const Quaternion &rotation);
+		void MixSpatialOutput(float *output, uint32 frameCount);
+		void FinishOutput(float *output, uint32 frameCount, float worldMasterVolume);
+
 		ResonanceAudioWorld *_world;
 		SceneNode *_listener;
 		PositionType _oldPosition;
@@ -75,6 +80,9 @@ namespace RN
 		uint32 _frameSize;
 		uint32 _channelCount;
 		float *_sharedFrameData;
+		float *_recordingOutput = nullptr;
+		ResonanceAudioRecordingCallback _recordingCallback; // Set before publication, cleared after output stops using this context.
+		uint64 _renderedSpatialRevision = 0;
 
 		RecursiveLockable _inputSamplesCallbackLock;
 		std::function<void(uint32, uint32, uint32, const float *)> _inputSamplesCallback;
@@ -94,8 +102,7 @@ namespace RN
 		float _roomReflectionConstant;
 		ResonanceAudioMaterial _roomMaterials[6];
 
-		ResonanceAudioListenerState _stateBuffers[2] = {};
-		std::atomic<uint32> _stateIndex {0};
+		ResonanceAudioListenerState _listenerState;
 
 		vraudio::ResonanceAudioApi *_audioAPI;
 
