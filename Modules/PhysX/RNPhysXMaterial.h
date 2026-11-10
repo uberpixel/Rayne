@@ -22,6 +22,7 @@ namespace RN
 	{
 	public:
 		PXAPI PhysXMaterial(float staticFriction = 0.5f, float dynamicFriction = 0.5f, float restitution = 0.1f);
+		PXAPI ~PhysXMaterial() override;
 
 		PXAPI void SetStaticFriction(float friction);
 		PXAPI void SetDynamicFriction(float friction);

@@ -293,8 +293,8 @@ namespace RN
 		diff.Normalize();
 		
 		const physx::PxU32 bufferSize = maxNumberOfHits;
-		physx::PxRaycastHit *hitBuffer = new physx::PxRaycastHit[bufferSize];
-		physx::PxRaycastBuffer callback(hitBuffer, bufferSize);
+		std::unique_ptr<physx::PxRaycastHit[]> hitBuffer(new physx::PxRaycastHit[bufferSize]);
+		physx::PxRaycastBuffer callback(hitBuffer.get(), bufferSize);
 		
 		physx::PxFilterData filterData;
 		filterData.word0 = filterGroup;

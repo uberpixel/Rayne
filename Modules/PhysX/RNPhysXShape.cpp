@@ -34,7 +34,7 @@ namespace RN
 
 	PhysXShape::~PhysXShape()
 	{
-		if(_shape) _shape->release();
+		if(_shape && PhysXWorld::GetSharedInstance()) _shape->release();
 		SafeRelease(_material);
 	}
 

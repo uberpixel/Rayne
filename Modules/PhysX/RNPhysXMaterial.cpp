@@ -24,6 +24,12 @@ namespace RN
 		_material->setFlag(physx::PxMaterialFlag::eIMPROVED_PATCH_FRICTION, true);
 	}
 
+	PhysXMaterial::~PhysXMaterial()
+	{
+		// PhysX releases any remaining materials when the world shuts down.
+		if(PhysXWorld::GetSharedInstance()) _material->release();
+	}
+
 
 	void PhysXMaterial::SetStaticFriction(float friction)
 	{

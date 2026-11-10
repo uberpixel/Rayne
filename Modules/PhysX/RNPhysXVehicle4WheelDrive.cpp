@@ -80,6 +80,7 @@ namespace RN
 		}
 		physx::PxVehicleWheelsSimData *wheelsSimData = physx::PxVehicleWheelsSimData::allocate(_wheelCount);
 		PhysXVehicleInternal::SetupWheelsSimulationData(25.0f, compoundShape, _wheelCount, wheelCenterActorOffsets, chassisData.mCMOffset, chassisData.mMass, wheelsSimData, wheelCollisionGroup, wheelCollisionMask);
+		delete[] wheelCenterActorOffsets;
 
 		physx::PxVehicleDriveSimData4W driveSimData;
 		PhysXVehicleInternal::SetupDriveSimData4W(&driveSimData, wheelsSimData);
@@ -120,9 +121,18 @@ namespace RN
 
 	PhysXVehicle4WheelDrive::~PhysXVehicle4WheelDrive()
 	{
+		if(PhysXWorld *world = PhysXWorld::GetSharedInstance())
+		{
+			LockGuard<PhysXWorld> lock(*world);
+			_batchQuery->release();
+			_vehicleDrive4W->free();
+			_actor->release();
+		}
+
 		delete[] static_cast<physx::PxRaycastQueryResult *>(_raycastQueryResults);
 		delete[] static_cast<physx::PxRaycastHit *>(_raycastHitBuffer);
 
+		_shape->Release();
 		SafeRelease(_wheelEntities);
 	}
 
@@ -139,6 +149,7 @@ namespace RN
 		physx::PxVehicleDrivableSurfaceToTireFrictionPairs *frictionPairs = PhysXVehicleInternal::CreateFrictionPairs(nullptr);
 
 		PxVehicleUpdates(delta, gravity, *frictionPairs, 1, vehicles, nullptr, nullptr);
+		frictionPairs->release();
 	}
 
 	void PhysXVehicle4WheelDrive::SetAcceleration(float acceleration)

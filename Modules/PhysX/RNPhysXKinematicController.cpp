@@ -40,6 +40,7 @@ namespace RN
 	PhysXKinematicController::~PhysXKinematicController()
 	{
 		_controller->release();
+		_material->Release();
 		if(_callback) delete _callback;
 	}
 
