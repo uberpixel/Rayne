@@ -171,7 +171,7 @@ float getDirectionalShadowFactor(int light, float3 position, matrix shadowMatric
 		projectedPosition[i] = mul(shadowMatrices[i], float4(position, 1.0));
 		projectedPosition[i].xyz /= projectedPosition[i].w;
 
-		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0 && abs(projectedPosition[i].y) < 1.0 && abs(projectedPosition[i].z) < 1.0)
+		if(mapToUse > i && abs(projectedPosition[i].x) < 1.0 && abs(projectedPosition[i].y) < 1.0 && projectedPosition[i].z > 0.0 && projectedPosition[i].z < 1.0)
 		{
 			mapToUse = i;
 		}
