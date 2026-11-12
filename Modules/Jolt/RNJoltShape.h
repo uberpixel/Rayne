@@ -152,8 +152,9 @@ namespace RN
 		JTAPI void AddChild(JoltShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation);
 		JTAPI void AddChild(JoltShape *shape, const RN::Vector3 &position, const RN::Quaternion &rotation, uint32 userData);
 		JTAPI bool SetChildMass(size_t index, float mass);
-		// Applies indexed masses in order; entries <= epsilon leave the child unchanged.
+		// Apply indexed masses in order. Entries <= epsilon leave the child unchanged.
 		JTAPI void SetChildMasses(const std::vector<float> &masses);
+
 		JTAPI void SetMass(float mass) override;
 
 		JoltShape *GetShape(size_t index) const { return _shapes[index]; }
@@ -162,6 +163,9 @@ namespace RN
 		JTAPI static JoltCompoundShape *WithModel(Model *model, Vector3 scale, bool useTriangleMesh, bool wantsDoubleSided = false);
 
 	private:
+		friend class JoltDynamicBody;
+		JTAPI bool CanUpdateChildren(const std::vector<Child> &children, const std::vector<uint32> &retainedIndices) const;
+		JTAPI bool TryUpdateChildren(const std::vector<Child> &children, const std::vector<uint32> &retainedIndices);
 		static bool CanScaleMassUniformly(JoltShape *shape, float mass, std::unordered_set<const JPH::Shape *> &visited);
 		void UpdateCenterOfMass();
 

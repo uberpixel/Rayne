@@ -10,6 +10,7 @@
 #define __RAYNE_JOLTDYNAMICBODY_H_
 
 #include "RNJoltBodyMotion.h"
+#include "RNJoltShape.h"
 #include "RNJoltCollisionObject.h"
 
 namespace JPH
@@ -75,6 +76,12 @@ namespace RN
 		JTAPI void SetShape(JoltShape *shape, float mass, const Vector3 &positionOffset);
 		JTAPI void SetMass(float mass);
 		JTAPI void RefreshShapeMassProperties(float mass);
+		// Call on the owning thread with no concurrent physics updates or collision queries.
+		// Verify retained authored pose and mass inputs are unchanged.
+		// Retained children keep native pose and density.
+		// Only their identity and userData are consumed.
+		JTAPI bool CanUpdateCompoundShape(const std::vector<JoltCompoundShape::Child> &children, const std::vector<uint32> &retainedIndices, float mass) const;
+		JTAPI bool TryUpdateCompoundShape(const std::vector<JoltCompoundShape::Child> &children, const std::vector<uint32> &retainedIndices, float mass);
 		JTAPI void SetLinearVelocity(const Vector3 &velocity);
 		JTAPI void SetAngularVelocity(const Vector3 &velocity);
 		JTAPI void SetDamping(float linear, float angular);

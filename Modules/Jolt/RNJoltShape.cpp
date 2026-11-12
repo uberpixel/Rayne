@@ -319,7 +319,7 @@ namespace RN
 		if(children.empty() || children.size() > 0xffffffffU) return;
 
 		bool hasCompoundChild = false;
-		JPH::uint indexBits = 32 - JPH::CountLeadingZeros(static_cast<JPH::uint32>(children.size() - 1));
+		JPH::uint indexBits = children.size() > 1 ? 32 - JPH::CountLeadingZeros(static_cast<JPH::uint32>(children.size() - 1)) : 0;
 		for(const Child &child : children)
 		{
 			if(!child.shape || !child.shape->GetJoltShape() || !child.position.IsValid() || !child.rotation.IsValid()) return;
@@ -496,6 +496,84 @@ namespace RN
 			changed = true;
 		}
 		if(changed) UpdateCenterOfMass();
+	}
+
+	bool JoltCompoundShape::CanUpdateChildren(const std::vector<Child> &children, const std::vector<uint32> &retainedIndices) const
+	{
+		if(!_shape || _shape->GetSubType() != JPH::EShapeSubType::MutableCompound || _shape->GetRefCount() > 2 ||
+			children.empty() || children.size() > 0xffffffffU || children.size() != retainedIndices.size()) return false;
+
+		JPH::MutableCompoundShape *compoundShape = static_cast<JPH::MutableCompoundShape *>(_shape);
+		if(compoundShape->GetNumSubShapes() != _shapes.size()) return false;
+
+		JPH::uint indexBits = children.size() > 1 ? 32 - JPH::CountLeadingZeros(static_cast<JPH::uint32>(children.size() - 1)) : 0;
+		uint32 previous = 0xffffffffU;
+		for(size_t i = 0; i < children.size(); i += 1)
+		{
+			const Child &child = children[i];
+			if(!child.shape || !child.shape->GetJoltShape() || !child.position.IsValid() || !child.rotation.IsValid() ||
+				!JPH::Quat(child.rotation.x, child.rotation.y, child.rotation.z, child.rotation.w).IsNormalized() ||
+				!std::isfinite(child.mass) ||
+				indexBits + child.shape->GetJoltShape()->GetSubShapeIDBitsRecursive() > JPH::SubShapeID::MaxBits || child.shape->GetJoltShape() == _shape) return false;
+
+			uint32 index = retainedIndices[i];
+			if(index == 0xffffffffU)
+			{
+				// Base nonconvex wrappers and masses <= epsilon skip SetMass.
+				// Keep shared child densities unchanged.
+				if(child.mass > k::EpsilonFloat && (child.shape->Downcast<JoltCompoundShape>() || child.shape->GetJoltShape()->GetType() == JPH::EShapeType::Convex))
+				{
+					float nativeMass = child.shape->GetJoltShape()->GetMassProperties().mMass;
+					if(!std::isfinite(nativeMass) || nativeMass <= k::EpsilonFloat || std::abs(nativeMass - child.mass) > std::max(nativeMass, child.mass) * 1.0e-5f) return false;
+				}
+				if(std::find(_shapes.begin(), _shapes.end(), child.shape) != _shapes.end()) return false;
+				continue;
+			}
+			if(index >= _shapes.size() || (previous != 0xffffffffU && index <= previous) || _shapes[index] != child.shape) return false;
+
+			previous = index;
+			const JPH::CompoundShape::SubShape &subShape = compoundShape->GetSubShape(index);
+			if(subShape.mShape != child.shape->GetJoltShape()) return false;
+			// Keep native pose and density. The caller verifies unchanged authored inputs.
+			// Compressed Jolt rotations cannot recover the original quaternion.
+		}
+
+		return true;
+	}
+
+	bool JoltCompoundShape::TryUpdateChildren(const std::vector<Child> &children, const std::vector<uint32> &retainedIndices)
+	{
+		if(!CanUpdateChildren(children, retainedIndices)) return false;
+
+		JPH::MutableCompoundShape *compoundShape = static_cast<JPH::MutableCompoundShape *>(_shape);
+		std::vector<bool> retained(_shapes.size(), false);
+		for(uint32 index : retainedIndices)
+		{
+			if(index != 0xffffffffU) retained[index] = true;
+		}
+
+		_shapes.reserve(children.size());
+		for(size_t i = _shapes.size(); i-- > 0;)
+		{
+			if(retained[i]) continue;
+			compoundShape->RemoveShape(static_cast<JPH::uint>(i));
+			_shapes[i]->Release();
+			_shapes.erase(_shapes.begin() + i);
+		}
+		for(size_t i = 0; i < children.size(); i += 1)
+		{
+			const Child &child = children[i];
+			if(retainedIndices[i] == 0xffffffffU)
+			{
+				compoundShape->AddShape(JPH::Vec3(child.position.x, child.position.y, child.position.z), JPH::Quat(child.rotation.x, child.rotation.y, child.rotation.z, child.rotation.w), child.shape->GetJoltShape(), child.userData, static_cast<JPH::uint>(i));
+				_shapes.insert(_shapes.begin() + i, child.shape->Retain());
+			}
+			compoundShape->SetCompoundUserData(static_cast<JPH::uint>(i), child.userData);
+		}
+
+		UpdateCenterOfMass();
+
+		return true;
 	}
 
 	void JoltCompoundShape::SetMass(float mass)

@@ -446,6 +446,31 @@ namespace RN
 		InvalidateMotionCache();
 	}
 
+	bool JoltDynamicBody::CanUpdateCompoundShape(const std::vector<JoltCompoundShape::Child> &children, const std::vector<uint32> &retainedIndices, float mass) const
+	{
+		JoltCompoundShape *compoundShape = _shape ? _shape->Downcast<JoltCompoundShape>() : nullptr;
+		if(!compoundShape || !_actor || !std::isfinite(mass) || mass <= k::EpsilonFloat) return false;
+
+		JPH::BodyLockRead lock(GetJoltWorld()->GetJoltInstance()->GetBodyLockInterface(), *_actor);
+		return lock.Succeeded() && lock.GetBody().GetShape() == compoundShape->GetJoltShape() && compoundShape->CanUpdateChildren(children, retainedIndices);
+	}
+
+	bool JoltDynamicBody::TryUpdateCompoundShape(const std::vector<JoltCompoundShape::Child> &children, const std::vector<uint32> &retainedIndices, float mass)
+	{
+		JoltCompoundShape *compoundShape = _shape ? _shape->Downcast<JoltCompoundShape>() : nullptr;
+		if(!compoundShape || !_actor || !std::isfinite(mass) || mass <= k::EpsilonFloat) return false;
+
+		{
+			JPH::BodyLockWrite lock(GetJoltWorld()->GetJoltInstance()->GetBodyLockInterface(), *_actor);
+			if(!lock.Succeeded() || lock.GetBody().GetShape() != compoundShape->GetJoltShape() || !compoundShape->TryUpdateChildren(children, retainedIndices)) return false;
+		}
+
+		// The caller excludes physics updates and queries until notification completes.
+		RefreshShapeMassProperties(mass);
+		SetMass(mass);
+		return true;
+	}
+
 	void JoltDynamicBody::RefreshShapeMassProperties(float mass)
 	{
 		if(!_shape || !_actor || mass <= k::EpsilonFloat) return;
