@@ -8,7 +8,6 @@
 
 #include "RNFutex.h"
 #include "../Base/RNBase.h"
-#include "RNLockable.h"
 
 namespace RN
 {
@@ -31,35 +30,7 @@ namespace RN
 			ThreadData *next;
 		};
 
-		class SpinLock
-		{
-		public:
-			SpinLock()
-			{
-				_flag.clear();
-			}
-
-			void Lock()
-			{
-				while(_flag.test_and_set(std::memory_order_acquire))
-				{}
-			}
-
-			void Unlock()
-			{
-				_flag.clear(std::memory_order_release);
-			}
-
-			bool TryLock()
-			{
-				return (!_flag.test_and_set(std::memory_order_acquire));
-			}
-
-		private:
-			std::atomic_flag _flag;
-		};
-
-		static SpinLock _threadLock;
+		static std::mutex _threadLock;
 		static std::unordered_map<void *, ThreadData *> _threadQueue;
 
 		inline std::unique_ptr<ThreadData> &GetThreadDataStorage()
@@ -84,7 +55,7 @@ namespace RN
 
 		void QueueThreadData(const void *address, ThreadData *data)
 		{
-			LockGuard<SpinLock> lock(_threadLock);
+			std::lock_guard<std::mutex> lock(_threadLock);
 
 			auto iterator = _threadQueue.find(const_cast<void *>(address));
 			if(iterator == _threadQueue.end())
@@ -113,7 +84,7 @@ namespace RN
 
 		void DequeueThreadData(const void *address, ThreadData *data)
 		{
-			LockGuard<SpinLock> lock(_threadLock);
+			std::lock_guard<std::mutex> lock(_threadLock);
 			std::unique_lock<std::mutex> dataLock(data->lock);
 
 			auto iterator = _threadQueue.find(const_cast<void *>(address));
@@ -232,7 +203,7 @@ namespace RN
 
 		void Futex::__WakeOneBorrowed(const void *address, void *context, void (*callback)(void *, WakeResult))
 		{
-			LockGuard<SpinLock> lock(_threadLock);
+			std::lock_guard<std::mutex> lock(_threadLock);
 			auto iterator = _threadQueue.find(const_cast<void *>(address));
 			if(iterator == _threadQueue.end())
 			{
@@ -271,7 +242,7 @@ namespace RN
 
 		void Futex::WakeAll(const void *address)
 		{
-			LockGuard<SpinLock> lock(_threadLock);
+			std::lock_guard<std::mutex> lock(_threadLock);
 			auto iterator = _threadQueue.find(const_cast<void *>(address));
 			if(iterator == _threadQueue.end())
 				return;
