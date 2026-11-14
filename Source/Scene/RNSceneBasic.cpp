@@ -25,27 +25,14 @@ namespace RN
 	RNDefineMeta(SceneBasic, Scene)
 	RNDefineMeta(SceneBasicInfo, SceneInfo)
 
-	// Keep distance sort keys consistent when the compiler can otherwise reassociate or fuse arithmetic.
-#if RN_COMPILER_CLANG || RN_COMPILER_MSVC
-	#pragma float_control(precise, on, push)
-#endif
-#if RN_COMPILER_MSVC && !RN_COMPILER_CLANG
-	#pragma fp_contract(off)
-#endif
 	RN_INLINE auto GetSceneSortSquaredDistance(const PositionType &position, const PositionType &cameraPosition)
 	{
-#if RN_COMPILER_CLANG
-		#pragma clang fp contract(off)
-#endif
 		const auto x = position.x - cameraPosition.x;
 		const auto y = position.y - cameraPosition.y;
 		const auto z = position.z - cameraPosition.z;
 		const auto distance = x * x + y * y + z * z;
 		return distance == distance ? distance : 0; // Give NaNs an ordered sort key.
 	}
-#if RN_COMPILER_CLANG || RN_COMPILER_MSVC
-	#pragma float_control(pop)
-#endif
 
 	SceneBasic::OcclusionCullingParameters::OcclusionCullingParameters(uint16 textureWidth, uint16 textureHeight, size_t maxOccluders, uint16 frameCount, float jitter) :
 		textureWidth(textureWidth > 0 ? textureWidth : 1),
@@ -311,8 +298,17 @@ namespace RN
 
 				std::vector<SceneNode *> occluders;
 				std::vector<SceneNode *> sceneNodesToRender;
-				size_t firstTransparentIndex = 0;
-				size_t lastTransparentIndex = 0;
+				const bool sortFrontToBack = camera->GetFlags() & Camera::Flags::SortFrontToBack;
+				const bool sortTransparent = camera->GetFlags() & Camera::Flags::SortTransparentBackToFront;
+				const bool trackTransparentSpan = sortTransparent && !sortFrontToBack;
+				SceneSortSpan transparentSpan;
+				auto appendRenderNode = [&](SceneNode *node) {
+					if(trackTransparentSpan && node->GetRenderPriority() == SceneNode::RenderTransparent)
+					{
+						transparentSpan.Include(sceneNodesToRender.size());
+					}
+					sceneNodesToRender.push_back(node);
+				};
 
 				occluders.reserve(_occluderNodes.size());
 				sceneNodesToRender.reserve(_renderNodes.GetCount());
@@ -443,15 +439,7 @@ namespace RN
 							if(!node->CanRender(renderer, camera)) continue;
 							if(node->GetRenderPriority() >= SceneNode::RenderSky)
 							{
-								if(node->GetRenderPriority() == SceneNode::RenderTransparent)
-								{
-									if(firstTransparentIndex == 0)
-									{
-										firstTransparentIndex = sceneNodesToRender.size();
-									}
-									lastTransparentIndex = sceneNodesToRender.size();
-								}
-								sceneNodesToRender.push_back(node);
+								appendRenderNode(node);
 								continue;
 							}
 
@@ -512,15 +500,7 @@ namespace RN
 							continue;
 						}
 
-						if(node->GetRenderPriority() == SceneNode::RenderTransparent)
-						{
-							if(firstTransparentIndex == 0)
-							{
-								firstTransparentIndex = sceneNodesToRender.size();
-							}
-							lastTransparentIndex = sceneNodesToRender.size();
-						}
-						sceneNodesToRender.push_back(node);
+						appendRenderNode(node);
 
 						nodeMember = nodeMember->GetNext();
 					}
@@ -533,15 +513,7 @@ namespace RN
 						camera->GetRenderNodes()->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
 							//if(node->CanRender(renderer, camera))
 							{
-								if(node->GetRenderPriority() == SceneNode::RenderTransparent)
-								{
-									if(firstTransparentIndex == 0)
-									{
-										firstTransparentIndex = sceneNodesToRender.size();
-									}
-									lastTransparentIndex = sceneNodesToRender.size();
-								}
-								sceneNodesToRender.push_back(node);
+								appendRenderNode(node);
 							}
 						});
 					}
@@ -555,15 +527,7 @@ namespace RN
 									AddCachedOccluderNode(node);
 								}
 
-								if(node->GetRenderPriority() == SceneNode::RenderTransparent)
-								{
-									if(firstTransparentIndex == 0)
-									{
-										firstTransparentIndex = sceneNodesToRender.size();
-									}
-									lastTransparentIndex = sceneNodesToRender.size();
-								}
-								sceneNodesToRender.push_back(node);
+								appendRenderNode(node);
 							}
 						};
 
@@ -584,26 +548,26 @@ namespace RN
 					}
 				}
 
-				if(camera->GetFlags() & Camera::Flags::SortFrontToBack)
+				const size_t transparentSpanLength = transparentSpan.end - transparentSpan.first;
+				if(sortFrontToBack || transparentSpanLength > 1)
 				{
-					RN_PROFILE_SCOPE_N("Sort Opaque");
+					RN_PROFILE_SCOPE_N("Sort Scene Nodes");
 					const PositionType cameraWorldPosition = camera->GetWorldPosition();
-					std::sort(sceneNodesToRender.begin(), sceneNodesToRender.end(), [cameraWorldPosition](SceneNode *a, SceneNode *b) {
-						if(a->GetRenderPriority() == b->GetRenderPriority() && b->GetRenderPriority() < SceneNode::RenderSky)
-						{
-							return GetSceneSortSquaredDistance(a->GetWorldPosition(), cameraWorldPosition) < GetSceneSortSquaredDistance(b->GetWorldPosition(), cameraWorldPosition);
-						}
-						return a->GetRenderPriority() < b->GetRenderPriority();
-					});
-				}
+					auto getRenderPriority = [](SceneNode *node) {
+						return node->GetRenderPriority();
+					};
+					auto getSquaredDistance = [cameraWorldPosition](SceneNode *node) {
+						return GetSceneSortSquaredDistance(node->GetWorldPosition(), cameraWorldPosition);
+					};
 
-				if(camera->GetFlags() & Camera::Flags::SortTransparentBackToFront && firstTransparentIndex < lastTransparentIndex)
-				{
-					RN_PROFILE_SCOPE_N("Sort Transparent");
-					const PositionType cameraWorldPosition = camera->GetWorldPosition();
-					std::sort(sceneNodesToRender.begin() + firstTransparentIndex, sceneNodesToRender.begin() + lastTransparentIndex + 1, [cameraWorldPosition](SceneNode *a, SceneNode *b) {
-						return GetSceneSortSquaredDistance(a->GetWorldPosition(), cameraWorldPosition) > GetSceneSortSquaredDistance(b->GetWorldPosition(), cameraWorldPosition);
-					});
+					if(sortFrontToBack)
+					{
+						SortSceneNodes<true>(sceneNodesToRender.data(), sceneNodesToRender.size(), _sceneSortScratch, getRenderPriority, getSquaredDistance, SceneNode::RenderSky, SceneNode::RenderTransparent, sortTransparent);
+					}
+					else
+					{
+						SortSceneNodes<false>(sceneNodesToRender.data() + transparentSpan.first, transparentSpanLength, _sceneSortScratch, getRenderPriority, getSquaredDistance, SceneNode::RenderSky, SceneNode::RenderTransparent);
+					}
 				}
 
 				//RNInfo("Number of objects: " << sceneNodesToRender.size());

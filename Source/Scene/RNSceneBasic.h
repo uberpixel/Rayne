@@ -14,6 +14,64 @@
 
 namespace RN
 {
+	struct SceneSortSpan
+	{
+		size_t first = 0;
+		size_t end = 0;
+
+		void Include(size_t slot)
+		{
+			if(end == 0) first = slot;
+			end = slot + 1;
+		}
+	};
+
+	template<class T>
+	struct SceneSortKey
+	{
+		T *node;
+		double distance;
+		int32 priority;
+	};
+
+	// Cache keys once and reuse the scene's scratch capacity between cameras.
+	// Transparent-only sorting preserves the positions of every other priority.
+	template<bool FrontToBack, class T, class PriorityProject, class DistanceProject>
+	inline void SortSceneNodes(T **values, size_t count, std::vector<SceneSortKey<T>> &scratch, PriorityProject getRenderPriority, DistanceProject getSquaredDistance, int skyThreshold, int transparentPriority, bool sortTransparent = false)
+	{
+		if(count < 2) return;
+
+		scratch.clear();
+		if constexpr(FrontToBack) scratch.reserve(count);
+
+		for(size_t i = 0; i < count; ++i)
+		{
+			T *node = values[i];
+			const int32 renderPriority = getRenderPriority(node);
+			if(!FrontToBack && renderPriority != transparentPriority) continue;
+			const bool backToFront = !FrontToBack || (sortTransparent && renderPriority == transparentPriority);
+			const double distance = (backToFront || renderPriority < skyThreshold) ? getSquaredDistance(node) : 0;
+			// A negative distance lets both directions share one ascending comparator.
+			scratch.push_back({node, backToFront ? -distance : distance, renderPriority});
+		}
+
+		if(scratch.size() < 2) return;
+
+		std::sort(scratch.begin(), scratch.end(), [](const SceneSortKey<T> &a, const SceneSortKey<T> &b) {
+			return a.priority == b.priority ? a.distance < b.distance : a.priority < b.priority;
+		});
+
+		size_t scratchIndex = 0;
+		for(size_t i = 0; i < count; ++i)
+		{
+			// Priorities remain unchanged while collecting, sorting and scattering.
+			if(FrontToBack || getRenderPriority(values[i]) == transparentPriority)
+			{
+				values[i] = scratch[scratchIndex++].node;
+			}
+		}
+	}
+
 	class SceneBasic : public Scene
 	{
 	public:
@@ -58,6 +116,7 @@ namespace RN
 		IntrusiveList<SceneNode> _renderNodes;
 		// Non-owning cache in _renderNodes order, rebuilt after membership or priority changes.
 		std::vector<SceneNode *> _renderNodesCache;
+		std::vector<SceneSortKey<SceneNode>> _sceneSortScratch;
 		bool _renderNodesCacheDirty;
 		IntrusiveList<Light> _lights;
 		IntrusiveList<Camera> _cameras;
