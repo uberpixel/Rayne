@@ -105,36 +105,15 @@ namespace RN
 	{
 		JoltCollisionObject::DidUpdate(changeSet);
 
-		if(changeSet & SceneNode::ChangeSet::Position)
-		{
-			RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
-			JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
-			Quaternion rotation = GetWorldRotation() * _rotationOffset;
-			rotation.Normalize();
+		const bool shouldUpdatePose = (changeSet & SceneNode::ChangeSet::Position) ||
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			(changeSet & SceneNode::ChangeSet::Parent) ||
+#endif
+			((changeSet & SceneNode::ChangeSet::Attachments) && !_owner && GetParent());
+		if(shouldUpdatePose && _actor)
+			SetBodyTransformFromNode(*_actor, GetJoltWorld()->GetJoltInstance()->GetBodyInterface());
 
-			JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
-			JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
-
-			bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
-		}
-
-		if(changeSet & SceneNode::ChangeSet::Attachments)
-		{
-			if(!_owner && GetParent())
-			{
-				RN::Vector3 positionOffset = GetWorldRotation().GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
-				Quaternion rotation = GetWorldRotation() * _rotationOffset;
-				rotation.Normalize();
-
-				JPH::PhysicsSystem *physics = GetJoltWorld()->GetJoltInstance();
-				JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
-
-				bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
-			}
-
-			_owner = GetParent();
-		}
+		if(changeSet & SceneNode::ChangeSet::Attachments) _owner = GetParent();
 	}
 
 	void JoltStaticBody::UpdatePosition()

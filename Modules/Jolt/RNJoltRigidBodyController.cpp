@@ -60,10 +60,16 @@ namespace RN
 		}
 		_controller->AddToPhysicsSystem(JPH::EActivation::DontActivate);
 		SetMaxLinearVelocity(world->GetDefaultDynamicBodyMaxLinearVelocity());
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		world->_rigidBodyControllers.push_back(this);
+#endif
 	}
 
 	JoltRigidBodyController::~JoltRigidBodyController()
 	{
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		std::erase(GetJoltWorld()->_rigidBodyControllers, this);
+#endif
 		ClearExternalSupportAnchor();
 		_controller->RemoveFromPhysicsSystem();
 		delete _controller;

@@ -43,6 +43,28 @@ namespace RN
 	}
 
 
+	void JoltCollisionObject::SetBodyTransformFromNode(const JPH::BodyID &body, JPH::BodyInterface &bodyInterface)
+	{
+		JoltPosition position;
+		Quaternion rotation;
+		if(!JoltNativeConversions::GetNodeTransform(GetParent(), GetJoltWorld(), position, rotation)) return;
+
+		position -= JoltPosition(rotation.GetRotatedVector(_positionOffset));
+		rotation *= _rotationOffset;
+		if(position.IsValid() && rotation.IsValid())
+			bodyInterface.SetPositionAndRotation(body, JoltNativeConversions::ToJoltPosition(position), JoltNativeConversions::ToJoltRotation(rotation), JPH::EActivation::DontActivate);
+	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	bool JoltCollisionObject::IsInSceneFrame(const SceneNode *root) const
+	{
+		if(!root) return false;
+		for(const SceneNode *node = GetParent(); node; node = node->GetParent())
+			if(node == root) return true;
+		return false;
+	}
+#endif
+
 	void JoltCollisionObject::SetCollisionFilter(uint32 group, uint32 mask)
 	{
 		_collisionFilterGroup = group;
@@ -109,6 +131,11 @@ namespace RN
 
 	void JoltCollisionObject::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_world && _world->_reparentedBodyIDs && ((changeSet & SceneNode::ChangeSet::Parent) ||
+			((changeSet & SceneNode::ChangeSet::Attachments) && _owner != GetParent())))
+			_world->RecordReparentedBody(this);
+#endif
 		/*		if(changeSet & SceneNode::ChangeSet::World)
 		{
 			World *world = GetParent()->GetWorld();

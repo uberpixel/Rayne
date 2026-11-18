@@ -51,6 +51,15 @@ namespace RN
 		JTAPI void SetGravity(const Vector3 &gravity);
 		JTAPI Vector3 GetGravity();
 
+		// Publishes transform and motion together. Invalid input and calls made while
+		// publishing a scene frame root transform leave all values unchanged and return false.
+		JTAPI bool SetReferenceFrame(const PositionType &position, const Quaternion &rotation, const DVector3 &linear, const Vector3 &angular);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		// Requires an empty top-level unit-scale root; SceneQuadtree scenes require eager publication.
+		JTAPI void SetSceneFrameRoot(SceneNode *root);
+		SceneNode *GetSceneFrameRoot() const { return IsTopLevelUnitScaleRoot(_sceneFrameRoot) ? _sceneFrameRoot : nullptr; }
+#endif
+
 		JTAPI void SetWorldTransform(const PositionType &position, const Quaternion &rotation);
 		JTAPI void SetWorldPosition(const PositionType &position);
 		JTAPI void SetWorldRotation(const Quaternion &rotation);
@@ -111,6 +120,8 @@ namespace RN
 		JTAPI void QueueBodyRemoval(const JPH::BodyID &bodyID);
 		JTAPI void CancelQueuedBodyRemoval(const JPH::BodyID &bodyID);
 		JTAPI void UpdateDynamicBodyPositions();
+		void PublishBodyPositions(const JPH::BodyID *bodyIDs, size_t count, bool dynamicBodiesOnly);
+		void DispatchBodyPositions(const JPH::BodyID *bodyIDs, size_t count, bool dynamicBodiesOnly, SceneQuadtree *quadtree);
 		JTAPI void SetBodyPairCollisionEnabled(const JPH::BodyID &body1, const JPH::BodyID &body2, bool enabled);
 		JTAPI void SetConnectedBodyCollisionFilteringEnabled(const JPH::BodyID &body1, const JPH::BodyID &body2, bool enabled);
 		JTAPI void RemoveConstraintsForBody(const JPH::BodyID &bodyID);
@@ -121,6 +132,23 @@ namespace RN
 		static std::vector<JoltWorld *> _worlds;
 		static JoltWorld *_sharedInstance;
 
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		static bool IsTopLevelUnitScaleRoot(const SceneNode *root)
+		{
+			if(!root || root->GetParent()) return false;
+			const Vector3 &scale = root->GetScale();
+			return scale.x == 1.0f && scale.y == 1.0f && scale.z == 1.0f;
+		}
+
+		void PublishSceneFrameRootTransform();
+		void RecordReparentedBody(const JoltCollisionObject *body);
+		SceneNode *_sceneFrameRoot = nullptr;
+		std::vector<JoltDynamicBody *> _eagerDynamicBodies;
+		std::vector<JoltRigidBodyController *> _rigidBodyControllers;
+		std::vector<JPH::BodyID> _publicationBodyIDs;
+		std::vector<JPH::BodyID> *_reparentedBodyIDs = nullptr;
+		bool _isPublishingSceneFrameRoot = false;
+#endif
 		uint32 _liveCollisionObjectCount = 0;
 		uint32 _liveConstraintCount = 0;
 		JPH::PhysicsSystem *_physicsSystem;

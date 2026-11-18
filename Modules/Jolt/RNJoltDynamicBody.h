@@ -144,10 +144,18 @@ namespace RN
 		//		void UpdateFromMaterial(BulletMaterial *material) override;
 
 	private:
+		friend class JoltWorld;
 		JPH::BodyInterface *GetBodyInterfaceIfInSimulation();
 		bool RefreshMotionCacheIfNeeded() const;
 		void InvalidateMotionCache() const { _motionCacheIsValid = false; }
 
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		bool ShouldIgnoreScenePose(bool parentChanged = false);
+		void RefreshSceneFrameMembership();
+		bool _usesSceneFrameRoot = false;
+		enum class TransferState : uint8 { Inactive, Eager, Framed };
+		TransferState _transferState = TransferState::Inactive;
+#endif
 		JoltShape *_shape;
 		JPH::BodyID *_actor;
 		float _mass;

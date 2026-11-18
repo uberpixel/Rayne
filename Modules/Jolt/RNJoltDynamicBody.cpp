@@ -48,11 +48,17 @@ namespace RN
 			*_actor = bodyID;
 			_isInSimulation = true;
 		}
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		world->_eagerDynamicBodies.push_back(this);
+#endif
 	}
 
 	JoltDynamicBody::~JoltDynamicBody()
 	{
 		JoltWorld *world = GetJoltWorld();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(!_usesSceneFrameRoot) std::erase(world->_eagerDynamicBodies, this);
+#endif
 		JPH::PhysicsSystem *physics = world->GetJoltInstance();
 		JPH::BodyInterface &bodyInterface = physics->GetBodyInterface();
 
@@ -246,6 +252,14 @@ namespace RN
 			if(sourceInterface.IsAdded(*attachment->_actor)) sourceInterface.RemoveBody(*attachment->_actor);
 			sourceInterface.DestroyBody(*attachment->_actor);
 			*attachment->_actor = prepared[index].body->GetID();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			const bool framedTransfer = attachment->IsInSceneFrame(source->GetSceneFrameRoot()) ||
+				attachment->IsInSceneFrame(destination->GetSceneFrameRoot());
+			attachment->_transferState = framedTransfer ? TransferState::Framed : TransferState::Eager;
+			if(!attachment->_usesSceneFrameRoot) std::erase(source->_eagerDynamicBodies, attachment);
+			destination->_eagerDynamicBodies.push_back(attachment);
+			attachment->_usesSceneFrameRoot = false;
+#endif
 			attachment->SetJoltWorld(destination);
 			attachment->InvalidateMotionCache();
 			if(attachment->_isInSimulation)
@@ -261,6 +275,10 @@ namespace RN
 			if(sourceInterface.IsAdded(oldID)) attachment->_controller->RemoveFromPhysicsSystem();
 			delete attachment->_controller;
 			attachment->_controller = entry.character;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			std::erase(source->_rigidBodyControllers, attachment);
+			destination->_rigidBodyControllers.push_back(attachment);
+#endif
 			attachment->SetJoltWorld(destination);
 			attachment->_upDirection = JoltNativeConversions::ToEngineVector(convertVector(JoltNativeConversions::ToJoltVector(attachment->_upDirection)));
 			attachment->_groundVelocity = Vector3();
@@ -271,6 +289,16 @@ namespace RN
 			if(entry.supportIndex != 0xffffffff) attachment->SetExternalSupportAnchor(bodies[entry.supportIndex]->GetJoltBodyID(), entry.supportPosition, entry.supportForce);
 		}
 		if(afterTransfer) afterTransfer();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		JPH::BodyIDVector framedBodyIDs;
+		for(auto *attachment : bodies)
+		{
+			const bool publishFramePose = attachment->ShouldIgnoreScenePose();
+			attachment->_transferState = TransferState::Inactive;
+			attachment->RefreshSceneFrameMembership();
+			if(publishFramePose) framedBodyIDs.push_back(*attachment->_actor);
+		}
+#endif
 		// Constraint recreation may wake bodies or clamp their velocity limits.
 		auto restoreBody = [&](const PreparedBody &entry, bool added) {
 			if(entry.body->IsDynamic())
@@ -297,6 +325,9 @@ namespace RN
 			bodies[index]->InvalidateMotionCache();
 		}
 		for(const auto &entry : preparedControllers) restoreBody(entry.body, entry.added);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		destination->PublishBodyPositions(framedBodyIDs.data(), framedBodyIDs.size(), true);
+#endif
 		return true;
 	}
 
@@ -846,17 +877,10 @@ namespace RN
 		{
 			world->CancelQueuedBodyRemoval(*_actor);
 
-			RN::Quaternion worldRotation = GetWorldRotation();
-			RN::PositionType worldPosition = GetWorldPosition();
-			if(worldPosition.IsValid() && worldRotation.IsValid())
-			{
-				worldRotation.Normalize();
-				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
-				RN::Quaternion rotation = worldRotation * _rotationOffset;
-				rotation.Normalize();
-				bodyInterface.SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
-			}
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			if(!ShouldIgnoreScenePose())
+#endif
+				SetBodyTransformFromNode(*_actor, bodyInterface);
 			bodyInterface.AddBody(*_actor, JPH::EActivation::Activate);
 			_isInSimulation = true;
 			bodyInterface.SetObjectLayer(*_actor, world->GetObjectLayer(_collisionFilterGroup, _collisionFilterMask, 1));
@@ -1094,40 +1118,32 @@ namespace RN
 	void JoltDynamicBody::DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		JoltCollisionObject::DidUpdate(changeSet);
-		JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation();
-		if(!bodyInterface)
-		{
-			if(changeSet & SceneNode::ChangeSet::Attachments)
-			{
-				_owner = GetParent();
-			}
-			return;
-		}
+		const bool poseChanged = (changeSet & SceneNode::ChangeSet::Position) ||
+			((changeSet & SceneNode::ChangeSet::Attachments) && !_owner && GetParent());
+		if(changeSet & SceneNode::ChangeSet::Attachments) _owner = GetParent();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const bool parentChanged = changeSet & SceneNode::ChangeSet::Parent;
+		if(parentChanged || (changeSet & SceneNode::ChangeSet::Attachments)) RefreshSceneFrameMembership();
+		// A transfer already set the native pose. Reparenting can expose temporary scene coordinates.
+		if((!poseChanged && !parentChanged) || ShouldIgnoreScenePose(parentChanged)) return;
+#else
+		if(!poseChanged) return;
+#endif
 
-		bool shouldUpdatePose = (changeSet & SceneNode::ChangeSet::Position) || ((changeSet & SceneNode::ChangeSet::Attachments) && !_owner && GetParent());
-		if(shouldUpdatePose)
-		{
-			RN::Quaternion worldRotation = GetWorldRotation();
-			if(worldRotation.IsValid())
-			{
-				worldRotation.Normalize();
-
-				RN::Vector3 positionOffset = worldRotation.GetRotatedVector(_positionOffset);
-				JPH::RVec3 position = JoltNativeConversions::GetAttachmentPosition(this, -positionOffset, GetJoltWorld());
-				Quaternion rotation = worldRotation * _rotationOffset;
-				if(rotation.IsValid())
-				{
-					rotation.Normalize();
-					bodyInterface->SetPositionAndRotation(*_actor, position, JoltNativeConversions::ToJoltSceneRotation(rotation, GetJoltWorld()), JPH::EActivation::DontActivate);
-				}
-			}
-		}
-
-		if(changeSet & SceneNode::ChangeSet::Attachments)
-		{
-			_owner = GetParent();
-		}
+		if(JPH::BodyInterface *bodyInterface = GetBodyInterfaceIfInSimulation())
+			SetBodyTransformFromNode(*_actor, *bodyInterface);
 	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	bool JoltDynamicBody::ShouldIgnoreScenePose(bool parentChanged)
+	{
+		if(_transferState == TransferState::Inactive) return false;
+		// Preserve the native pose through any further edits once the owner enters the frame.
+		if(_transferState == TransferState::Eager && IsInSceneFrame(GetJoltWorld()->GetSceneFrameRoot()))
+			_transferState = TransferState::Framed;
+		return _transferState == TransferState::Framed || parentChanged;
+	}
+#endif
 
 	/*	void JoltDynamicBody::UpdateFromMaterial(BulletMaterial *material)
 	{
@@ -1137,6 +1153,19 @@ namespace RN
 		_rigidBody->setRestitution(material->GetRestitution());
 		_rigidBody->setDamping(material->GetLinearDamping(), material->GetAngularDamping());
 	}*/
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	void JoltDynamicBody::RefreshSceneFrameMembership()
+	{
+		JoltWorld *world = GetJoltWorld();
+		const SceneNode *root = world->GetSceneFrameRoot();
+		const bool usesRoot = root && GetParent() && GetParent()->GetParent() == root;
+		if(usesRoot == _usesSceneFrameRoot) return;
+		if(usesRoot) std::erase(world->_eagerDynamicBodies, this);
+		else world->_eagerDynamicBodies.push_back(this);
+		_usesSceneFrameRoot = usesRoot;
+	}
+#endif
 
 	void JoltDynamicBody::UpdatePosition()
 	{
@@ -1150,6 +1179,16 @@ namespace RN
 		JPH::Quat rotation;
 		bodyInterface->GetPositionAndRotation(*_actor, position, rotation);
 
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		RefreshSceneFrameMembership();
+		if(_usesSceneFrameRoot)
+		{
+			Quaternion localRotation = JoltNativeConversions::ToEngineRotation(rotation) * _rotationOffset.GetConjugated();
+			PositionType localPosition = PositionType(JoltNativeConversions::ToPosition(position)) + localRotation.GetRotatedVector(_positionOffset);
+			SetLocalTransform(localPosition, localRotation);
+			return;
+		}
+#endif
 		RN::Quaternion rotationResult = JoltNativeConversions::ToSceneRotation(rotation, GetJoltWorld()) * _rotationOffset.GetConjugated();
 		RN::Vector3 positionOffset = rotationResult.GetRotatedVector(_positionOffset);
 		JoltNativeConversions::SetAttachmentTransform(this, position, positionOffset, rotationResult, GetJoltWorld());

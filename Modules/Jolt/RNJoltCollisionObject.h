@@ -11,6 +11,12 @@
 
 #include "RNJolt.h"
 
+namespace JPH
+{
+	class BodyID;
+	class BodyInterface;
+}
+
 namespace RN
 {
 	class JoltWorld;
@@ -87,6 +93,10 @@ namespace RN
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		void SetJoltWorld(JoltWorld *world);
+		void SetBodyTransformFromNode(const JPH::BodyID &body, JPH::BodyInterface &bodyInterface);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		bool IsInSceneFrame(const SceneNode *root) const;
+#endif
 
 		Vector3 _positionOffset;
 		Quaternion _rotationOffset;

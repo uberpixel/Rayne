@@ -81,6 +81,9 @@ namespace RN
 
 	JoltWorld::~JoltWorld()
 	{
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		SetSceneFrameRoot(nullptr);
+#endif
 		delete _physicsSystem;
 
 		delete _internals->tempAllocator;
@@ -102,24 +105,95 @@ namespace RN
 		return JoltNativeConversions::ToEngineVector(gravity);
 	}
 
-	void JoltWorld::SetWorldTransform(const PositionType &position, const Quaternion &rotation)
+	bool JoltWorld::SetReferenceFrame(const PositionType &position, const Quaternion &rotation, const DVector3 &linear, const Vector3 &angular)
 	{
-		if(!position.IsValid() || !rotation.IsValid()) return;
-
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_isPublishingSceneFrameRoot) return false;
+#endif
+		if(!position.IsValid() || !rotation.IsValid() || !linear.IsValid() || !angular.IsValid()) return false;
 		Quaternion normalizedRotation(rotation);
 		normalizedRotation.Normalize();
-		if(!normalizedRotation.IsValid()) return;
-
-		if(_worldPosition == position && _worldRotation == normalizedRotation && _worldPositionRotation == rotation) return;
-
+		if(!normalizedRotation.IsValid()) return false;
+		const bool transformChanged = _worldPosition.x != position.x || _worldPosition.y != position.y || _worldPosition.z != position.z ||
+			_worldPositionRotation.x != rotation.x || _worldPositionRotation.y != rotation.y ||
+			_worldPositionRotation.z != rotation.z || _worldPositionRotation.w != rotation.w;
 		_worldPosition = position;
 		_worldRotation = normalizedRotation;
 		_inverseWorldRotation = _worldRotation.GetConjugated();
 		_worldPositionRotation = rotation;
-		_inverseWorldPositionRotation = _worldPositionRotation.GetConjugated();
-
+		_inverseWorldPositionRotation = rotation.GetConjugated();
+		_worldLinearVelocity = linear;
+		_worldAngularVelocity = angular;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_sceneFrameRoot && (!GetSceneFrameRoot() ||
+			(GetParent() && GetParent()->IsKindOfClass(SceneQuadtree::GetMetaClass()))))
+		{
+			SetSceneFrameRoot(nullptr);
+			return true;
+		}
+#endif
+		if(!transformChanged) return true;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		PublishSceneFrameRootTransform();
+#endif
 		UpdateDynamicBodyPositions();
+		return true;
 	}
+
+	void JoltWorld::SetWorldTransform(const PositionType &position, const Quaternion &rotation)
+	{
+		SetReferenceFrame(position, rotation, _worldLinearVelocity, _worldAngularVelocity);
+	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	void JoltWorld::PublishSceneFrameRootTransform()
+	{
+		const StrongRef<SceneNode> root(_sceneFrameRoot);
+		if(!root.Get()) return;
+
+		struct RestoreFlag
+		{
+			bool &flag;
+			bool previous;
+			~RestoreFlag() { flag = previous; }
+		};
+		const RestoreFlag restore{_isPublishingSceneFrameRoot, std::exchange(_isPublishingSceneFrameRoot, true)};
+		root->SetWorldTransform(_worldPosition, _worldPositionRotation);
+	}
+
+	void JoltWorld::SetSceneFrameRoot(SceneNode *root)
+	{
+		if(root == _sceneFrameRoot) return;
+		if(root && (!IsTopLevelUnitScaleRoot(root) || root->GetChildren()->GetCount() ||
+			(root->GetAttachments() && root->GetAttachments()->GetCount()) ||
+			(GetParent() && GetParent()->IsKindOfClass(SceneQuadtree::GetMetaClass())))) return;
+
+		const StrongRef<SceneNode> oldRoot(_sceneFrameRoot);
+		const bool invalidBinding = oldRoot.Get() && !GetSceneFrameRoot();
+		SafeRelease(_sceneFrameRoot);
+		_sceneFrameRoot = SafeRetain(root);
+		PublishSceneFrameRootTransform();
+
+		JPH::BodyIDVector bodyIDs;
+		_physicsSystem->GetBodies(bodyIDs);
+		const auto &bodyInterface = _physicsSystem->GetBodyInterface();
+		for(JPH::BodyID bodyID : bodyIDs)
+		{
+			auto *body = reinterpret_cast<JoltCollisionObject *>(bodyInterface.GetUserData(bodyID));
+			if(!body || body->GetJoltWorld() != this) continue;
+			auto *dynamicBody = body->Downcast<JoltDynamicBody>();
+			if(dynamicBody) dynamicBody->RefreshSceneFrameMembership();
+			// Repair bodies whose native pose was relative to the invalidated root.
+			if(invalidBinding && (dynamicBody || body->IsKindOfClass(JoltStaticBody::GetMetaClass())) && body->IsInSceneFrame(oldRoot.Get()))
+			{
+				const StrongRef<JoltCollisionObject> keepBodyAlive(body);
+				const StrongRef<SceneNode> keepOwnerAlive(body->GetParent());
+				body->DidUpdate(SceneNode::ChangeSet::Position);
+			}
+		}
+		PublishBodyPositions(bodyIDs.data(), bodyIDs.size(), true);
+	}
+#endif
 
 	void JoltWorld::SetWorldPosition(const PositionType &position)
 	{
@@ -133,30 +207,116 @@ namespace RN
 
 	void JoltWorld::UpdateDynamicBodyPositions()
 	{
-		SceneQuadtree *quadtree = nullptr;
-		if(GetParent() && GetParent()->IsKindOfClass(SceneQuadtree::GetMetaClass()))
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_sceneFrameRoot)
 		{
-			quadtree = static_cast<SceneQuadtree *>(GetParent());
+			// Swapping preserves capacity across frames and gives nested publication its own snapshot.
+			std::vector<JPH::BodyID> bodyIDs;
+			bodyIDs.swap(_publicationBodyIDs);
+			for(const auto *body : _eagerDynamicBodies)
+			{
+				if(const auto *bodyID = body->GetJoltActor(); bodyID && !bodyID->IsInvalid()) bodyIDs.push_back(*bodyID);
+			}
+			PublishBodyPositions(bodyIDs.data(), bodyIDs.size(), true);
+			bodyIDs.clear();
+			bodyIDs.swap(_publicationBodyIDs);
+			return;
 		}
-
+#endif
 		JPH::BodyIDVector bodyIDs;
 		_physicsSystem->GetBodies(bodyIDs);
-
-		JPH::BodyInterface &bodyInterface = _physicsSystem->GetBodyInterface();
-		for(JPH::BodyID bodyID : bodyIDs)
-		{
-			uint64 userData = bodyInterface.GetUserData(bodyID);
-			JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(userData);
-			JoltDynamicBody *body = collisionObject ? collisionObject->Downcast<JoltDynamicBody>() : nullptr;
-			if(!body) continue;
-
-			body->UpdatePosition();
-			if(quadtree && body->GetParent())
-			{
-				quadtree->RelocateNodeIfNeeded(body->GetParent());
-			}
-		}
+		PublishBodyPositions(bodyIDs.data(), bodyIDs.size(), true);
 	}
+
+	void JoltWorld::PublishBodyPositions(const JPH::BodyID *bodyIDs, size_t count, bool dynamicBodiesOnly)
+	{
+		const StrongRef<SceneQuadtree> quadtree(GetParent() ? GetParent()->Downcast<SceneQuadtree>() : nullptr);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(count == 0) return;
+		if(!_reparentedBodyIDs)
+		{
+			std::vector<JPH::BodyID> reparentedBodyIDs;
+			struct ResetPublication
+			{
+				std::vector<JPH::BodyID> *&bodyIDs;
+				~ResetPublication() { bodyIDs = nullptr; }
+			};
+			const ResetPublication reset{_reparentedBodyIDs};
+			_reparentedBodyIDs = &reparentedBodyIDs;
+			DispatchBodyPositions(bodyIDs, count, dynamicBodiesOnly, quadtree.Get());
+
+			// Reparenting can invalidate publication order even for bodies that already
+			// published or were asleep. Republish against the final hierarchy.
+			std::vector<JPH::BodyID> repairs;
+			while(!reparentedBodyIDs.empty())
+			{
+				repairs.swap(reparentedBodyIDs);
+				std::sort(repairs.begin(), repairs.end());
+				repairs.erase(std::unique(repairs.begin(), repairs.end()), repairs.end());
+				DispatchBodyPositions(repairs.data(), repairs.size(), false, quadtree.Get());
+				repairs.clear();
+			}
+			return;
+		}
+#endif
+		DispatchBodyPositions(bodyIDs, count, dynamicBodiesOnly, quadtree.Get());
+	}
+
+	void JoltWorld::DispatchBodyPositions(const JPH::BodyID *bodyIDs, size_t count, bool dynamicBodiesOnly, SceneQuadtree *quadtree)
+	{
+		const auto &bodyInterface = _physicsSystem->GetBodyInterface();
+		const auto publish = [&](JPH::BodyID bodyID) {
+			// A previous callback may have removed or transferred this body.
+			auto *body = reinterpret_cast<JoltCollisionObject *>(bodyInterface.GetUserData(bodyID));
+			if(!body || body->GetJoltWorld() != this || (dynamicBodiesOnly && !body->IsKindOfClass(JoltDynamicBody::GetMetaClass()))) return;
+
+			const StrongRef<JoltCollisionObject> keepBodyAlive(body);
+			const StrongRef<SceneNode> keepOwnerAlive(body->GetParent());
+			body->UpdatePosition();
+			if(quadtree && GetParent() == quadtree && body->GetJoltWorld() == this && body->GetParent())
+				quadtree->RelocateNodeIfNeeded(body->GetParent());
+		};
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(count > 1)
+		{
+			const auto &bodyLookup = _physicsSystem->GetBodyLockInterfaceNoLock();
+			std::vector<std::pair<size_t, JPH::BodyID>> orderedBodies;
+			orderedBodies.reserve(count);
+			for(size_t index = 0; index < count; ++index)
+			{
+				const JPH::BodyID bodyID = bodyIDs[index];
+				const auto *nativeBody = bodyLookup.TryGetBody(bodyID);
+				const auto *body = nativeBody ? reinterpret_cast<const JoltCollisionObject *>(nativeBody->GetUserData()) : nullptr;
+				if(!body || (dynamicBodiesOnly && !body->IsKindOfClass(JoltDynamicBody::GetMetaClass()))) continue;
+
+				size_t depth = 0;
+				for(const SceneNode *node = body->GetParent(); node; node = node->GetParent()) ++depth;
+				orderedBodies.emplace_back(depth, bodyID);
+			}
+			// Descendants need their ancestors' published transforms to compute local poses.
+			const auto byDepth = [](const auto &a, const auto &b) { return a.first < b.first; };
+			if(!std::is_sorted(orderedBodies.begin(), orderedBodies.end(), byDepth)) std::sort(orderedBodies.begin(), orderedBodies.end(), byDepth);
+			for(const auto &entry : orderedBodies) publish(entry.second);
+			return;
+		}
+#endif
+		for(size_t index = 0; index < count; ++index) publish(bodyIDs[index]);
+	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	void JoltWorld::RecordReparentedBody(const JoltCollisionObject *body)
+	{
+		if(!body->GetParent()) return;
+
+		JPH::BodyID bodyID;
+		if(const auto *dynamicBody = body->Downcast<JoltDynamicBody>(); dynamicBody && dynamicBody->_isInSimulation)
+			bodyID = JPH::BodyID(dynamicBody->GetJoltBodyID());
+		else if(const auto *controller = body->Downcast<JoltRigidBodyController>())
+			bodyID = JPH::BodyID(controller->GetJoltBodyID());
+		if(!bodyID.IsInvalid()) _reparentedBodyIDs->push_back(bodyID);
+	}
+#endif
 
 	bool JoltWorld::SetWorldVelocity(const DVector3 &linear, const Vector3 &angular)
 	{
@@ -245,6 +405,10 @@ namespace RN
 		if(!CanStep(delta))
 			return;
 
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		JPH::BodyIDVector previouslyActive;
+		_physicsSystem->GetActiveBodies(JPH::EBodyType::RigidBody, previouslyActive);
+#endif
 		// Step physics
 		_isSimulating = true;
 		const JPH::PhysicsSettings &physicsSettings = _physicsSystem->GetPhysicsSettings();
@@ -254,32 +418,68 @@ namespace RN
 
 		JPH::BodyIDVector bodyIDs;
 		_physicsSystem->GetActiveBodies(JPH::EBodyType::RigidBody, bodyIDs);
-		if(GetParent() && GetParent()->IsKindOfClass(SceneQuadtree::GetMetaClass()))
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		// Bodies which slept during the step still need their final native pose published.
+		const auto &bodyLookup = _physicsSystem->GetBodyLockInterfaceNoLock();
+		for(JPH::BodyID bodyID : previouslyActive)
 		{
-			SceneQuadtree *quadtree = static_cast<SceneQuadtree *>(GetParent());
-			for(JPH::BodyID bodyID : bodyIDs)
-			{
-				uint64 userData = _physicsSystem->GetBodyInterface().GetUserData(bodyID);
-				JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(userData);
-				if(collisionObject)
+			const auto *body = bodyLookup.TryGetBody(bodyID);
+			if(body && !body->IsActive()) bodyIDs.push_back(bodyID);
+		}
+
+		// A sleeping body under a publishing ancestor still needs to keep its native pose.
+		// The initial publishers suffice: descendants of added sleepers share those ancestors.
+		if(!bodyIDs.empty())
+		{
+			std::unordered_set<const Object *> scheduledAttachments;
+			bool collectedPublishers = false;
+			const auto appendSleepingDescendant = [&](const JoltCollisionObject *body, JPH::BodyID bodyID) {
+				const SceneNode *owner = body->GetParent();
+				const SceneNode *parent = owner ? owner->GetParent() : nullptr;
+				if(!parent) return;
+				if(!parent->GetParent())
 				{
-					collisionObject->UpdatePosition();
-					if(SceneNode *parent = collisionObject->GetParent())
-					{
-						quadtree->RelocateNodeIfNeeded(parent);
-					}
+					const Array *attachments = parent->GetAttachments();
+					if(!attachments || attachments->GetCount() == 0) return;
 				}
-			}
+				const auto *nativeBody = bodyLookup.TryGetBody(bodyID);
+				if(!nativeBody || !nativeBody->IsInBroadPhase() || nativeBody->IsActive()) return;
+
+				if(!collectedPublishers)
+				{
+					for(JPH::BodyID publisherID : bodyIDs)
+					{
+						const auto *nativePublisher = bodyLookup.TryGetBody(publisherID);
+						const auto *publisher = nativePublisher ? reinterpret_cast<const JoltCollisionObject *>(nativePublisher->GetUserData()) : nullptr;
+						if(publisher && publisher->GetJoltWorld() == this && publisher->GetParent()) scheduledAttachments.insert(publisher);
+					}
+					collectedPublishers = true;
+				}
+
+				if(scheduledAttachments.empty() || scheduledAttachments.contains(body)) return;
+				for(const SceneNode *ancestor = parent; ancestor; ancestor = ancestor->GetParent())
+				{
+					const Array *attachments = ancestor->GetAttachments();
+					if(!attachments) continue;
+
+					const auto *data = attachments->GetData();
+					const bool hasScheduledAttachment = std::any_of(data, data + attachments->GetCount(), [&](const Object *attachment) {
+						return scheduledAttachments.contains(attachment);
+					});
+					if(!hasScheduledAttachment) continue;
+
+					bodyIDs.push_back(bodyID);
+					return;
+				}
+			};
+
+			for(const auto *body : _eagerDynamicBodies)
+				if(body->_isInSimulation && body->_actor) appendSleepingDescendant(body, *body->_actor);
+			for(const auto *controller : _rigidBodyControllers)
+				appendSleepingDescendant(controller, JPH::BodyID(controller->GetJoltBodyID()));
 		}
-		else
-		{
-			for(JPH::BodyID bodyID : bodyIDs)
-			{
-				uint64 userData = _physicsSystem->GetBodyInterface().GetUserData(bodyID);
-				JoltCollisionObject *collisionObject = reinterpret_cast<JoltCollisionObject *>(userData);
-				if(collisionObject) collisionObject->UpdatePosition();
-			}
-		}
+#endif
+		PublishBodyPositions(bodyIDs.data(), bodyIDs.size(), false);
 
 		ProcessQueuedBodyRemovals();
 	}
@@ -319,6 +519,10 @@ namespace RN
 	void JoltWorld::WillUpdate(float delta)
 	{
 		SceneAttachment::WillUpdate(delta);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_sceneFrameRoot && (!GetSceneFrameRoot() ||
+			(GetParent() && GetParent()->IsKindOfClass(SceneQuadtree::GetMetaClass())))) SetSceneFrameRoot(nullptr);
+#endif
 	}
 
 	void JoltWorld::OptimizeBroadPhase()

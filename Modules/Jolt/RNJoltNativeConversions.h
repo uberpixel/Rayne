@@ -18,6 +18,30 @@ namespace RN
 	class JoltNativeConversions
 	{
 	public:
+		// Resolve a scene pose directly in the target physics world's coordinates.
+		static bool GetNodeTransform(const SceneNode *source, const JoltWorld *world, JoltPosition &position, Quaternion &rotation)
+		{
+			if(!source || !world) return false;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			PositionType relativePosition;
+			if(world->GetSceneFrameRoot() && source->GetRootRelativeTransform(relativePosition, rotation) == world->GetSceneFrameRoot())
+			{
+				position = JoltPosition(relativePosition);
+			}
+			else
+#endif
+			{
+				const PositionType worldPosition = source->GetWorldPosition();
+				rotation = source->GetWorldRotation();
+				if(!worldPosition.IsValid() || !rotation.IsValid()) return false;
+				position = JoltConversions::ConvertPositionToPhysicsWorld(worldPosition, world);
+				rotation = JoltConversions::ConvertRotationToPhysicsWorld(rotation, world);
+			}
+			if(!position.IsValid() || !rotation.IsValid()) return false;
+			rotation.Normalize();
+			return rotation.IsValid();
+		}
+
 		static JPH::Vec3 ToJoltVec3(const Vector3 &vector)
 		{
 			return JPH::Vec3(vector.x, vector.y, vector.z);
