@@ -91,6 +91,9 @@ namespace RN
 		_hasExplicitProjectionMatrix = false;
 		_customNearClipPlane = Plane();
 		_renderOrigin = PositionType();
+#if RN_ENABLE_UNIVERSE_SCALE && RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		_cachedRenderOriginVersion = 0;
+#endif
 
 		_priority = 0;
 		_lodCamera = nullptr;
@@ -382,7 +385,17 @@ namespace RN
 	{
 #if RN_ENABLE_UNIVERSE_SCALE
 		const Camera *originCamera = _multiviewParentCamera ? _multiviewParentCamera : this;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const uint64 transformVersion = originCamera->GetTransformVersion();
+		if(originCamera->_cachedRenderOriginVersion != transformVersion)
+		{
+			originCamera->_cachedRenderOrigin = originCamera->GetWorldPosition();
+			originCamera->_cachedRenderOriginVersion = transformVersion;
+		}
+		return originCamera->_cachedRenderOrigin;
+#else
 		return originCamera->GetWorldPosition();
+#endif
 #else
 		return PositionType();
 #endif

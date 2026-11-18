@@ -209,6 +209,10 @@ namespace RN
 		Matrix _viewMatrix;
 		Matrix _inverseViewMatrix;
 		PositionType _renderOrigin;
+#if RN_ENABLE_UNIVERSE_SCALE && RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		mutable PositionType _cachedRenderOrigin;
+		mutable uint64 _cachedRenderOriginVersion;
+#endif
 
 		float _orthoLeft;
 		float _orthoRight;
