@@ -24,7 +24,6 @@ namespace RN
 		_range(10.0f),
 		_angle(45.0f),
 		_angleCos(0.797f),
-		_cachedForward(0.0f, 0.0f, -1.0f),
 		_tanHalfAngle(1.0f),
 		_shadowTarget(nullptr),
 		_shadowDepthTexture(nullptr),
@@ -38,7 +37,6 @@ namespace RN
 		SetCollisionGroup(25);
 
 		ReCalculateColor();
-		UpdateCachedForward();
 		UpdateCachedAngleData();
 		UpdateBoundsForType();
 	}
@@ -63,7 +61,9 @@ namespace RN
 		SetAngle(other->GetAngle());
 		SetRange(other->GetRange());
 		_angleCos = other->_angleCos;
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		_cachedForward = other->_cachedForward;
+#endif
 		_tanHalfAngle = other->_tanHalfAngle;
 
 		_suppressShadows = other->_suppressShadows;
@@ -136,11 +136,13 @@ namespace RN
 		if(_lightType == Type::SpotLight) UpdateBoundsForType();
 	}
 
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 	Vector3 Light::GetForward() const
 	{
 		if(_lightType == Type::SpotLight) return _cachedForward;
 		return SceneNode::GetForward();
 	}
+#endif
 
 	Quaternion Light::GetShadowSplitRotation(const ShadowSplit &split) const
 	{
@@ -153,12 +155,6 @@ namespace RN
 		euler.y = roundf(euler.y / split.rotationQuantizationDegrees) * split.rotationQuantizationDegrees;
 		euler.z = roundf(euler.z / split.rotationQuantizationDegrees) * split.rotationQuantizationDegrees;
 		return Quaternion(euler);
-	}
-
-	void Light::UpdateCachedForward()
-	{
-		if(_lightType != Type::SpotLight) return; //Only cache it for spot lights!
-		_cachedForward = SceneNode::GetForward();
 	}
 
 	void Light::UpdateCachedAngleData()
@@ -531,7 +527,9 @@ namespace RN
 		SceneNode::DidUpdate(change);
 		if(change & (ChangeSet::Position | ChangeSet::Parent))
 		{
-			UpdateCachedForward();
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			if(_lightType == Type::SpotLight) _cachedForward = SceneNode::GetForward();
+#endif
 			float range = GetScale().GetMax();
 			if(!Math::Compare(range, _range))
 			{

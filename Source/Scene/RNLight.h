@@ -119,7 +119,9 @@ namespace RN
 		float GetAngle() const { return _angle; }
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		RNAPI Vector3 GetForward() const override;
+#endif
 		float GetTanHalfAngle() const { return _tanHalfAngle; }
 
 		ShadowParameter GetShadowParameters() const { return _shadowParameter; }
@@ -133,7 +135,6 @@ namespace RN
 
 	private:
 		void ReCalculateColor();
-		void UpdateCachedForward();
 		void UpdateCachedAngleData();
 		void UpdateBoundsForType();
 		Quaternion GetShadowSplitRotation(const ShadowSplit &split) const;
@@ -154,7 +155,9 @@ namespace RN
 		float _angle;
 
 		float _angleCos;
-		Vector3 _cachedForward;
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		Vector3 _cachedForward{0.0f, 0.0f, -1.0f};
+#endif
 		float _tanHalfAngle;
 
 		Camera *_shadowTarget;

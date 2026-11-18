@@ -161,6 +161,9 @@ namespace RN
 		Flags _flags;
 		float _scaleFactor;
 		bool _fixedScaleFactor;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		uint64 _preparedTransformVersion;
+#endif
 		bool _dirtyPosition;
 		bool _dirtyProjection;
 		bool _dirtyFrustum;

@@ -80,7 +80,7 @@ namespace RN
 		//Set parent of child nodes to null when it gets released
 		_children->Enumerate<SceneNode>([](SceneNode *child, size_t index, bool &stop) {
 			child->WillUpdate(ChangeSet::Parent);
-			child->_parent = nullptr;
+			child->SetParent(nullptr);
 			child->DidUpdate(ChangeSet::Parent);
 			child->__CompleteAttachmentWithScene(nullptr);
 		});
@@ -293,15 +293,7 @@ namespace RN
 
 	void SceneNode::SetWorldPosition(const PositionType &pos)
 	{
-		if(_parent)
-		{
-			const PositionType parentPosition = _parent->GetWorldPosition();
-			const Matrix inverseParent = _parent->GetInverseWorldTransform(parentPosition);
-			SetPosition(TransformLinearPosition(inverseParent, pos - parentPosition));
-			return;
-		}
-
-		SetPosition(pos);
+		SetPosition(ConvertWorldPositionToLocal(pos));
 	}
 
 	void SceneNode::SetTransform(const PositionType &pos, const Quaternion &rot)
@@ -328,53 +320,36 @@ namespace RN
 
 	void SceneNode::SetWorldTransform(const PositionType &pos, const Quaternion &rot)
 	{
-		PositionType localPosition;
-		Quaternion localRotation;
-		if(_parent)
-		{
-			const PositionType parentPosition = _parent->GetWorldPosition();
-			const Matrix inverseParent = _parent->GetInverseWorldTransform(parentPosition);
-			localPosition = TransformLinearPosition(inverseParent, pos - parentPosition);
-			localRotation = rot / _parent->GetWorldRotation();
-		}
-		else
-		{
-			localPosition = pos;
-			localRotation = rot;
-		}
+		const PositionType localPosition = ConvertWorldPositionToLocal(pos);
+		const Quaternion localRotation = _parent ? rot / _parent->GetWorldRotation() : rot;
 
-#if RN_ENABLE_UNIVERSE_SCALE
-		const bool rotationChanged = _rotation->x != localRotation.x ||
-			_rotation->y != localRotation.y ||
-			_rotation->z != localRotation.z ||
-			_rotation->w != localRotation.w;
-		if(!rotationChanged && _position->x == localPosition.x && _position->y == localPosition.y && _position->z == localPosition.z)
-			return;
-#endif
+#if RN_ENABLE_UNIVERSE_SCALE || RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		SceneNode::SetTransform(localPosition, localRotation);
+#else
 		WillUpdate(ChangeSet::Position);
 
 		_position = localPosition;
 		_rotation = localRotation;
 		_euler = _rotation->GetEulerAngle();
-#if RN_ENABLE_UNIVERSE_SCALE
-		if(rotationChanged)
-			InvalidateLinearTransform();
-#endif
+
 		DidUpdate(ChangeSet::Position);
+#endif
 	}
 
 	Matrix SceneNode::GetWorldTransform(const PositionType &renderOrigin) const
 	{
 		UpdateInternalTransformData();
 
-#if !RN_ENABLE_UNIVERSE_SCALE
+#if !RN_ENABLE_UNIVERSE_SCALE && !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		if(renderOrigin.x == 0.0f && renderOrigin.y == 0.0f && renderOrigin.z == 0.0f)
 			return _worldTransform;
 #endif
 
-		UpdateInternalData();
 		Matrix transform = _worldTransform;
-		const Vector3 position(_worldPosition - renderOrigin);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_parent) transform = GetHierarchyRoot()->GetWorldTransform() * transform;
+#endif
+		const Vector3 position(GetWorldPosition() - renderOrigin);
 		transform.m[12] = position.x;
 		transform.m[13] = position.y;
 		transform.m[14] = position.z;
@@ -385,23 +360,20 @@ namespace RN
 	{
 		UpdateInternalInverseTransformData();
 
-#if !RN_ENABLE_UNIVERSE_SCALE
+#if !RN_ENABLE_UNIVERSE_SCALE && !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		if(renderOrigin.x == 0.0f && renderOrigin.y == 0.0f && renderOrigin.z == 0.0f)
 			return _inverseWorldTransform;
 #endif
 
-		UpdateInternalData();
 		Matrix transform = _inverseWorldTransform;
-		const Vector3 position(_worldPosition - renderOrigin);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_parent) transform = transform * GetHierarchyRoot()->GetInverseWorldTransform();
+#endif
+		const Vector3 position(GetWorldPosition() - renderOrigin);
 		transform.m[12] = -(transform.m[0] * position.x + transform.m[4] * position.y + transform.m[8] * position.z);
 		transform.m[13] = -(transform.m[1] * position.x + transform.m[5] * position.y + transform.m[9] * position.z);
 		transform.m[14] = -(transform.m[2] * position.x + transform.m[6] * position.y + transform.m[10] * position.z);
 		return transform;
-	}
-
-	uint64 SceneNode::GetTransformVersion() const
-	{
-		return _transformVersion;
 	}
 
 	SceneNode::Flags SceneNode::RemoveFlags(Flags flags)
@@ -499,12 +471,32 @@ namespace RN
 
 		_children->AddObject(child);
 
-		child->_parent = this;
+		child->SetParent(this);
 		child->DidUpdate(ChangeSet::Parent);
 		if(!keepInScene)
 			child->__CompleteAttachmentWithScene(_sceneInfo);
 
 		DidAddChild(child);
+	}
+
+	void SceneNode::SetParent(SceneNode *parent)
+	{
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const uint64 previousVersion = GetTransformVersion();
+		// The whole subtree must be ready when the first Parent callback runs.
+		Traverse([](SceneNode *node) {
+			node->_cachedWorldDataVersion = node->_cachedMatrixVersion = node->_cachedInverseMatrixVersion = node->_cachedBoundsVersion = 0;
+#if RN_ENABLE_UNIVERSE_SCALE
+			node->_cachedWorldLinearDataVersion = 0;
+#endif
+		});
+#endif
+		_parent = parent;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const uint64 ancestorVersion = parent ? parent->GetTransformVersion() : 0;
+		// Keep descendant versions monotonic and reserve zero for invalid caches.
+		_transformVersion = previousVersion >= ancestorVersion ? previousVersion - ancestorVersion + 1 : 1;
+#endif
 	}
 
 	void SceneNode::RemoveChild(SceneNode *child)
@@ -520,7 +512,7 @@ namespace RN
 			child->WillUpdate(ChangeSet::Parent);
 
 			child->Retain();
-			child->_parent = nullptr;
+			child->SetParent(nullptr);
 
 			_children->RemoveObject(child);
 
@@ -573,6 +565,25 @@ namespace RN
 
 		DidUpdate(ChangeSet::Attachments);
 	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	void SceneNode::NotifyDescendantAttachmentsOfTransformChange()
+	{
+		const StrongRef<SceneNode> keepAlive(this);
+		// Retain the attachments before callbacks can detach or move them.
+		Array attachments;
+		Traverse([this, &attachments](SceneNode *node) {
+			if(node != this && node->_attachments) attachments.AddObjectsFromArray(node->_attachments);
+		});
+
+		attachments.Enumerate<SceneNodeAttachment>([&keepAlive](SceneNodeAttachment *attachment, size_t, bool &) {
+			const SceneNode *owner = attachment->GetParent();
+			const SceneNode *ancestor = owner ? owner->_parent : nullptr;
+			while(ancestor && ancestor != keepAlive.Get()) ancestor = ancestor->_parent;
+			if(ancestor) attachment->__DidUpdate(ChangeSet::Position);
+		});
+	}
+#endif
 
 	const Array *SceneNode::GetAttachments() const
 	{
@@ -669,6 +680,7 @@ namespace RN
 			if(linearTransformDirty) _linearTransformVersion += 1;
 #endif
 
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 			for(size_t i = 0; i < _children->GetCount(); i += 1)
 			{
 				SceneNode *child = static_cast<SceneNode *>(_children->GetObjectAtIndex(i));
@@ -678,6 +690,7 @@ namespace RN
 #endif
 				child->DidUpdate(ChangeSet::Position);
 			}
+#endif
 #if RN_ENABLE_UNIVERSE_SCALE
 			_linearTransformDirty = false;
 #endif
@@ -688,6 +701,9 @@ namespace RN
 			_transformVersion += 1;
 #if RN_ENABLE_UNIVERSE_SCALE
 			_linearTransformVersion += 1;
+#if !RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			_cachedWorldLinearDataVersion = 0;
+#endif
 			// Reparenting must also keep pending branches invalidated during nested translations.
 			_linearTransformDirty = true;
 #endif
@@ -721,20 +737,61 @@ namespace RN
 			transform.m[2] * position.x + transform.m[6] * position.y + transform.m[10] * position.z);
 	}
 
+	PositionType SceneNode::ConvertWorldPositionToLocal(const PositionType &position) const
+	{
+		if(!_parent) return position;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const SceneNode *root = GetHierarchyRoot();
+		const PositionType offset = RotatePosition(root->_rotation->GetConjugated(), position - root->GetPosition());
+		const Vector3 scale = root->GetScale();
+		const PositionType unscaled(scale.x != 0.0f ? offset.x / scale.x : 0.0, scale.y != 0.0f ? offset.y / scale.y : 0.0, scale.z != 0.0f ? offset.z / scale.z : 0.0);
+		if(_parent == root) return unscaled;
+		_parent->UpdateInternalData();
+		_parent->UpdateInternalInverseTransformData();
+		return TransformLinearPosition(_parent->_inverseWorldTransform, unscaled - _parent->_worldPosition);
+#else
+		const PositionType parentPosition = _parent->GetWorldPosition();
+		return TransformLinearPosition(_parent->GetInverseWorldTransform(parentPosition), position - parentPosition);
+#endif
+	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	const SceneNode *SceneNode::GetRootRelativeTransform(PositionType &position, Quaternion &rotation) const
+	{
+		UpdateInternalData();
+		position = _parent ? _worldPosition : PositionType();
+		rotation = _parent ? _worldRotation : Quaternion();
+		return GetHierarchyRoot();
+	}
+
+	PositionType SceneNode::RotatePosition(const Quaternion &rotation, const PositionType &position)
+	{
+#if RN_ENABLE_UNIVERSE_SCALE
+		// DVector3 rotation normalizes in double precision; preserve the original quaternion.
+		return rotation.GetRotatedVector(position);
+#else
+		return rotation.GetNormalized().GetRotatedVector(position);
+#endif
+	}
+#endif
+
 	void SceneNode::RecalculateWorldData(uint64 transformVersion) const
 	{
 		const PositionType position = _position;
 #if RN_ENABLE_UNIVERSE_SCALE
-		const uint64 linearTransformVersion = _linearTransformVersion;
+		const uint64 linearTransformVersion = GetTransformCacheVersion();
 		const bool linearDataChanged = _cachedWorldLinearDataVersion != linearTransformVersion;
 #else
 		const bool linearDataChanged = true;
 #endif
-		if(_parent)
+		if(_parent
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			&& _parent->_parent
+#endif
+		)
 		{
 			_parent->UpdateInternalData();
 			_parent->UpdateInternalTransformData();
-
 			const PositionType localOffset = TransformLinearPosition(_parent->_worldTransform, position);
 			_worldPosition = _parent->_worldPosition + localOffset;
 			if(linearDataChanged)
@@ -742,7 +799,6 @@ namespace RN
 				_worldRotation = _parent->_worldRotation * _rotation;
 				_worldScale = _parent->_worldScale * _scale;
 			}
-			_worldEuler = _parent->_worldEuler + _euler;
 		}
 		else
 		{
@@ -750,9 +806,11 @@ namespace RN
 			if(linearDataChanged)
 			{
 				_worldRotation = _rotation;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+				if(!_parent) _worldRotation.Normalize();
+#endif
 				_worldScale = _scale;
 			}
-			_worldEuler = _euler;
 		}
 
 #if RN_ENABLE_UNIVERSE_SCALE
@@ -779,11 +837,28 @@ namespace RN
 			_localTransform.Scale(_scale);
 		}
 
-		if(_parent)
+		if(_parent
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			&& _parent->_parent
+#endif
+		)
 		{
 			_parent->UpdateInternalTransformData();
 			_worldTransform = _parent->_worldTransform * _localTransform;
 		}
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		else if(!_parent)
+		{
+			_worldTransform = Matrix::WithRotation(_rotation->GetNormalized());
+			_worldTransform.Scale(_scale);
+#if !RN_ENABLE_UNIVERSE_SCALE
+			const Vector3 position(_position);
+			_worldTransform.m[12] = position.x;
+			_worldTransform.m[13] = position.y;
+			_worldTransform.m[14] = position.z;
+#endif
+		}
+#endif
 		else
 		{
 			_worldTransform = _localTransform;
@@ -807,11 +882,25 @@ namespace RN
 			_inverseLocalTransform.Translate(position * -1.0f);
 #endif
 		}
-		if(_parent)
+		if(_parent
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			&& _parent->_parent
+#endif
+		)
 		{
 			_parent->UpdateInternalInverseTransformData();
 			_inverseWorldTransform = _inverseLocalTransform * _parent->_inverseWorldTransform;
 		}
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		else if(!_parent)
+		{
+			_inverseWorldTransform = Matrix::WithScaling(_scale != 0.0f ? Vector3(1.0f) / _scale : Vector3(0.0f));
+			_inverseWorldTransform.Rotate(_rotation->GetNormalized().GetConjugated());
+#if !RN_ENABLE_UNIVERSE_SCALE
+			_inverseWorldTransform.Translate(Vector3(_position) * -1.0f);
+#endif
+		}
+#endif
 		else
 		{
 			_inverseWorldTransform = _inverseLocalTransform;
@@ -828,14 +917,14 @@ namespace RN
 		if(requestedBounds == BoundingBoxDirty)
 		{
 			_transformedBoundingBox = _boundingBox;
-			_transformedBoundingBox *= _worldScale;
-			_transformedBoundingBox.Rotate(_worldRotation);
+			_transformedBoundingBox *= GetWorldScale();
+			_transformedBoundingBox.Rotate(GetWorldRotation());
 		}
 		else
 		{
 			_transformedBoundingSphere = _boundingSphere;
-			_transformedBoundingSphere *= _worldScale;
-			_transformedBoundingSphere.SetRotation(_worldRotation);
+			_transformedBoundingSphere *= GetWorldScale();
+			_transformedBoundingSphere.SetRotation(GetWorldRotation());
 		}
 
 		_boundsDirty &= ~requestedBounds;

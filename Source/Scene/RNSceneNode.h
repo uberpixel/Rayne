@@ -139,6 +139,10 @@ namespace RN
 		Vector3 GetWorldEulerAngle() const;
 		Quaternion GetWorldRotation() const;
 		RNAPI uint64 GetTransformVersion() const;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		// Cached pose excluding the topmost ancestor's transform; the root itself yields identity.
+		RNAPI const SceneNode *GetRootRelativeTransform(PositionType &position, Quaternion &rotation) const;
+#endif
 
 		// Bounds use an exact world-space position with float geometry relative to it.
 		AABB GetBoundingBox() const;
@@ -157,6 +161,10 @@ namespace RN
 
 		RNAPI void AddAttachment(SceneNodeAttachment *attachment);
 		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		// Call after a transform edit if descendant attachments need to update immediately.
+		RNAPI void NotifyDescendantAttachmentsOfTransformChange();
+#endif
 
 		RNAPI SceneNode *GetParent() const;
 		SceneInfo *GetSceneInfo() const { return _sceneInfo; };
@@ -224,7 +232,12 @@ namespace RN
 
 		void Initialize();
 		void InvalidateLinearTransform();
-		uint64 GetTransformCacheVersion() const;
+		uint64 GetTransformCacheVersion(bool includeRoot = false) const;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const SceneNode *GetHierarchyRoot() const;
+#endif
+		void SetParent(SceneNode *parent);
+		PositionType ConvertWorldPositionToLocal(const PositionType &position) const;
 		static PositionType TransformLinearPosition(const Matrix &transform, const PositionType &position);
 		void UpdateInternalData() const;
 		void UpdateInternalTransformData() const;
@@ -267,6 +280,9 @@ namespace RN
 
 		Array *_attachments;
 
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		RNAPI static PositionType RotatePosition(const Quaternion &rotation, const PositionType &position);
+#endif
 		uint64 _transformVersion;
 #if RN_ENABLE_UNIVERSE_SCALE
 		uint64 _linearTransformVersion;
@@ -283,7 +299,6 @@ namespace RN
 		mutable PositionType _worldPosition;
 		mutable Quaternion _worldRotation;
 		mutable Vector3 _worldScale;
-		mutable Vector3 _worldEuler;
 
 		// Complete matrices without universe scale; translation-free linear matrices with it.
 		mutable Matrix _worldTransform;
@@ -423,19 +438,48 @@ namespace RN
 #endif
 	}
 
-	RN_INLINE uint64 SceneNode::GetTransformCacheVersion() const
+	RN_INLINE uint64 SceneNode::GetTransformCacheVersion(bool includeRoot) const
 	{
 #if RN_ENABLE_UNIVERSE_SCALE
-		return _linearTransformVersion;
+		uint64 version = _linearTransformVersion;
 #else
-		return _transformVersion;
+		uint64 version = _transformVersion;
 #endif
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		for(const SceneNode *ancestor = _parent; ancestor && (includeRoot || ancestor->_parent); ancestor = ancestor->_parent)
+#if RN_ENABLE_UNIVERSE_SCALE
+			version += ancestor->_linearTransformVersion;
+#else
+			version += ancestor->_transformVersion;
+#endif
+#endif
+		return version;
 	}
 
+	RN_INLINE uint64 SceneNode::GetTransformVersion() const
+	{
+		uint64 version = _transformVersion;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		for(const SceneNode *ancestor = _parent; ancestor; ancestor = ancestor->_parent) version += ancestor->_transformVersion;
+#endif
+		return version;
+	}
+
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+	RN_INLINE const SceneNode *SceneNode::GetHierarchyRoot() const
+	{
+		const SceneNode *root = this;
+		while(root->_parent) root = root->_parent;
+		return root;
+	}
+#endif
 
 	RN_INLINE void SceneNode::UpdateInternalData() const
 	{
-		const uint64 transformVersion = _transformVersion;
+		uint64 transformVersion = _transformVersion;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		for(const SceneNode *ancestor = _parent; ancestor && ancestor->_parent; ancestor = ancestor->_parent) transformVersion += ancestor->_transformVersion;
+#endif
 		if(_cachedWorldDataVersion != transformVersion)
 			RecalculateWorldData(transformVersion);
 	}
@@ -456,9 +500,7 @@ namespace RN
 
 	RN_INLINE void SceneNode::UpdateInternalBoundsData(uint8 requestedBounds) const
 	{
-		UpdateInternalData();
-
-		const uint64 transformVersion = GetTransformCacheVersion();
+		const uint64 transformVersion = GetTransformCacheVersion(true);
 		if((_boundsDirty & requestedBounds) || _cachedBoundsVersion != transformVersion)
 			RecalculateBounds(transformVersion, requestedBounds);
 	}
@@ -484,21 +526,34 @@ namespace RN
 	RN_INLINE PositionType SceneNode::GetWorldPosition() const
 	{
 		UpdateInternalData();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_parent)
+		{
+			const SceneNode *root = GetHierarchyRoot();
+			const Vector3 scale = root->_scale;
+			return root->GetPosition() + RotatePosition(root->_rotation, PositionType(_worldPosition.x * scale.x, _worldPosition.y * scale.y, _worldPosition.z * scale.z));
+		}
+#endif
 		return _worldPosition;
 	}
 	RN_INLINE Vector3 SceneNode::GetWorldScale() const
 	{
 		UpdateInternalData();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_parent) return GetHierarchyRoot()->GetScale() * _worldScale;
+#endif
 		return Vector3(_worldScale);
 	}
 	RN_INLINE Vector3 SceneNode::GetWorldEulerAngle() const
 	{
-		UpdateInternalData();
-		return Vector3(_worldEuler);
+		return _parent ? _parent->GetWorldEulerAngle() + _euler : _euler;
 	}
 	RN_INLINE Quaternion SceneNode::GetWorldRotation() const
 	{
 		UpdateInternalData();
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		if(_parent) return GetHierarchyRoot()->GetWorldRotation() * _worldRotation;
+#endif
 		return Quaternion(_worldRotation);
 	}
 
@@ -539,7 +594,7 @@ namespace RN
 		UpdateInternalBoundsData(BoundingBoxDirty);
 
 		AABB result(_transformedBoundingBox);
-		result.position = _worldPosition;
+		result.position = GetWorldPosition();
 		return result;
 	}
 
@@ -548,10 +603,9 @@ namespace RN
 		UpdateInternalBoundsData(BoundingSphereDirty);
 
 		Sphere result(_transformedBoundingSphere);
-		result.position = _worldPosition;
+		result.position = GetWorldPosition();
 		return result;
 	}
 } // namespace RN
-
 
 #endif /* __RAYNE_SCENENODE_H__ */

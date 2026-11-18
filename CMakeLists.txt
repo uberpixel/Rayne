@@ -15,6 +15,13 @@ option(RAYNE_ADDRESS_SANITIZER "Enable Clang address sanitizer if available" OFF
 option(RAYNE_MEMORY_SANITIZER "Enable Clang memory sanitizer if available" OFF)
 option(RAYNE_VTUNE "Enable VTune if avaialable" ON)
 option(RAYNE_UNIVERSE_SCALE "Enable universe-scale position support" OFF)
+option(RAYNE_LAZY_FRAME_ROOT_TRANSFORMS "Enable lazy scene transforms and physics frame roots" OFF)
+
+if(RAYNE_LAZY_FRAME_ROOT_TRANSFORMS)
+    set(RAYNE_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS 1)
+else()
+    set(RAYNE_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS 0)
+endif()
 
 option(CMAKE_BUILD_TYPE "The Build Type (Debug/Release)" "Debug")
 

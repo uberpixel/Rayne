@@ -83,6 +83,9 @@ namespace RN
 
 		_dirtyProjection = true;
 		_dirtyPosition = true;
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		_preparedTransformVersion = 0;
+#endif
 		_dirtyFrustum = true;
 		_hasCustomNearClipPlane = false;
 		_hasExplicitProjectionMatrix = false;
@@ -336,6 +339,14 @@ namespace RN
 
 	void Camera::PrepareRender(const PositionType &renderOrigin)
 	{
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+		const uint64 transformVersion = GetTransformVersion();
+		if(_preparedTransformVersion != transformVersion)
+		{
+			_preparedTransformVersion = transformVersion;
+			_dirtyPosition = true;
+		}
+#endif
 		if(_renderOrigin != renderOrigin)
 		{
 			_renderOrigin = renderOrigin;
@@ -501,7 +512,11 @@ namespace RN
 	void Camera::EnsureFrustumUpdated()
 	{
 		const PositionType renderOrigin = ResolveRenderOrigin();
-		if(_dirtyPosition || _dirtyProjection || _renderOrigin != renderOrigin)
+		if(_dirtyPosition || _dirtyProjection || _renderOrigin != renderOrigin
+#if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
+			|| _preparedTransformVersion != GetTransformVersion()
+#endif
+		)
 		{
 			PrepareRender(renderOrigin);
 			return;
