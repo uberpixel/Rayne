@@ -467,7 +467,7 @@ namespace RN
 		const DVector3 axis(static_cast<double>(x), static_cast<double>(y), static_cast<double>(z));
 		const double scalar = static_cast<double>(w);
 		const double lengthSquared = axis.GetDotProduct(axis) + scalar * scalar;
-		if(lengthSquared <= static_cast<double>(k::EpsilonFloat)) return vector;
+		if(lengthSquared <= k::EpsilonFloat * k::EpsilonFloat) return vector;
 
 		return (axis * (2.0 * axis.GetDotProduct(vector)) +
 			vector * (scalar * scalar - axis.GetDotProduct(axis)) +
