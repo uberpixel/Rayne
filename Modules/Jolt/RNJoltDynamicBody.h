@@ -100,6 +100,7 @@ namespace RN
 		JTAPI void SetRestitution(float restitution);
 
 		JTAPI void SetKinematicTarget(const JoltPosition &globalPosition, const Quaternion &rotation, float delta);
+		JTAPI void SetKinematicTarget(const SceneNode *source, float delta, const Vector3 &offset = Vector3(), const Quaternion &rotation = Quaternion());
 		//JTAPI void AccelerateToTarget(const Vector3 &position, const Quaternion &rotation, float delta);
 
 		JTAPI void AddForce(const Vector3 &force);

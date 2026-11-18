@@ -906,6 +906,18 @@ namespace RN
 		return _isKinematic;
 	}
 
+	void JoltDynamicBody::SetKinematicTarget(const SceneNode *source, float delta, const Vector3 &offset, const Quaternion &rotation)
+	{
+		JoltPosition position;
+		Quaternion orientation;
+		if(!offset.IsValid() || !rotation.IsValid() || !JoltNativeConversions::GetNodeTransform(source, GetJoltWorld(), position, orientation)) return;
+		position += JoltPosition(orientation.GetRotatedVector(offset));
+		orientation *= rotation;
+		orientation.Normalize();
+		if(!position.IsValid() || !orientation.IsValid()) return;
+		SetKinematicTarget(position, orientation, delta);
+	}
+
 	void JoltDynamicBody::SetKinematicTarget(const JoltPosition &globalPosition, const Quaternion &rotation, float delta)
 	{
 		if(!globalPosition.IsValid() || !rotation.IsValid())
