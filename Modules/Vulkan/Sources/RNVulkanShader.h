@@ -36,6 +36,9 @@ namespace RN
 		uint32 _hasInputVertexAttribute[static_cast<uint32>(Mesh::VertexAttribute::Feature::Custom) + 1];
 		ArgumentBuffer *_instancingAttributes;
 
+		std::vector<ArgumentBuffer *> _passBufferArguments;
+		std::vector<ArgumentBuffer *> _frameBufferArguments;
+
 		RNDeclareMetaAPI(VulkanShader, VKAPI)
 	};
 }

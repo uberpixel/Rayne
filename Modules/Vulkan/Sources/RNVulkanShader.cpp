@@ -500,6 +500,15 @@ namespace RN
 
 		Signature *signature = new Signature(buffersArray->Autorelease(), samplersArray->Autorelease(), texturesArray->Autorelease(), subpassInputsArray->Autorelease());
 		Shader::SetSignature(signature->Autorelease());
+		if(type != Type::Compute)
+		{
+			signature->GetBuffers()->Enumerate<ArgumentBuffer>([&](ArgumentBuffer *argument, size_t, bool &) {
+				if(argument->GetSource() == ArgumentBuffer::Source::Pass)
+					_passBufferArguments.push_back(argument);
+				else if(argument->GetSource() == ArgumentBuffer::Source::Frame)
+					_frameBufferArguments.push_back(argument);
+			});
+		}
 	}
 
 	VulkanShader::~VulkanShader()
