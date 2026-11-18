@@ -40,11 +40,14 @@ namespace RN
 
 	protected:
 		RNAPI SceneNodeAttachment();
+		RNAPI void SetLocalTransform(const PositionType &position, const Quaternion &rotation);
 
 		virtual void WillUpdate(SceneNode::ChangeSet changeSet) {}
 		virtual void DidUpdate(SceneNode::ChangeSet changeSet) {}
 
 	private:
+		struct ConsumePositionChange;
+
 		void __WillUpdate(SceneNode::ChangeSet changeSet);
 		void __DidUpdate(SceneNode::ChangeSet changeSet);
 

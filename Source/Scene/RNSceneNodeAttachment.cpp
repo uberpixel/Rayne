@@ -12,6 +12,20 @@ namespace RN
 {
 	RNDefineMeta(SceneNodeAttachment, Object)
 
+	struct SceneNodeAttachment::ConsumePositionChange
+	{
+		explicit ConsumePositionChange(SceneNode::ChangeSet &changeSets) :
+			changeSets(changeSets), previous(changeSets)
+		{
+			changeSets |= SceneNode::ChangeSet::Position;
+		}
+
+		~ConsumePositionChange() { changeSets = previous; }
+
+		SceneNode::ChangeSet &changeSets;
+		SceneNode::ChangeSet previous;
+	};
+
 	SceneNodeAttachment::SceneNodeAttachment() :
 		_node(nullptr), _consumeChangeSets(0)
 	{
@@ -59,30 +73,32 @@ namespace RN
 	void SceneNodeAttachment::SetWorldPosition(const PositionType &position)
 	{
 		RN_DEBUG_ASSERT(_node, "SceneNodeAttachment must be attached to a SceneNode before setting world position.");
-		_consumeChangeSets |= SceneNode::ChangeSet::Position;
+		const ConsumePositionChange consumePositionChange(_consumeChangeSets);
 		_node->SetWorldPosition(position);
-		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	void SceneNodeAttachment::SetWorldScale(const Vector3 &scale)
 	{
 		RN_DEBUG_ASSERT(_node, "SceneNodeAttachment must be attached to a SceneNode before setting world scale.");
-		_consumeChangeSets |= SceneNode::ChangeSet::Position;
+		const ConsumePositionChange consumePositionChange(_consumeChangeSets);
 		_node->SetWorldScale(scale);
-		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	void SceneNodeAttachment::SetWorldRotation(const Quaternion &rotation)
 	{
 		RN_DEBUG_ASSERT(_node, "SceneNodeAttachment must be attached to a SceneNode before setting world rotation.");
-		_consumeChangeSets |= SceneNode::ChangeSet::Position;
+		const ConsumePositionChange consumePositionChange(_consumeChangeSets);
 		_node->SetWorldRotation(rotation);
-		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	void SceneNodeAttachment::SetWorldTransform(const PositionType &position, const Quaternion &rotation)
 	{
 		RN_DEBUG_ASSERT(_node, "SceneNodeAttachment must be attached to a SceneNode before setting world transform.");
-		_consumeChangeSets |= SceneNode::ChangeSet::Position;
+		const ConsumePositionChange consumePositionChange(_consumeChangeSets);
 		_node->SetWorldTransform(position, rotation);
-		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
+	}
+	void SceneNodeAttachment::SetLocalTransform(const PositionType &position, const Quaternion &rotation)
+	{
+		RN_DEBUG_ASSERT(_node, "SceneNodeAttachment must be attached before setting local transform.");
+		const ConsumePositionChange consumePositionChange(_consumeChangeSets);
+		_node->SetTransform(position, rotation);
 	}
 	PositionType SceneNodeAttachment::GetWorldPosition() const
 	{
