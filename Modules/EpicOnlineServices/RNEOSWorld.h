@@ -31,6 +31,7 @@ typedef struct _tagEOS_P2P_SendPacketOptions EOS_P2P_SendPacketOptions;
 typedef struct _tagEOS_Connect_LoginCallbackInfo EOS_Connect_LoginCallbackInfo;
 typedef struct _tagEOS_Connect_CreateDeviceIdCallbackInfo EOS_Connect_CreateDeviceIdCallbackInfo;
 typedef struct _tagEOS_Connect_CreateUserCallbackInfo EOS_Connect_CreateUserCallbackInfo;
+typedef struct _tagEOS_Connect_QueryProductUserIdMappingsCallbackInfo EOS_Connect_QueryProductUserIdMappingsCallbackInfo;
 typedef struct _tagEOS_Connect_AuthExpirationCallbackInfo EOS_Connect_AuthExpirationCallbackInfo;
 typedef struct _tagEOS_Connect_LoginStatusChangedCallbackInfo EOS_Connect_LoginStatusChangedCallbackInfo;
 
@@ -81,6 +82,11 @@ namespace RN
 		EOSAPI String *GetLocalUserIdTokenString() const;
 		EOSAPI void SetLoginCallback(std::function<void(bool)> callback);
 
+		// Keep the user ID array alive until completion.
+		EOSAPI void QueryProductUserIdMappings(EOS_ProductUserId *users, uint32 count, std::function<void(bool)> callback);
+		// Reads cached mappings after a successful query.
+		EOSAPI bool HasLinkedExternalAccount(EOS_ProductUserId user) const;
+
 		EOSAPI double Ping(String *address, size_t repetitions);
 
 	protected:
@@ -100,6 +106,7 @@ namespace RN
 		static void ConnectOnCreateDeviceIDCallback(const EOS_Connect_CreateDeviceIdCallbackInfo *Data);
 		static void ConnectOnCreateUserCallback(const EOS_Connect_CreateUserCallbackInfo *Data);
 		static void ConnectOnLoginCallback(const EOS_Connect_LoginCallbackInfo *Data);
+		static void ConnectOnQueryProductUserIdMappingsCallback(const EOS_Connect_QueryProductUserIdMappingsCallbackInfo *data);
 		static void ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data);
 		static void ConnectOnLoginStatusChangedCallback(const EOS_Connect_LoginStatusChangedCallbackInfo *Data);
 
@@ -119,6 +126,8 @@ namespace RN
 
 		mutable Lockable _userIDStringsLock;
 		mutable std::unordered_map<EOS_ProductUserId, StrongRef<const String>> _userIDStrings;
+
+		std::unordered_map<uintptr_t, std::function<void(bool)>> _externalAccountQueries;
 
 		EOS_HPlatform _platformHandle;
 		EOS_HConnect _connectInterfaceHandle;

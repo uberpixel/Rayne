@@ -157,6 +157,7 @@ namespace RN
 
 	EOSWorld::~EOSWorld()
 	{
+		_externalAccountQueries.clear();
 		EOSLobbyManager *lobbyManager = _lobbyManager;
 		if(lobbyManager) lobbyManager->SetGlobalAudioOptions(false, false, nullptr, nullptr);
 		_lobbyManager = nullptr;
@@ -370,6 +371,38 @@ namespace RN
 	void EOSWorld::SetLoginCallback(std::function<void(bool)> callback)
 	{
 		_loginCallback = std::move(callback);
+	}
+
+	void EOSWorld::QueryProductUserIdMappings(EOS_ProductUserId *users, uint32 count, std::function<void(bool)> callback)
+	{
+		if(!callback) return;
+		if(!_connectInterfaceHandle || _loginState != LoginStateIsLoggedIn || !users || !count)
+		{
+			callback(false);
+			return;
+		}
+
+		// EOS does not let callers cancel this request. Resolve completions by token.
+		static uintptr_t nextToken = 1;
+		const uintptr_t token = nextToken++;
+		_externalAccountQueries.emplace(token, std::move(callback));
+
+		EOS_Connect_QueryProductUserIdMappingsOptions options = {};
+		options.ApiVersion = EOS_CONNECT_QUERYPRODUCTUSERIDMAPPINGS_API_LATEST;
+		options.LocalUserId = _loggedInUserID;
+		options.ProductUserIds = users;
+		options.ProductUserIdCount = count;
+		EOS_Connect_QueryProductUserIdMappings(_connectInterfaceHandle, &options, reinterpret_cast<void *>(token), ConnectOnQueryProductUserIdMappingsCallback);
+	}
+
+	bool EOSWorld::HasLinkedExternalAccount(EOS_ProductUserId user) const
+	{
+		if(!_connectInterfaceHandle || !EOS_ProductUserId_IsValid(user)) return false;
+
+		EOS_Connect_GetProductUserExternalAccountCountOptions options = {};
+		options.ApiVersion = EOS_CONNECT_GETPRODUCTUSEREXTERNALACCOUNTCOUNT_API_LATEST;
+		options.TargetUserId = user;
+		return EOS_Connect_GetProductUserExternalAccountCount(_connectInterfaceHandle, &options) > 0;
 	}
 
 	double EOSWorld::Ping(String *ip, size_t repetitions)
@@ -713,6 +746,22 @@ namespace RN
 			return;
 		}
 		eosWorld->FinishLogin(nullptr);
+	}
+
+	void EOSWorld::ConnectOnQueryProductUserIdMappingsCallback(const EOS_Connect_QueryProductUserIdMappingsCallbackInfo *data)
+	{
+		EOSWorld *world = GetInstance();
+		if(!world || !EOS_EResult_IsOperationComplete(data->ResultCode)) return;
+
+		auto &queries = world->_externalAccountQueries;
+		auto pending = queries.find(reinterpret_cast<uintptr_t>(data->ClientData));
+		if(pending == queries.end()) return;
+		auto callback = std::move(pending->second);
+		queries.erase(pending);
+
+		const bool success = data->ResultCode == EOS_EResult::EOS_Success;
+		if(!success) RNDebug("Failed querying external account mappings: " << EOS_EResult_ToString(data->ResultCode));
+		callback(success);
 	}
 
 	void EOSWorld::ConnectOnAuthExpirationCallback(const EOS_Connect_AuthExpirationCallbackInfo *Data)
