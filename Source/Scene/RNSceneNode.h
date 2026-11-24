@@ -237,6 +237,8 @@ namespace RN
 		const SceneNode *GetHierarchyRoot() const;
 #endif
 		void SetParent(SceneNode *parent);
+		template<class VectorType>
+		VectorType ApplyInverseScale(const VectorType &value) const;
 		PositionType ConvertWorldPositionToLocal(const PositionType &position) const;
 		static PositionType TransformLinearPosition(const Matrix &transform, const PositionType &position);
 		void UpdateInternalData() const;

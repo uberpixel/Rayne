@@ -737,14 +737,23 @@ namespace RN
 			transform.m[2] * position.x + transform.m[6] * position.y + transform.m[10] * position.z);
 	}
 
+	template<class VectorType>
+	VectorType SceneNode::ApplyInverseScale(const VectorType &value) const
+	{
+		const auto divideAxis = [](auto component, float scale) {
+			return std::abs(scale) > 1.0 / FLT_MAX ? component / scale : 0;
+		};
+		const Vector3 &scale = GetScale();
+		return VectorType(divideAxis(value.x, scale.x), divideAxis(value.y, scale.y), divideAxis(value.z, scale.z));
+	}
+
 	PositionType SceneNode::ConvertWorldPositionToLocal(const PositionType &position) const
 	{
 		if(!_parent) return position;
 #if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		const SceneNode *root = GetHierarchyRoot();
 		const PositionType offset = RotatePosition(root->_rotation->GetConjugated(), position - root->GetPosition());
-		const Vector3 scale = root->GetScale();
-		const PositionType unscaled(scale.x != 0.0f ? offset.x / scale.x : 0.0, scale.y != 0.0f ? offset.y / scale.y : 0.0, scale.z != 0.0f ? offset.z / scale.z : 0.0);
+		const PositionType unscaled = root->ApplyInverseScale(offset);
 		if(_parent == root) return unscaled;
 		_parent->UpdateInternalData();
 		_parent->UpdateInternalInverseTransformData();
@@ -869,19 +878,11 @@ namespace RN
 
 	void SceneNode::RecalculateInverseWorldTransform(uint64 transformVersion) const
 	{
-		const auto getInverseScale = [this]() {
-			const auto reciprocal = [](auto scale) {
-				return std::abs(scale) > 1.0 / FLT_MAX ? 1.0f / scale : 0.0f;
-			};
-			const Vector3 &scale = GetScale();
-			return Vector3(reciprocal(scale.x), reciprocal(scale.y), reciprocal(scale.z));
-		};
-
 #if RN_ENABLE_UNIVERSE_SCALE
 		if(_inverseLocalTransformDirty)
 #endif
 		{
-			_inverseLocalTransform = Matrix::WithScaling(getInverseScale());
+			_inverseLocalTransform = Matrix::WithScaling(ApplyInverseScale(Vector3(1.0f)));
 			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
 #if RN_ENABLE_UNIVERSE_SCALE
 			_inverseLocalTransformDirty = false;
@@ -902,7 +903,7 @@ namespace RN
 #if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		else if(!_parent)
 		{
-			_inverseWorldTransform = Matrix::WithScaling(getInverseScale());
+			_inverseWorldTransform = Matrix::WithScaling(ApplyInverseScale(Vector3(1.0f)));
 			_inverseWorldTransform.Rotate(_rotation->GetNormalized().GetConjugated());
 #if !RN_ENABLE_UNIVERSE_SCALE
 			_inverseWorldTransform.Translate(Vector3(_position) * -1.0f);
