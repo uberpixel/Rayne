@@ -869,11 +869,19 @@ namespace RN
 
 	void SceneNode::RecalculateInverseWorldTransform(uint64 transformVersion) const
 	{
+		const auto getInverseScale = [this]() {
+			const auto reciprocal = [](auto scale) {
+				return std::abs(scale) > 1.0 / FLT_MAX ? 1.0f / scale : 0.0f;
+			};
+			const Vector3 &scale = GetScale();
+			return Vector3(reciprocal(scale.x), reciprocal(scale.y), reciprocal(scale.z));
+		};
+
 #if RN_ENABLE_UNIVERSE_SCALE
 		if(_inverseLocalTransformDirty)
 #endif
 		{
-			_inverseLocalTransform = Matrix::WithScaling(_scale != 0.0f ? (Vector3(1.0f, 1.0f, 1.0f) / _scale) : Vector3(0.0f, 0.0f, 0.0f));
+			_inverseLocalTransform = Matrix::WithScaling(getInverseScale());
 			_inverseLocalTransform.Rotate(_rotation->GetConjugated());
 #if RN_ENABLE_UNIVERSE_SCALE
 			_inverseLocalTransformDirty = false;
@@ -894,7 +902,7 @@ namespace RN
 #if RN_ENABLE_LAZY_FRAME_ROOT_TRANSFORMS
 		else if(!_parent)
 		{
-			_inverseWorldTransform = Matrix::WithScaling(_scale != 0.0f ? Vector3(1.0f) / _scale : Vector3(0.0f));
+			_inverseWorldTransform = Matrix::WithScaling(getInverseScale());
 			_inverseWorldTransform.Rotate(_rotation->GetNormalized().GetConjugated());
 #if !RN_ENABLE_UNIVERSE_SCALE
 			_inverseWorldTransform.Translate(Vector3(_position) * -1.0f);
