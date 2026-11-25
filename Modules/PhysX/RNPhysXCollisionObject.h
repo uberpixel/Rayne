@@ -66,6 +66,7 @@ namespace RN
 		PXAPI virtual void GetPhysXTransform(Vector3 &position, Quaternion &rotation) const;
 
 		PXAPI virtual physx::PxRigidActor *GetPhysXRigidActor() const = 0;
+		PXAPI void ResetFiltering();
 
 	protected:
 		void DidUpdate(SceneNode::ChangeSet changeSet) override;
