@@ -110,4 +110,16 @@ namespace RN
 		position = Vector3();
 		rotation = Quaternion();
 	}
+
+	void PhysXCollisionObject::ResetFiltering()
+	{
+		if(physx::PxRigidActor *actor = GetPhysXRigidActor())
+		{
+			PhysXWorld *world = PhysXWorld::GetSharedInstance();
+			world->Lock();
+			physx::PxScene *scene = world->GetPhysXScene();
+			scene->resetFiltering(*actor);
+			world->Unlock();
+		}
+	}
 } // namespace RN
